@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
 import { checkRateLimit, recordLoginFailure, recordLoginSuccess } from "@/lib/auth/rate-limit";
 import { logAudit, getRequestMeta } from "@/lib/audit/log";
+import { setSentryUserContext } from "@/lib/sentry/context";
 
 const LOGIN_ACTION_TYPE = "login_attempt";
 
@@ -119,6 +120,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as string;
         session.user.companyId = token.companyId as string;
         session.user.companySlug = token.companySlug as string;
+
+        setSentryUserContext({
+          id: session.user.id,
+          role: session.user.role,
+          companyId: session.user.companyId,
+        });
       }
       return session;
     },

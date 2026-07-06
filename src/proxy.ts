@@ -40,8 +40,12 @@ export const proxy = auth((req) => {
     return NextResponse.next();
   }
 
-  // Route dashboard per company: /[companySlug]/...
-  const companySlugMatch = pathname.match(/^\/([^/]+)(\/.*)?$/);
+  // Route dashboard per company: /[companySlug]/... — JANGAN cocokkan /api/*,
+  // itu bukan halaman company sama sekali (kalau tidak, "/api/xxx" akan
+  // dianggap seolah company slug-nya "api" dan salah redirect).
+  const companySlugMatch = pathname.startsWith("/api/")
+    ? null
+    : pathname.match(/^\/([^/]+)(\/.*)?$/);
   if (companySlugMatch) {
     const urlCompanySlug = companySlugMatch[1];
     if (!canAccessCompanySlug(session.user, urlCompanySlug)) {
