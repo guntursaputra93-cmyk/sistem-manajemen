@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { dbAdmin } from "@/lib/db";
-import { users } from "@/drizzle/schema";
+import { users, companies } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
 import { checkRateLimit, recordLoginFailure, recordLoginSuccess } from "@/lib/auth/rate-limit";
@@ -43,11 +43,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // Lookup ini WAJIB lewat dbAdmin (bypass RLS), bukan db (app_user) — saat
         // login belum ada session/company context sama sekali untuk dicocokkan RLS,
         // dan email harus bisa dicari lintas-company karena unique secara global.
-        const [user] = await dbAdmin
-          .select()
+        // Sekalian join companies untuk slug — dipakai proxy.ts membandingkan
+        // [companySlug] di URL tanpa perlu query DB lagi di setiap request.
+        const [row] = await dbAdmin
+          .select({ user: users, companySlug: companies.slug })
           .from(users)
+          .innerJoin(companies, eq(users.companyId, companies.id))
           .where(eq(users.email, email))
           .limit(1);
+
+        const user = row?.user;
 
         if (!user || !user.isActive) {
           await recordLoginFailure(email, LOGIN_ACTION_TYPE);
@@ -92,6 +97,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.fullName,
           role: user.role,
           companyId: user.companyId,
+          companySlug: row.companySlug,
         };
       },
     }),
@@ -99,9 +105,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as typeof user & { role: string }).role;
-        token.companyId = (user as typeof user & { companyId: string }).companyId;
+        const u = user as typeof user & { role: string; companyId: string; companySlug: string };
+        token.id = u.id as string;
+        token.role = u.role;
+        token.companyId = u.companyId;
+        token.companySlug = u.companySlug;
       }
       return token;
     },
@@ -110,6 +118,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.companyId = token.companyId as string;
+        session.user.companySlug = token.companySlug as string;
       }
       return session;
     },
