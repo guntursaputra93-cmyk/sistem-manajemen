@@ -4,6 +4,10 @@ import { dbAdmin } from "@/lib/db";
 import { users } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
+import { checkRateLimit, recordLoginFailure, recordLoginSuccess } from "@/lib/auth/rate-limit";
+import { logAudit, getRequestMeta } from "@/lib/audit/log";
+
+const LOGIN_ACTION_TYPE = "login_attempt";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
@@ -14,10 +18,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        const email = credentials?.email as string | undefined;
+      async authorize(credentials, request) {
+        const rawEmail = credentials?.email as string | undefined;
         const password = credentials?.password as string | undefined;
-        if (!email || !password) return null;
+        const { ipAddress, userAgent } = getRequestMeta(request);
+
+        if (!rawEmail || !password) return null;
+
+        const email = rawEmail.toLowerCase();
+
+        // Cek rate limit SEBELUM cek password sama sekali — kalau sedang terkunci,
+        // tolak percobaan ini apapun password-nya (itu inti dari lockout).
+        const rateLimitStatus = await checkRateLimit(email, LOGIN_ACTION_TYPE);
+        if (rateLimitStatus.locked) {
+          await logAudit({
+            action: "login_failed",
+            metadata: { reason: "rate_limited", email },
+            ipAddress,
+            userAgent,
+          });
+          return null;
+        }
 
         // Lookup ini WAJIB lewat dbAdmin (bypass RLS), bukan db (app_user) — saat
         // login belum ada session/company context sama sekali untuk dicocokkan RLS,
@@ -28,11 +49,42 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .where(eq(users.email, email))
           .limit(1);
 
-        if (!user) return null;
-        if (!user.isActive) return null;
+        if (!user || !user.isActive) {
+          await recordLoginFailure(email, LOGIN_ACTION_TYPE);
+          await logAudit({
+            companyId: user?.companyId ?? null,
+            userId: user?.id ?? null,
+            action: "login_failed",
+            metadata: { reason: !user ? "user_not_found" : "inactive_user", email },
+            ipAddress,
+            userAgent,
+          });
+          return null;
+        }
 
         const passwordValid = await verifyPassword(password, user.passwordHash);
-        if (!passwordValid) return null;
+        if (!passwordValid) {
+          await recordLoginFailure(email, LOGIN_ACTION_TYPE);
+          await logAudit({
+            companyId: user.companyId,
+            userId: user.id,
+            action: "login_failed",
+            metadata: { reason: "wrong_password", email },
+            ipAddress,
+            userAgent,
+          });
+          return null;
+        }
+
+        await recordLoginSuccess(email, LOGIN_ACTION_TYPE);
+        await logAudit({
+          companyId: user.companyId,
+          userId: user.id,
+          action: "login",
+          metadata: { email },
+          ipAddress,
+          userAgent,
+        });
 
         return {
           id: user.id,
