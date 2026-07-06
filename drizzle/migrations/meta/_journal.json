@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783297352337,
+      "tag": "0000_create_companies",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783297391119,
+      "tag": "0001_setup_app_role_and_rls_companies",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783298521273,
+      "tag": "0002_create_departments",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783298581961,
+      "tag": "0003_rls_departments",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783298662058,
+      "tag": "0004_create_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783298736927,
+      "tag": "0005_rls_users",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783298842991,
+      "tag": "0006_create_company_modules_audit_ratelimits",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783298920315,
+      "tag": "0007_rls_company_modules_and_audit_trails",
+      "breakpoints": true
+    }
+  ]
+}
