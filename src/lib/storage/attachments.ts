@@ -1,0 +1,72 @@
+import { randomUUID } from "crypto";
+import type { db as Db } from "@/lib/db";
+import { attachments, attachmentEntityTypeEnum } from "@/drizzle/schema";
+import { supabaseAdmin, ATTACHMENTS_BUCKET, ensureAttachmentsBucket } from "./client";
+import { isValidPdfMagicBytes, MAX_ATTACHMENT_SIZE_BYTES } from "./pdf";
+
+export type AttachmentEntityType = (typeof attachmentEntityTypeEnum.enumValues)[number];
+export const ATTACHMENT_ENTITY_TYPES = attachmentEntityTypeEnum.enumValues;
+
+export class AttachmentValidationError extends Error {}
+
+export type UploadAttachmentParams = {
+  file: File;
+  companyId: string;
+  entityType: AttachmentEntityType;
+  entityId: string;
+  uploadedBy: string;
+};
+
+export async function uploadAttachment(tx: typeof Db, params: UploadAttachmentParams) {
+  const { file, companyId, entityType, entityId, uploadedBy } = params;
+
+  if (file.size > MAX_ATTACHMENT_SIZE_BYTES) {
+    throw new AttachmentValidationError("Ukuran file melebihi 5MB.");
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  if (!isValidPdfMagicBytes(buffer)) {
+    throw new AttachmentValidationError("File bukan PDF yang valid (magic bytes tidak cocok).");
+  }
+
+  await ensureAttachmentsBucket();
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const objectPath = `${companyId}/${entityType}/${entityId}/${randomUUID()}-${safeName}`;
+
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from(ATTACHMENTS_BUCKET)
+    .upload(objectPath, buffer, { contentType: "application/pdf", upsert: false });
+
+  if (uploadError) {
+    throw new Error(`Gagal upload ke Storage: ${uploadError.message}`);
+  }
+
+  const [row] = await tx
+    .insert(attachments)
+    .values({
+      companyId,
+      entityType,
+      entityId,
+      filePath: objectPath,
+      fileName: file.name,
+      fileSize: file.size,
+      uploadedBy,
+    })
+    .returning();
+
+  return row;
+}
+
+// Tenggat pendek (5-15 menit) sesuai spesifikasi Bagian 2.1 — default 10 menit.
+export async function createSignedDownloadUrl(filePath: string, expiresInSeconds = 600): Promise<string> {
+  const { data, error } = await supabaseAdmin.storage
+    .from(ATTACHMENTS_BUCKET)
+    .createSignedUrl(filePath, expiresInSeconds);
+
+  if (error || !data) {
+    throw new Error(`Gagal membuat signed URL: ${error?.message}`);
+  }
+  return data.signedUrl;
+}
