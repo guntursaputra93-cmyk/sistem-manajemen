@@ -10,11 +10,15 @@ import {
   outgoingLetters,
   approvalSteps,
   attachments as attachmentsTable,
+  organizations,
+  opportunities,
+  proposalItems,
 } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
-import { requireModuleEnabled } from "@/lib/modules";
+import { requireModuleEnabled, isModuleEnabled } from "@/lib/modules";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
 import { submitForApprovalAction, decideApprovalAction, markSentAction } from "../actions";
+import { createProposalItemAction, updateProposalItemAction, deleteProposalItemAction } from "../../crm/proposal/actions";
 
 const CATEGORY_LABEL: Record<string, string> = {
   surat_keluar: "Surat Keluar",
@@ -64,7 +68,10 @@ export default async function SuratKeluarDetailPage({
   );
   if (!letter) notFound();
 
-  const [steps, deptList, userList, attachmentRows] = await Promise.all([
+  const crmModuleOn = await withTenantContext(tenantContext, (tx) => isModuleEnabled(tx, { companyId: company.id, moduleKey: "crm" }));
+  const showProposalItems = letter.jenisKey === "penawaran" && crmModuleOn;
+
+  const [steps, deptList, userList, attachmentRows, org, itemRows, oppList] = await Promise.all([
     withTenantContext(tenantContext, (tx) =>
       tx
         .select()
@@ -80,6 +87,15 @@ export default async function SuratKeluarDetailPage({
         .from(attachmentsTable)
         .where(and(eq(attachmentsTable.entityType, letter.letterCategory), eq(attachmentsTable.entityId, letter.id)))
     ),
+    letter.organizationId
+      ? withTenantContext(tenantContext, (tx) => tx.select().from(organizations).where(eq(organizations.id, letter.organizationId!))).then((r) => r[0])
+      : Promise.resolve(undefined),
+    showProposalItems
+      ? withTenantContext(tenantContext, (tx) => tx.select().from(proposalItems).where(eq(proposalItems.outgoingLetterId, letter.id)))
+      : Promise.resolve([]),
+    showProposalItems && letter.organizationId
+      ? withTenantContext(tenantContext, (tx) => tx.select().from(opportunities).where(and(eq(opportunities.companyId, company.id), eq(opportunities.organizationId, letter.organizationId!))))
+      : Promise.resolve([]),
   ]);
 
   const department = deptList.find((d) => d.id === letter.departmentId);
@@ -89,6 +105,7 @@ export default async function SuratKeluarDetailPage({
 
   const canAct = hasPermission(session.user.role, "CREATE_OUTGOING_LETTER");
   const canMarkSent = hasPermission(session.user.role, "MARK_OUTGOING_LETTER_SENT");
+  const proposalTotal = itemRows.reduce((sum, i) => sum + Number(i.subtotal), 0);
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -126,6 +143,12 @@ export default async function SuratKeluarDetailPage({
             {letter.letterCategory === "surat_keluar" ? letter.recipient : [recipientDept?.name, recipientUser?.fullName].filter(Boolean).join(" — ")}
           </p>
         </div>
+        {org && (
+          <div>
+            <span className="text-gray-500">Organisasi (CRM)</span>
+            <p className="text-gray-900">{org.name}</p>
+          </div>
+        )}
         {letter.bodyContent && (
           <div className="col-span-2">
             <span className="text-gray-500">Isi</span>
@@ -199,6 +222,118 @@ export default async function SuratKeluarDetailPage({
             Tandai Terkirim
           </button>
         </form>
+      )}
+
+      {showProposalItems && (
+        <section className="bg-white border border-gray-100 rounded-xl p-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Item Proposal</h2>
+
+          <table className="w-full text-sm mb-4">
+            <thead className="text-gray-500 text-xs uppercase">
+              <tr>
+                <th className="text-left py-1">Item</th>
+                <th className="text-left py-1">Kuantitas</th>
+                <th className="text-left py-1">Satuan</th>
+                <th className="text-left py-1">Harga Satuan</th>
+                <th className="text-left py-1">Subtotal</th>
+                <th className="text-left py-1">Opportunity</th>
+                {canAct && <th className="text-left py-1">Aksi</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {itemRows.length === 0 && (
+                <tr><td colSpan={canAct ? 7 : 6} className="py-3 text-center text-gray-400 italic">Belum ada item.</td></tr>
+              )}
+              {itemRows.map((item) => {
+                const opp = oppList.find((o) => o.id === item.opportunityId);
+                return (
+                  <tr key={item.id} className="border-t border-gray-100 align-top">
+                    <td className="py-2">{item.itemName}</td>
+                    <td className="py-2">{item.quantity}</td>
+                    <td className="py-2">{item.unit}</td>
+                    <td className="py-2">Rp {Number(item.unitPrice).toLocaleString("id-ID")}</td>
+                    <td className="py-2">Rp {Number(item.subtotal).toLocaleString("id-ID")}</td>
+                    <td className="py-2">{opp?.title ?? "-"}</td>
+                    {canAct && (
+                      <td className="py-2">
+                        <details className="inline-block mr-2">
+                          <summary className="text-blue-600 hover:underline text-xs cursor-pointer inline">Ubah</summary>
+                          <form action={updateProposalItemAction} className="mt-2 space-y-2 w-64">
+                            <input type="hidden" name="companySlug" value={companySlug} />
+                            <input type="hidden" name="outgoingLetterId" value={letter.id} />
+                            <input type="hidden" name="itemId" value={item.id} />
+                            <input name="itemName" defaultValue={item.itemName} required className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <div className="flex gap-2">
+                              <input name="quantity" type="number" step="0.01" defaultValue={item.quantity} required className="w-1/2 border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                              <input name="unit" defaultValue={item.unit} required className="w-1/2 border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            </div>
+                            <input name="unitPrice" type="number" step="0.01" defaultValue={item.unitPrice} required className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <input name="notes" defaultValue={item.notes ?? ""} placeholder="Catatan" className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1 rounded-lg transition">Simpan</button>
+                          </form>
+                        </details>
+                        <form action={deleteProposalItemAction} className="inline">
+                          <input type="hidden" name="companySlug" value={companySlug} />
+                          <input type="hidden" name="outgoingLetterId" value={letter.id} />
+                          <input type="hidden" name="itemId" value={item.id} />
+                          <button type="submit" className="text-red-600 hover:underline text-xs">Hapus</button>
+                        </form>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr className="border-t border-gray-200 font-semibold">
+                <td className="py-2" colSpan={4}>Total Nilai Proposal</td>
+                <td className="py-2">Rp {proposalTotal.toLocaleString("id-ID")}</td>
+                <td colSpan={canAct ? 2 : 1} />
+              </tr>
+            </tfoot>
+          </table>
+
+          {canAct && (
+            <form action={createProposalItemAction} className="grid grid-cols-3 gap-3">
+              <input type="hidden" name="companySlug" value={companySlug} />
+              <input type="hidden" name="outgoingLetterId" value={letter.id} />
+              <div className="col-span-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Nama Item</label>
+                <input name="itemName" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Kuantitas</label>
+                <input name="quantity" type="number" step="0.01" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Satuan</label>
+                <input name="unit" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Harga Satuan (Rp)</label>
+                <input name="unitPrice" type="number" step="0.01" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              {oppList.length > 0 && (
+                <div className="col-span-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Kaitkan ke Opportunity (opsional — estimasi nilai opportunity akan otomatis diperbarui)</label>
+                  <select name="opportunityId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                    <option value="">-- tidak dikaitkan --</option>
+                    {oppList.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
+                  </select>
+                </div>
+              )}
+              <div className="col-span-3">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Catatan (opsional)</label>
+                <input name="notes" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div className="col-span-3">
+                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                  Tambah Item
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
       )}
 
       <section className="bg-white border border-gray-100 rounded-xl p-6">

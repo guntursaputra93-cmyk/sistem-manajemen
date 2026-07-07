@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { companies } from "./companies";
 import { departments } from "./departments";
 import { users } from "./users";
+import { organizations } from "./organizations";
 
 // Sama persis dengan sequenceTypeEnum (letterNumberSequences) — surat keluar &
 // nota dinas 1 tabel, dibedakan kategori (lihat spesifikasi Bagian 2.3).
@@ -31,6 +32,8 @@ export const outgoingLetters = pgTable("outgoing_letters", {
   recipientDepartmentId: uuid("recipient_department_id").references(() => departments.id, { onDelete: "set null" }),
   recipientUserId: uuid("recipient_user_id").references(() => users.id, { onDelete: "set null" }),
   subject: text("subject").notNull(),
+  // Link ke CRM (modul CRM Langkah 4) — dipakai utk surat penawaran (jenis_key='penawaran'), nullable krn surat lain tidak terkait organisasi.
+  organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "set null" }),
   status: outgoingLetterStatusEnum("status").notNull().default("draft"),
   bodyContent: text("body_content"),
   createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
