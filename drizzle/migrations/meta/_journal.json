@@ -57,6 +57,125 @@
       "when": 1783298920315,
       "tag": "0007_rls_company_modules_and_audit_trails",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783390405456,
+      "tag": "0008_add_code_to_companies_and_departments",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783391877439,
+      "tag": "0009_create_letter_number_sequences",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783391908698,
+      "tag": "0010_rls_letter_number_sequences",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1783393127222,
+      "tag": "0011_create_attachments",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1783393138389,
+      "tag": "0012_rls_attachments",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1783393894757,
+      "tag": "0013_create_approval_flows_and_steps",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1783393901354,
+      "tag": "0014_rls_approval_flows_and_steps",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1783394735784,
+      "tag": "0015_create_incoming_letters_and_dispositions",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1783394749064,
+      "tag": "0016_rls_incoming_letters_and_dispositions",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1783395304563,
+      "tag": "0017_create_outgoing_letters",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1783395314302,
+      "tag": "0018_rls_and_indexes_outgoing_letters",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1783396430437,
+      "tag": "0019_create_documents_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1783396440829,
+      "tag": "0020_rls_and_indexes_documents",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1783397089872,
+      "tag": "0021_create_document_access_rules_and_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1783397100853,
+      "tag": "0022_rls_document_access_rules_and_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1783402324336,
+      "tag": "0023_create_dashboard_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1783402335565,
+      "tag": "0024_rls_dashboard_settings",
+      "breakpoints": true
     }
   ]
 }
