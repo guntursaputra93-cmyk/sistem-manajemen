@@ -26,10 +26,11 @@ export default async function CompanyDashboardLayout({
 
   if (!company) notFound();
 
-  const [suratModuleOn, dokumenModuleOn] = await withTenantContext(tenantContext, (tx) =>
+  const [suratModuleOn, dokumenModuleOn, crmModuleOn] = await withTenantContext(tenantContext, (tx) =>
     Promise.all([
       isModuleEnabled(tx, { companyId: company.id, moduleKey: "surat_masuk_keluar" }),
       isModuleEnabled(tx, { companyId: company.id, moduleKey: "pengendalian_dokumen" }),
+      isModuleEnabled(tx, { companyId: company.id, moduleKey: "crm" }),
     ])
   );
 
@@ -60,6 +61,31 @@ export default async function CompanyDashboardLayout({
             (suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS"))) && (
             <Link href={`/${companySlug}/arsip`} className="text-sm text-blue-600 hover:underline">
               Arsip
+            </Link>
+          )}
+          {crmModuleOn && hasPermission(session.user.role, "VIEW_ORGANIZATIONS") && (
+            <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-blue-600 hover:underline">
+              CRM
+            </Link>
+          )}
+          {crmModuleOn && hasPermission(session.user.role, "VIEW_OPPORTUNITIES") && (
+            <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-blue-600 hover:underline">
+              Opportunity
+            </Link>
+          )}
+          {crmModuleOn && suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS") && (
+            <Link href={`/${companySlug}/crm/proposal`} className="text-sm text-blue-600 hover:underline">
+              Proposal
+            </Link>
+          )}
+          {crmModuleOn && hasPermission(session.user.role, "VIEW_CONTRACTS") && (
+            <Link href={`/${companySlug}/crm/contracts`} className="text-sm text-blue-600 hover:underline">
+              Contract
+            </Link>
+          )}
+          {crmModuleOn && hasPermission(session.user.role, "VIEW_OPPORTUNITIES") && (
+            <Link href={`/${companySlug}/crm/dashboard`} className="text-sm text-blue-600 hover:underline">
+              Dashboard CRM
             </Link>
           )}
           {hasPermission(session.user.role, "MANAGE_DEPARTMENTS") && (

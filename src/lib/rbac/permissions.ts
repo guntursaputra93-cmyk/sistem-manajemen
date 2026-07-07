@@ -33,6 +33,23 @@ export const PERMISSIONS = {
   VIEW_DASHBOARD_MONITORING: ["super_admin", "company_admin"],
   MANAGE_DASHBOARD_SETTINGS: ["super_admin", "company_admin"],
 
+  VIEW_ORGANIZATIONS: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_ORGANIZATIONS: ["super_admin", "company_admin", "department_head", "staff"],
+
+  MANAGE_PIPELINE_STAGES: ["super_admin", "company_admin"],
+
+  VIEW_OPPORTUNITIES: ["super_admin", "company_admin", "department_head", "staff"],
+  CREATE_OPPORTUNITY: ["super_admin", "company_admin", "department_head", "staff"],
+  REASSIGN_OPPORTUNITY: ["super_admin", "company_admin", "department_head"],
+
+  // contract dibuat otomatis (lihat lib/crm/contracts.ts) — hanya company_admin/super_admin
+  // yang boleh mengedit nilai/tanggal/status pembayarannya (spesifikasi CRM Bagian 4).
+  VIEW_CONTRACTS: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_CONTRACTS: ["super_admin", "company_admin"],
+
+  VIEW_ACTIVITIES: ["super_admin", "company_admin", "department_head", "staff"],
+  CREATE_ACTIVITY: ["super_admin", "company_admin", "department_head", "staff"],
+
   VIEW_AUDIT_TRAIL: ["super_admin", "company_admin"],
 } as const satisfies Record<string, readonly Role[]>;
 

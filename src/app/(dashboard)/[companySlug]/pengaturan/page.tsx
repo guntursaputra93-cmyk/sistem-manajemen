@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { isModuleEnabled } from "@/lib/modules";
 import { updateCompanyCode } from "./actions";
 
 export default async function PengaturanPage({
@@ -31,6 +32,7 @@ export default async function PengaturanPage({
   if (!company) notFound();
 
   const canEditCompanyCode = hasPermission(session.user.role, "MANAGE_COMPANIES");
+  const crmModuleOn = await withTenantContext(tenantContext, (tx) => isModuleEnabled(tx, { companyId: company.id, moduleKey: "crm" }));
 
   return (
     <div className="max-w-2xl space-y-8">
@@ -136,6 +138,16 @@ export default async function PengaturanPage({
           <p className="text-xs text-gray-500 mb-4">Aktif/nonaktifkan Surat Masuk-Keluar & Pengendalian Dokumen.</p>
           <Link href={`/${companySlug}/pengaturan/modul`} className="text-sm text-blue-600 hover:underline">
             Buka pengaturan modul &rarr;
+          </Link>
+        </section>
+      )}
+
+      {crmModuleOn && hasPermission(session.user.role, "MANAGE_PIPELINE_STAGES") && (
+        <section className="bg-white border border-gray-100 rounded-xl p-6">
+          <h2 className="font-semibold text-gray-900 mb-1">Tahap Pipeline (CRM)</h2>
+          <p className="text-xs text-gray-500 mb-4">Atur tahap penjualan (lead, kualifikasi, menang, hilang, dst).</p>
+          <Link href={`/${companySlug}/pengaturan/pipeline`} className="text-sm text-blue-600 hover:underline">
+            Buka pengaturan pipeline &rarr;
           </Link>
         </section>
       )}

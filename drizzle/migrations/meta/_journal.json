@@ -176,6 +176,76 @@
       "when": 1783402335565,
       "tag": "0024_rls_dashboard_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1783412023672,
+      "tag": "0025_create_organizations_and_contacts",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1783412038849,
+      "tag": "0026_rls_organizations_and_contacts",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1783412754977,
+      "tag": "0027_create_pipeline_stages",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1783412768035,
+      "tag": "0028_rls_pipeline_stages",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1783419255360,
+      "tag": "0029_create_opportunities_and_stage_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1783419270221,
+      "tag": "0030_rls_opportunities_and_stage_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1783420301706,
+      "tag": "0031_proposal_items_and_letter_org_link",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1783420313803,
+      "tag": "0032_rls_proposal_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1783421132671,
+      "tag": "0033_contracts_and_activities",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1783421140598,
+      "tag": "0034_rls_contracts_and_activities",
+      "breakpoints": true
     }
   ]
 }
