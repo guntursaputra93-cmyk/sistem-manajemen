@@ -4,6 +4,10 @@ export const companies = pgTable("companies", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  // Kode singkat perusahaan (mis. SMU), dipakai di format nomor surat/nota dinas.
+  // Diatur manual oleh super_admin lewat halaman pengaturan — nullable karena
+  // perusahaan lama (Fase 0) belum punya nilai sampai diisi.
+  code: text("code").unique(),
   // Text, bukan Postgres enum — jenis bisnis baru bisa ditambah tanpa migrasi skema.
   businessType: text("business_type").notNull(),
   isActive: boolean("is_active").notNull().default(true),
