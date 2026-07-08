@@ -19,6 +19,9 @@ import { isModuleEnabled } from "@/lib/modules";
 import { queryCombinedSuratArchive } from "@/lib/letters/archive";
 import { parsePage, offsetFor, totalPages, PAGE_SIZE } from "@/lib/pagination";
 import { Pagination } from "@/components/Pagination";
+import { Tabs } from "@/components/ui/Tabs";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { UnreadBadge } from "@/components/ui/UnreadBadge";
 
 const DOC_STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -106,27 +109,15 @@ export default async function ArsipPage({
         </p>
       </div>
 
-      <div className="flex gap-2 border-b border-gray-200">
-        {visibleTabs.map((t) => {
-          const params2 = new URLSearchParams();
-          params2.set("tab", t.key);
-          const unread = unreadByTab[t.key];
-          return (
-            <Link
-              key={t.key}
-              href={`${basePath}?${params2.toString()}`}
-              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px flex items-center gap-2 ${
-                activeTab === t.key ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {t.label}
-              {!!unread && (
-                <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">{unread}</span>
-              )}
-            </Link>
-          );
-        })}
-      </div>
+      <Tabs
+        value={activeTab}
+        tabs={visibleTabs.map((t) => ({
+          value: t.key,
+          label: t.label,
+          href: `${basePath}?${new URLSearchParams({ tab: t.key }).toString()}`,
+          badge: unreadByTab[t.key] ? <UnreadBadge count={unreadByTab[t.key]} /> : undefined,
+        }))}
+      />
 
       {activeTab === "pp" && <DocumentTab hierarchyLevel={1} tabKey="pp" label="Peraturan Perusahaan" companySlug={companySlug} company={company} sp={sp} tenantContext={tenantContext} session={session} basePath={basePath} />}
       {activeTab === "sk" && <DocumentTab hierarchyLevel={2} tabKey="sk" label="SK Direktur" companySlug={companySlug} company={company} sp={sp} tenantContext={tenantContext} session={session} basePath={basePath} />}
@@ -205,46 +196,33 @@ async function DocumentTab({
   const total = filtered.length;
   const pageRows = filtered.slice(offsetFor(page), offsetFor(page) + PAGE_SIZE);
 
+  const columns: DataTableColumn<(typeof pageRows)[number]>[] = [
+    {
+      key: "judul",
+      header: "Judul",
+      render: (doc) => (
+        <Link href={`/${companySlug}/dokumen/${doc.id}`} className="text-blue-600 hover:underline">
+          {doc.title}
+        </Link>
+      ),
+    },
+    { key: "versi", header: "Versi", render: (doc) => (representativeVersion(doc.id) ? `v${representativeVersion(doc.id)!.versionNumber}` : "-") },
+    {
+      key: "status",
+      header: "Status",
+      render: (doc) => {
+        const v = representativeVersion(doc.id);
+        return v ? (DOC_STATUS_LABEL[v.status] ?? v.status) : "-";
+      },
+    },
+    { key: "tanggal", header: "Tanggal Efektif", render: (doc) => representativeVersion(doc.id)?.effectiveDate ?? "-" },
+  ];
+
   return (
     <section className="space-y-4">
       <FilterForm basePath={basePath} sp={sp} tabKey={tabKey} showDepartment={false} statusOptions={DOC_STATUS_LABEL} />
 
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-2">Judul</th>
-              <th className="text-left px-4 py-2">Versi</th>
-              <th className="text-left px-4 py-2">Status</th>
-              <th className="text-left px-4 py-2">Tanggal Efektif</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageRows.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-400 italic">
-                  Tidak ada dokumen {label.toLowerCase()}.
-                </td>
-              </tr>
-            )}
-            {pageRows.map((doc) => {
-              const v = representativeVersion(doc.id);
-              return (
-                <tr key={doc.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-2">
-                    <Link href={`/${companySlug}/dokumen/${doc.id}`} className="text-blue-600 hover:underline">
-                      {doc.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2">{v ? `v${v.versionNumber}` : "-"}</td>
-                  <td className="px-4 py-2">{v ? DOC_STATUS_LABEL[v.status] ?? v.status : "-"}</td>
-                  <td className="px-4 py-2">{v?.effectiveDate ?? "-"}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable columns={columns} rows={pageRows} rowKey={(doc) => doc.id} emptyMessage={`Tidak ada dokumen ${label.toLowerCase()}.`} />
 
       <Pagination basePath={basePath} searchParams={sp} pageParamName={pageParam} currentPage={page} totalPages={totalPages(total)} />
     </section>
@@ -285,41 +263,25 @@ async function NotaDinasTab({
 
   const totalRows = await withTenantContext(tenantContext, (tx) => tx.select().from(outgoingLetters).where(and(...conditions)));
 
+  const columns: DataTableColumn<(typeof rows)[number]>[] = [
+    {
+      key: "nomor",
+      header: "No. Nota Dinas",
+      render: (letter) => (
+        <Link href={`/${companySlug}/surat-keluar/${letter.id}`} className="text-blue-600 hover:underline">
+          {letter.letterNumber ?? "(draft)"}
+        </Link>
+      ),
+    },
+    { key: "perihal", header: "Perihal", render: (letter) => letter.subject },
+    { key: "status", header: "Status", render: (letter) => LETTER_STATUS_LABEL[letter.status] ?? letter.status },
+  ];
+
   return (
     <section className="space-y-4">
       <FilterForm basePath={basePath} sp={sp} tabKey="nd" showDepartment departments={deptList} statusOptions={LETTER_STATUS_LABEL} />
 
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-2">No. Nota Dinas</th>
-              <th className="text-left px-4 py-2">Perihal</th>
-              <th className="text-left px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-gray-400 italic">
-                  Tidak ada nota dinas.
-                </td>
-              </tr>
-            )}
-            {rows.map((letter) => (
-              <tr key={letter.id} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-2">
-                  <Link href={`/${companySlug}/surat-keluar/${letter.id}`} className="text-blue-600 hover:underline">
-                    {letter.letterNumber ?? "(draft)"}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">{letter.subject}</td>
-                <td className="px-4 py-2">{LETTER_STATUS_LABEL[letter.status] ?? letter.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable columns={columns} rows={rows} rowKey={(letter) => letter.id} emptyMessage="Tidak ada nota dinas." />
 
       <Pagination basePath={basePath} searchParams={sp} pageParamName="nd_page" currentPage={page} totalPages={totalPages(totalRows.length)} />
     </section>
@@ -360,46 +322,26 @@ async function SuratMasukKeluarTab({
     withTenantContext(tenantContext, (tx) => tx.select().from(departments).where(eq(departments.companyId, company.id)).orderBy(asc(departments.name))),
   ]);
 
+  const columns: DataTableColumn<(typeof rows)[number]>[] = [
+    { key: "arah", header: "Arah", render: (row) => (row.jenis === "masuk" ? "Masuk" : "Keluar") },
+    { key: "tanggal", header: "Tanggal", render: (row) => row.tanggal },
+    {
+      key: "perihal",
+      header: "Perihal",
+      render: (row) => (
+        <Link href={`/${companySlug}/${row.jenis === "masuk" ? "surat-masuk" : "surat-keluar"}/${row.id}`} className="text-blue-600 hover:underline">
+          {row.subject}
+        </Link>
+      ),
+    },
+    { key: "status", header: "Status", render: (row) => row.status },
+  ];
+
   return (
     <section className="space-y-4">
       <FilterForm basePath={basePath} sp={sp} tabKey="surat" showDepartment departments={deptList} showJenis />
 
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-2">Arah</th>
-              <th className="text-left px-4 py-2">Tanggal</th>
-              <th className="text-left px-4 py-2">Perihal</th>
-              <th className="text-left px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-400 italic">
-                  Tidak ada surat.
-                </td>
-              </tr>
-            )}
-            {rows.map((row) => (
-              <tr key={`${row.jenis}-${row.id}`} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-2">{row.jenis === "masuk" ? "Masuk" : "Keluar"}</td>
-                <td className="px-4 py-2">{row.tanggal}</td>
-                <td className="px-4 py-2">
-                  <Link
-                    href={`/${companySlug}/${row.jenis === "masuk" ? "surat-masuk" : "surat-keluar"}/${row.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    {row.subject}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">{row.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable columns={columns} rows={rows} rowKey={(row) => `${row.jenis}-${row.id}`} emptyMessage="Tidak ada surat." />
 
       <Pagination basePath={basePath} searchParams={sp} pageParamName="surat_page" currentPage={page} totalPages={totalPages(totalCount)} />
     </section>

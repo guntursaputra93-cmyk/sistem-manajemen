@@ -19,6 +19,19 @@ import { getTeamReadStatus } from "@/lib/documents/teamReadStatus";
 import { requireModuleEnabled } from "@/lib/modules";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
 import { addNewVersion, submitVersionForReviewAction, decideVersionApprovalAction } from "../actions";
+import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
+import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
+
+// Urutan wajar 1 versi dari draft sampai ke status akhirnya — dipakai utk
+// ringkasan "Riwayat Versi" horizontal (Bagian 3 spesifikasi desain, dipakai
+// sebagai progress bar, bukan cuma daftar kronologis).
+const VERSION_TRAIL_STATUS: Record<string, TrailStepStatus> = {
+  draft: "upcoming",
+  in_review: "pending",
+  active: "pending",
+  superseded: "done",
+  expired: "rejected",
+};
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -118,6 +131,25 @@ export default async function DokumenDetailPage({
               </button>
             </div>
           </form>
+        </section>
+      )}
+
+      {versionList.length > 1 && (
+        <section className="bg-white border border-gray-100 rounded-xl p-6">
+          <h2 className="font-semibold text-gray-900 mb-4">Riwayat Versi</h2>
+          <TrailStepper
+            orientation="horizontal"
+            steps={[...versionList]
+              .sort((a, b) => a.versionNumber - b.versionNumber)
+              .map(
+                (v): TrailStep => ({
+                  id: v.id,
+                  label: `Versi ${v.versionNumber}`,
+                  description: STATUS_LABEL[v.status] ?? v.status,
+                  status: VERSION_TRAIL_STATUS[v.status] ?? "upcoming",
+                })
+              )}
+          />
         </section>
       )}
 
@@ -225,18 +257,7 @@ async function VersionCard({
       {steps.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-2">Jenjang Approval</h3>
-          <ol className="space-y-2">
-            {steps.map((step) => {
-              const approver = userList.find((u) => u.id === step.approverId);
-              return (
-                <li key={step.id} className="text-sm border-l-2 border-blue-200 pl-3">
-                  Jenjang {step.stepOrder}: {STATUS_LABEL[step.status] ?? step.status}
-                  {approver ? ` — ${approver.fullName}` : ""}
-                  {step.catatan && <p className="text-gray-600">{step.catatan}</p>}
-                </li>
-              );
-            })}
-          </ol>
+          <TrailStepper steps={approvalStepsToTrail(steps, userList)} orientation="vertical" />
           {firstPendingStep && (
             <form action={decideVersionApprovalAction} className="mt-3 space-y-2">
               <input type="hidden" name="companySlug" value={companySlug} />

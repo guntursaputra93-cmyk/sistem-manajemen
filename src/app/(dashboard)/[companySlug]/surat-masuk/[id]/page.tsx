@@ -7,6 +7,7 @@ import { companies, departments, users, incomingLetters, letterDispositions } fr
 import { hasPermission, ROLE_LABEL } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { addDisposition } from "../actions";
+import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
 
 const STATUS_LABEL: Record<string, string> = {
   baru: "Baru",
@@ -58,6 +59,22 @@ export default async function SuratMasukDetailPage({
 
   const canDispose = hasPermission(session.user.role, "CREATE_DISPOSITION");
 
+  const isLetterResolved = letter.status === "selesai" || letter.status === "diarsipkan";
+  const dispositionSteps: TrailStep[] = dispositions.map((d, i) => {
+    const targetDept = deptList.find((dept) => dept.id === d.targetDepartmentId);
+    const targetUser = userList.find((u) => u.id === d.targetUserId);
+    const label =
+      [targetDept ? `Departemen ${targetDept.name}` : null, targetUser ? targetUser.fullName : null].filter(Boolean).join(" — ") ||
+      `Langkah ${d.stepOrder}`;
+    const isLast = i === dispositions.length - 1;
+    return {
+      id: d.id,
+      label,
+      description: d.instruction ?? undefined,
+      status: isLast && !isLetterResolved ? "pending" : "done",
+    };
+  });
+
   return (
     <div className="max-w-2xl space-y-8">
       <div>
@@ -95,22 +112,7 @@ export default async function SuratMasukDetailPage({
         {dispositions.length === 0 ? (
           <p className="text-sm text-gray-400 italic">Belum ada disposisi.</p>
         ) : (
-          <ol className="space-y-3">
-            {dispositions.map((d) => {
-              const targetDept = deptList.find((dept) => dept.id === d.targetDepartmentId);
-              const targetUser = userList.find((u) => u.id === d.targetUserId);
-              return (
-                <li key={d.id} className="text-sm border-l-2 border-blue-200 pl-3">
-                  <p className="font-medium text-gray-900">
-                    Langkah {d.stepOrder}: {targetDept ? `Departemen ${targetDept.name}` : ""}
-                    {targetDept && targetUser ? " — " : ""}
-                    {targetUser ? `${targetUser.fullName}` : ""}
-                  </p>
-                  {d.instruction && <p className="text-gray-600">{d.instruction}</p>}
-                </li>
-              );
-            })}
-          </ol>
+          <TrailStepper steps={dispositionSteps} orientation="vertical" />
         )}
       </section>
 

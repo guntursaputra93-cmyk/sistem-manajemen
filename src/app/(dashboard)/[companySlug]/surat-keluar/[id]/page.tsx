@@ -19,6 +19,8 @@ import { requireModuleEnabled, isModuleEnabled } from "@/lib/modules";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
 import { submitForApprovalAction, decideApprovalAction, markSentAction } from "../actions";
 import { createProposalItemAction, updateProposalItemAction, deleteProposalItemAction } from "../../crm/proposal/actions";
+import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
+import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
 
 const CATEGORY_LABEL: Record<string, string> = {
   surat_keluar: "Surat Keluar",
@@ -31,12 +33,6 @@ const STATUS_LABEL: Record<string, string> = {
   disetujui: "Disetujui",
   terkirim: "Terkirim",
   ditolak: "Ditolak",
-};
-
-const STEP_STATUS_LABEL: Record<string, string> = {
-  pending: "Menunggu",
-  approved: "Disetujui",
-  rejected: "Ditolak",
 };
 
 export default async function SuratKeluarDetailPage({
@@ -170,20 +166,7 @@ export default async function SuratKeluarDetailPage({
       {steps.length > 0 && (
         <section className="bg-white border border-gray-100 rounded-xl p-6">
           <h2 className="font-semibold text-gray-900 mb-4">Jenjang Approval</h2>
-          <ol className="space-y-3">
-            {steps.map((step) => {
-              const approver = userList.find((u) => u.id === step.approverId);
-              return (
-                <li key={step.id} className="text-sm border-l-2 border-blue-200 pl-3">
-                  <p className="font-medium text-gray-900">
-                    Jenjang {step.stepOrder}: {STEP_STATUS_LABEL[step.status]}
-                    {approver ? ` — ${approver.fullName}` : ""}
-                  </p>
-                  {step.catatan && <p className="text-gray-600">{step.catatan}</p>}
-                </li>
-              );
-            })}
-          </ol>
+          <TrailStepper steps={approvalStepsToTrail(steps, userList)} orientation="vertical" />
 
           {firstPendingStep && (
             <form action={decideApprovalAction} className="mt-4 space-y-3">

@@ -7,6 +7,7 @@ import { companies, organizations, opportunities, opportunityStageHistory, pipel
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { changeStageAction, reassignOpportunityAction } from "../actions";
+import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
 
 const STATUS_LABEL: Record<string, string> = { open: "Berjalan", won: "Menang", lost: "Hilang" };
 
@@ -49,6 +50,21 @@ export default async function OpportunityDetailPage({
   const canAct = hasPermission(session.user.role, "CREATE_OPPORTUNITY");
   const canReassign = hasPermission(session.user.role, "REASSIGN_OPPORTUNITY");
 
+  // Progress bar horizontal seluruh tahap pipeline (Bagian 3 spesifikasi desain)
+  // — beda dari "Riwayat Tahap" di bawah yang isinya log kronologis per kejadian.
+  const currentIndex = stageList.findIndex((s) => s.id === opp.currentStageId);
+  const pipelineTrail: TrailStep[] = stageList.map((s, i) => {
+    let status: TrailStepStatus;
+    if (opp.status === "lost") {
+      status = i < currentIndex ? "done" : i === currentIndex ? "rejected" : "upcoming";
+    } else if (opp.status === "won") {
+      status = i <= currentIndex ? "done" : "upcoming";
+    } else {
+      status = i < currentIndex ? "done" : i === currentIndex ? "pending" : "upcoming";
+    }
+    return { id: s.id, label: s.stageKey, status };
+  });
+
   return (
     <div className="max-w-2xl space-y-8">
       <div>
@@ -59,6 +75,12 @@ export default async function OpportunityDetailPage({
 
       {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+
+      {pipelineTrail.length > 0 && (
+        <section className="bg-white border border-gray-100 rounded-xl p-6">
+          <TrailStepper steps={pipelineTrail} orientation="horizontal" />
+        </section>
+      )}
 
       <section className="bg-white border border-gray-100 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
         <div><span className="text-gray-500">Tahap Saat Ini</span><p className="text-gray-900">{currentStage?.stageKey}</p></div>

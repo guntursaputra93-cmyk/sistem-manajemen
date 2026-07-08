@@ -5,7 +5,8 @@ import { companies } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { ROLE_LABEL, hasPermission } from "@/lib/rbac/permissions";
 import { isModuleEnabled } from "@/lib/modules";
-import Link from "next/link";
+import { Sidebar, type SidebarGroup } from "@/components/ui/Sidebar";
+import { TopBar } from "@/components/ui/TopBar";
 
 export default async function CompanyDashboardLayout({
   children,
@@ -34,83 +35,78 @@ export default async function CompanyDashboardLayout({
     ])
   );
 
+  const groups: SidebarGroup[] = [];
+
+  const suratItems: SidebarGroup["items"] = [];
+  if (suratModuleOn && hasPermission(session.user.role, "VIEW_INCOMING_LETTERS")) {
+    suratItems.push({ href: `/${companySlug}/surat-masuk`, label: "Surat Masuk", icon: "inbox" });
+  }
+  if (suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS")) {
+    suratItems.push({ href: `/${companySlug}/surat-keluar`, label: "Surat Keluar", icon: "send" });
+  }
+  if (suratItems.length) groups.push({ label: "Surat", items: suratItems });
+
+  const dokumenItems: SidebarGroup["items"] = [];
+  if (dokumenModuleOn && hasPermission(session.user.role, "VIEW_DOCUMENTS")) {
+    dokumenItems.push({ href: `/${companySlug}/dokumen`, label: "Dokumen", icon: "file-text" });
+  }
+  if (
+    (dokumenModuleOn && hasPermission(session.user.role, "VIEW_DOCUMENTS")) ||
+    (suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS"))
+  ) {
+    dokumenItems.push({ href: `/${companySlug}/arsip`, label: "Arsip", icon: "archive" });
+  }
+  if (dokumenItems.length) groups.push({ label: "Dokumen", items: dokumenItems });
+
+  const crmItems: SidebarGroup["items"] = [];
+  if (crmModuleOn && hasPermission(session.user.role, "VIEW_ORGANIZATIONS")) {
+    crmItems.push({ href: `/${companySlug}/crm/organisasi`, label: "Organisasi", icon: "building-2" });
+  }
+  if (crmModuleOn && hasPermission(session.user.role, "VIEW_OPPORTUNITIES")) {
+    crmItems.push({ href: `/${companySlug}/crm/opportunities`, label: "Opportunity", icon: "target" });
+  }
+  if (crmModuleOn && suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS")) {
+    crmItems.push({ href: `/${companySlug}/crm/proposal`, label: "Proposal", icon: "file-signature" });
+  }
+  if (crmModuleOn && hasPermission(session.user.role, "VIEW_CONTRACTS")) {
+    crmItems.push({ href: `/${companySlug}/crm/contracts`, label: "Contract", icon: "file-check" });
+  }
+  if (crmModuleOn && hasPermission(session.user.role, "VIEW_OPPORTUNITIES")) {
+    crmItems.push({ href: `/${companySlug}/crm/dashboard`, label: "Dashboard CRM", icon: "layout-dashboard" });
+  }
+  if (crmItems.length) groups.push({ label: "CRM", items: crmItems });
+
+  const settingsItems: SidebarGroup["items"] = [];
+  if (hasPermission(session.user.role, "MANAGE_DEPARTMENTS")) {
+    settingsItems.push({ href: `/${companySlug}/pengaturan`, label: "Pengaturan", icon: "settings" });
+  }
+  if (session.user.role === "super_admin") {
+    settingsItems.push({ href: "/pilih-perusahaan", label: "Ganti Perusahaan", icon: "arrow-left-right" });
+  }
+  if (settingsItems.length) groups.push({ items: settingsItems });
+
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-        <div>
-          <p className="font-semibold text-gray-900">{company.name}</p>
-          <p className="text-xs text-gray-500">{ROLE_LABEL[session.user.role as keyof typeof ROLE_LABEL] ?? session.user.role}</p>
-        </div>
-        <div className="flex items-center gap-4">
-          {suratModuleOn && hasPermission(session.user.role, "VIEW_INCOMING_LETTERS") && (
-            <Link href={`/${companySlug}/surat-masuk`} className="text-sm text-blue-600 hover:underline">
-              Surat Masuk
-            </Link>
-          )}
-          {suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS") && (
-            <Link href={`/${companySlug}/surat-keluar`} className="text-sm text-blue-600 hover:underline">
-              Surat Keluar
-            </Link>
-          )}
-          {dokumenModuleOn && hasPermission(session.user.role, "VIEW_DOCUMENTS") && (
-            <Link href={`/${companySlug}/dokumen`} className="text-sm text-blue-600 hover:underline">
-              Dokumen
-            </Link>
-          )}
-          {((dokumenModuleOn && hasPermission(session.user.role, "VIEW_DOCUMENTS")) ||
-            (suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS"))) && (
-            <Link href={`/${companySlug}/arsip`} className="text-sm text-blue-600 hover:underline">
-              Arsip
-            </Link>
-          )}
-          {crmModuleOn && hasPermission(session.user.role, "VIEW_ORGANIZATIONS") && (
-            <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-blue-600 hover:underline">
-              CRM
-            </Link>
-          )}
-          {crmModuleOn && hasPermission(session.user.role, "VIEW_OPPORTUNITIES") && (
-            <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-blue-600 hover:underline">
-              Opportunity
-            </Link>
-          )}
-          {crmModuleOn && suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS") && (
-            <Link href={`/${companySlug}/crm/proposal`} className="text-sm text-blue-600 hover:underline">
-              Proposal
-            </Link>
-          )}
-          {crmModuleOn && hasPermission(session.user.role, "VIEW_CONTRACTS") && (
-            <Link href={`/${companySlug}/crm/contracts`} className="text-sm text-blue-600 hover:underline">
-              Contract
-            </Link>
-          )}
-          {crmModuleOn && hasPermission(session.user.role, "VIEW_OPPORTUNITIES") && (
-            <Link href={`/${companySlug}/crm/dashboard`} className="text-sm text-blue-600 hover:underline">
-              Dashboard CRM
-            </Link>
-          )}
-          {hasPermission(session.user.role, "MANAGE_DEPARTMENTS") && (
-            <Link href={`/${companySlug}/pengaturan`} className="text-sm text-blue-600 hover:underline">
-              Pengaturan
-            </Link>
-          )}
-          {session.user.role === "super_admin" && (
-            <Link href="/pilih-perusahaan" className="text-sm text-blue-600 hover:underline">
-              Ganti Perusahaan
-            </Link>
-          )}
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/login" });
-            }}
-          >
-            <button type="submit" className="text-sm text-gray-500 hover:text-gray-700">
-              Keluar
-            </button>
-          </form>
-        </div>
-      </header>
-      <main className="flex-1 p-6">{children}</main>
+    <div className="h-screen flex bg-bg-base">
+      <Sidebar groups={groups} />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <TopBar
+          companyName={company.name}
+          roleLabel={ROLE_LABEL[session.user.role as keyof typeof ROLE_LABEL] ?? session.user.role}
+          actions={
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/login" });
+              }}
+            >
+              <button type="submit" className="text-sm text-ink-muted hover:text-ink transition-colors">
+                Keluar
+              </button>
+            </form>
+          }
+        />
+        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+      </div>
     </div>
   );
 }
