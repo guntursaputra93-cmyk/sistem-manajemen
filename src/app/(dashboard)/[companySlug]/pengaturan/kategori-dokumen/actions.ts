@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { documentCategories } from "@/drizzle/schema";
+import { companies, documentCategories } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 
@@ -29,16 +29,20 @@ export async function addDocumentCategory(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Hierarchy level harus angka >= 1.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      tx.insert(documentCategories).values({ companyId: session.user.companyId, code, name, hierarchyLevel })
+    await withTenantContext(tenantContext, (tx) =>
+      tx.insert(documentCategories).values({ companyId: company.id, code, name, hierarchyLevel })
     );
   } catch {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kode kategori ini sudah ada.")}`);
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_document_category",
     entityType: "document_category",
@@ -59,16 +63,20 @@ export async function deleteDocumentCategory(formData: FormData): Promise<void> 
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur kategori dokumen.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      tx.delete(documentCategories).where(and(eq(documentCategories.id, id), eq(documentCategories.companyId, session.user.companyId)))
+    await withTenantContext(tenantContext, (tx) =>
+      tx.delete(documentCategories).where(and(eq(documentCategories.id, id), eq(documentCategories.companyId, company.id)))
     );
   } catch {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kategori ini masih dipakai dokumen — tidak bisa dihapus.")}`);
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "delete_document_category",
     entityType: "document_category",

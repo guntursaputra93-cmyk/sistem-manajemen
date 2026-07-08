@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { documents, documentVersions, documentCategories, users } from "@/drizzle/schema";
+import { companies, documents, documentVersions, documentCategories, users } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 import { submitDocumentVersionForReview, decideDocumentVersionApproval, DocumentVersionError } from "@/lib/documents/versions";
@@ -28,10 +28,14 @@ export async function createDocument(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Judul dan kategori wajib diisi.")}`);
   }
 
-  const documentId = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, async (tx) => {
-    const [doc] = await tx.insert(documents).values({ companyId: session.user.companyId, categoryId, title }).returning();
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
+  const documentId = await withTenantContext(tenantContext, async (tx) => {
+    const [doc] = await tx.insert(documents).values({ companyId: company.id, categoryId, title }).returning();
     await tx.insert(documentVersions).values({
-      companyId: session.user.companyId,
+      companyId: company.id,
       documentId: doc.id,
       versionNumber: 1,
       status: "draft",
@@ -43,7 +47,7 @@ export async function createDocument(formData: FormData): Promise<void> {
   });
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_document",
     entityType: "document",
@@ -68,7 +72,11 @@ export async function addNewVersion(formData: FormData): Promise<void> {
   const effectiveDate = formData.get("effectiveDate")?.toString() || null;
   const expiresAt = formData.get("expiresAt")?.toString() || null;
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, async (tx) => {
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
+  await withTenantContext(tenantContext, async (tx) => {
     const [lastVersion] = await tx
       .select()
       .from(documentVersions)
@@ -78,7 +86,7 @@ export async function addNewVersion(formData: FormData): Promise<void> {
     const nextVersionNumber = (lastVersion?.versionNumber ?? 0) + 1;
 
     await tx.insert(documentVersions).values({
-      companyId: session.user.companyId,
+      companyId: company.id,
       documentId,
       versionNumber: nextVersionNumber,
       status: "draft",
@@ -89,7 +97,7 @@ export async function addNewVersion(formData: FormData): Promise<void> {
   });
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_document_version",
     entityType: "document",
@@ -112,13 +120,15 @@ export async function submitVersionForReviewAction(formData: FormData): Promise<
   }
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
 
   try {
     await withTenantContext(tenantContext, async (tx) => {
       const [doc] = await tx.select().from(documents).where(eq(documents.id, documentId));
       const [category] = await tx.select().from(documentCategories).where(eq(documentCategories.id, doc.categoryId));
       await submitDocumentVersionForReview(tx, {
-        companyId: session.user.companyId,
+        companyId: company.id,
         documentId,
         documentVersionId: versionId,
         categoryCode: category.code,
@@ -132,7 +142,7 @@ export async function submitVersionForReviewAction(formData: FormData): Promise<
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "submit_document_version_for_review",
     entityType: "document_version",
@@ -158,12 +168,14 @@ export async function decideVersionApprovalAction(formData: FormData): Promise<v
   }
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
 
   try {
     await withTenantContext(tenantContext, async (tx) => {
       const [actingUser] = await tx.select().from(users).where(eq(users.id, session.user.id));
       await decideDocumentVersionApproval(tx, {
-        companyId: session.user.companyId,
+        companyId: company.id,
         documentId,
         documentVersionId: versionId,
         stepOrder,
@@ -180,7 +192,7 @@ export async function decideVersionApprovalAction(formData: FormData): Promise<v
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: decision === "approved" ? "approve_document_version_step" : "reject_document_version_step",
     entityType: "document_version",

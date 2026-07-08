@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { documentAccessRules } from "@/drizzle/schema";
+import { companies, documentAccessRules } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 
@@ -47,10 +47,14 @@ export async function addDocumentAccessRule(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Pilih role untuk scope role tertentu.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+    await withTenantContext(tenantContext, (tx) =>
       tx.insert(documentAccessRules).values({
-        companyId: session.user.companyId,
+        companyId: company.id,
         documentCategoryId: targetMode === "category" ? documentCategoryId : null,
         documentId: targetMode === "document" ? documentId : null,
         scope: scope as (typeof SCOPE_VALUES)[number],
@@ -63,7 +67,7 @@ export async function addDocumentAccessRule(formData: FormData): Promise<void> {
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_document_access_rule",
     entityType: "document_access_rule",
@@ -84,12 +88,16 @@ export async function deleteDocumentAccessRule(formData: FormData): Promise<void
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur jenjang akses dokumen.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx.delete(documentAccessRules).where(and(eq(documentAccessRules.id, id), eq(documentAccessRules.companyId, session.user.companyId)))
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
+  await withTenantContext(tenantContext, (tx) =>
+    tx.delete(documentAccessRules).where(and(eq(documentAccessRules.id, id), eq(documentAccessRules.companyId, company.id)))
   );
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "delete_document_access_rule",
     entityType: "document_access_rule",

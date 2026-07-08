@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { outgoingLetters, users } from "@/drizzle/schema";
+import { companies, outgoingLetters, users } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 import {
@@ -48,13 +48,17 @@ export async function createOutgoingLetter(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tujuan internal (departemen atau orang) wajib diisi untuk nota dinas.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   let letterId: string;
   try {
-    const letter = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+    const letter = await withTenantContext(tenantContext, (tx) =>
       tx
         .insert(outgoingLetters)
         .values({
-          companyId: session.user.companyId,
+          companyId: company.id,
           departmentId,
           letterCategory: letterCategory as (typeof CATEGORY_VALUES)[number],
           jenisKey,
@@ -73,7 +77,7 @@ export async function createOutgoingLetter(formData: FormData): Promise<void> {
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_outgoing_letter_draft",
     entityType: letterCategory,
@@ -95,9 +99,13 @@ export async function submitForApprovalAction(formData: FormData): Promise<void>
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengajukan approval.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      submitForApproval(tx, { companyId: session.user.companyId, letterId })
+    await withTenantContext(tenantContext, (tx) =>
+      submitForApproval(tx, { companyId: company.id, letterId })
     );
   } catch (err) {
     if (err instanceof OutgoingLetterError) {
@@ -107,7 +115,7 @@ export async function submitForApprovalAction(formData: FormData): Promise<void>
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "submit_outgoing_letter_for_approval",
     entityType: "outgoing_letter",
@@ -132,12 +140,14 @@ export async function decideApprovalAction(formData: FormData): Promise<void> {
   }
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
 
   try {
     await withTenantContext(tenantContext, async (tx) => {
       const [actingUser] = await tx.select().from(users).where(eq(users.id, session.user.id));
       await decideOutgoingLetterApproval(tx, {
-        companyId: session.user.companyId,
+        companyId: company.id,
         letterId,
         stepOrder,
         actingUser: { id: session.user.id, role: session.user.role as Role, departmentId: actingUser?.departmentId ?? null },
@@ -153,7 +163,7 @@ export async function decideApprovalAction(formData: FormData): Promise<void> {
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: decision === "approved" ? "approve_outgoing_letter_step" : "reject_outgoing_letter_step",
     entityType: "outgoing_letter",
@@ -175,8 +185,12 @@ export async function markSentAction(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menandai terkirim.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+    await withTenantContext(tenantContext, (tx) =>
       markOutgoingLetterAsSent(tx, { letterId })
     );
   } catch (err) {
@@ -187,7 +201,7 @@ export async function markSentAction(formData: FormData): Promise<void> {
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "mark_outgoing_letter_sent",
     entityType: "outgoing_letter",

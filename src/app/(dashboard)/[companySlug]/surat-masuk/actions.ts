@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { incomingLetters, users } from "@/drizzle/schema";
+import { companies, incomingLetters, users } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 import { getNextAgendaNumber, formatAgendaNumber } from "@/lib/letters/agenda";
@@ -31,13 +31,17 @@ export async function createIncomingLetter(formData: FormData): Promise<void> {
   }
 
   const year = new Date(receivedDate).getFullYear();
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
 
-  const letter = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, async (tx) => {
-    const agendaSeq = await getNextAgendaNumber(tx, { companyId: session.user.companyId, year });
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
+  const letter = await withTenantContext(tenantContext, async (tx) => {
+    const agendaSeq = await getNextAgendaNumber(tx, { companyId: company.id, year });
     const [row] = await tx
       .insert(incomingLetters)
       .values({
-        companyId: session.user.companyId,
+        companyId: company.id,
         agendaNumber: formatAgendaNumber(year, agendaSeq),
         letterDate,
         receivedDate,
@@ -51,7 +55,7 @@ export async function createIncomingLetter(formData: FormData): Promise<void> {
   });
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_incoming_letter",
     entityType: "incoming_letter",
@@ -79,11 +83,14 @@ export async function addDisposition(formData: FormData): Promise<void> {
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
 
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
     await withTenantContext(tenantContext, async (tx) => {
       const [actingUser] = await tx.select().from(users).where(eq(users.id, session.user.id));
       await createDisposition(tx, {
-        companyId: session.user.companyId,
+        companyId: company.id,
         incomingLetterId,
         fromUserId: session.user.id,
         fromUserRole: session.user.role as Role,
@@ -101,7 +108,7 @@ export async function addDisposition(formData: FormData): Promise<void> {
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_disposition",
     entityType: "incoming_letter",

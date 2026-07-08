@@ -2,9 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { dashboardSettings } from "@/drizzle/schema";
+import { companies, dashboardSettings } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 
@@ -24,10 +25,14 @@ export async function updateDashboardSettings(formData: FormData): Promise<void>
     redirect(`${redirectBase}?error=${encodeURIComponent("Ambang waktu harus angka >= 1.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
+  await withTenantContext(tenantContext, (tx) =>
     tx
       .insert(dashboardSettings)
-      .values({ companyId: session.user.companyId, stalledThresholdDays, expiryWarningDays })
+      .values({ companyId: company.id, stalledThresholdDays, expiryWarningDays })
       .onConflictDoUpdate({
         target: dashboardSettings.companyId,
         set: { stalledThresholdDays, expiryWarningDays, updatedAt: new Date() },
@@ -35,7 +40,7 @@ export async function updateDashboardSettings(formData: FormData): Promise<void>
   );
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "update_dashboard_settings",
     entityType: "dashboard_settings",

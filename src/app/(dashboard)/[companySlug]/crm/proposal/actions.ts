@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { outgoingLetters, organizations } from "@/drizzle/schema";
+import { outgoingLetters, organizations, companies } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
@@ -29,8 +29,11 @@ export async function createProposalAction(formData: FormData): Promise<void> {
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
 
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   const [org] = await withTenantContext(tenantContext, (tx) =>
-    tx.select().from(organizations).where(and(eq(organizations.id, organizationId), eq(organizations.companyId, session.user.companyId)))
+    tx.select().from(organizations).where(and(eq(organizations.id, organizationId), eq(organizations.companyId, company.id)))
   );
   if (!org) redirect(`${redirectBase}?error=${encodeURIComponent("Organisasi tidak ditemukan.")}`);
 
@@ -40,7 +43,7 @@ export async function createProposalAction(formData: FormData): Promise<void> {
       tx
         .insert(outgoingLetters)
         .values({
-          companyId: session.user.companyId,
+          companyId: company.id,
           departmentId,
           letterCategory: "surat_keluar",
           jenisKey: "penawaran",
@@ -57,7 +60,7 @@ export async function createProposalAction(formData: FormData): Promise<void> {
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_proposal_draft",
     entityType: "outgoing_letter",
@@ -90,12 +93,16 @@ export async function createProposalItemAction(formData: FormData): Promise<void
     redirect(`${redirectBase}?error=${encodeURIComponent("Nama item, kuantitas, satuan, dan harga satuan wajib diisi.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    createProposalItem(tx, { companyId: session.user.companyId, outgoingLetterId, opportunityId, itemName, quantity, unit, unitPrice, notes })
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
+  await withTenantContext(tenantContext, (tx) =>
+    createProposalItem(tx, { companyId: company.id, outgoingLetterId, opportunityId, itemName, quantity, unit, unitPrice, notes })
   );
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_proposal_item",
     entityType: "outgoing_letter",
@@ -128,9 +135,13 @@ export async function updateProposalItemAction(formData: FormData): Promise<void
     redirect(`${redirectBase}?error=${encodeURIComponent("Nama item, kuantitas, satuan, dan harga satuan wajib diisi.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      updateProposalItem(tx, { companyId: session.user.companyId, itemId, itemName, quantity, unit, unitPrice, notes })
+    await withTenantContext(tenantContext, (tx) =>
+      updateProposalItem(tx, { companyId: company.id, itemId, itemName, quantity, unit, unitPrice, notes })
     );
   } catch (err) {
     if (err instanceof ProposalItemError) {
@@ -140,7 +151,7 @@ export async function updateProposalItemAction(formData: FormData): Promise<void
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "update_proposal_item",
     entityType: "outgoing_letter",
@@ -163,9 +174,13 @@ export async function deleteProposalItemAction(formData: FormData): Promise<void
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menghapus item proposal.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      deleteProposalItem(tx, { companyId: session.user.companyId, itemId })
+    await withTenantContext(tenantContext, (tx) =>
+      deleteProposalItem(tx, { companyId: company.id, itemId })
     );
   } catch (err) {
     if (err instanceof ProposalItemError) {
@@ -175,7 +190,7 @@ export async function deleteProposalItemAction(formData: FormData): Promise<void
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "delete_proposal_item",
     entityType: "outgoing_letter",

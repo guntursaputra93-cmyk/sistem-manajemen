@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { approvalFlows } from "@/drizzle/schema";
+import { approvalFlows, companies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 
@@ -49,10 +49,14 @@ export async function addApprovalStep(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Pilih berdasarkan role atau orang spesifik.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+    await withTenantContext(tenantContext, (tx) =>
       tx.insert(approvalFlows).values({
-        companyId: session.user.companyId,
+        companyId: company.id,
         appliesTo: appliesTo as (typeof APPLIES_TO_VALUES)[number],
         jenisKey,
         stepOrder,
@@ -65,7 +69,7 @@ export async function addApprovalStep(formData: FormData): Promise<void> {
   }
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "create_approval_flow_step",
     entityType: "approval_flow",
@@ -86,12 +90,16 @@ export async function deleteApprovalStep(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur jenjang approval.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx.delete(approvalFlows).where(and(eq(approvalFlows.id, id), eq(approvalFlows.companyId, session.user.companyId)))
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
+  if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
+
+  await withTenantContext(tenantContext, (tx) =>
+    tx.delete(approvalFlows).where(and(eq(approvalFlows.id, id), eq(approvalFlows.companyId, company.id)))
   );
 
   await logAudit({
-    companyId: session.user.companyId,
+    companyId: company.id,
     userId: session.user.id,
     action: "delete_approval_flow_step",
     entityType: "approval_flow",
