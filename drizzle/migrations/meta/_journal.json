@@ -246,6 +246,55 @@
       "when": 1783421140598,
       "tag": "0034_rls_contracts_and_activities",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1783606007959,
+      "tag": "0035_create_employees_and_position_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1783606066820,
+      "tag": "0036_rls_employees_and_position_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1783606335472,
+      "tag": "0037_add_change_type_to_position_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1783608646694,
+      "tag": "0038_create_leave_and_attendance_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1783608657801,
+      "tag": "0039_rls_leave_and_attendance_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1783624018272,
+      "tag": "0040_create_competency_cpd_calibration_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1783624030881,
+      "tag": "0041_rls_competency_cpd_calibration_module",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,10 @@ export const attachmentEntityTypeEnum = pgEnum("attachment_entity_type", [
   "surat_keluar",
   "nota_dinas",
   "dokumen",
+  // Fase 2 SDM — dokumen kepegawaian, sertifikat kompetensi, bukti CPD.
+  "employee",
+  "employee_competency",
+  "cpd_activity",
 ]);
 
 export const attachments = pgTable("attachments", {

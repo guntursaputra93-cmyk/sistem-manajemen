@@ -42,6 +42,10 @@ export default async function CompanyDashboardLayout({
   const suratModuleOn = enabledModules.has("surat_masuk_keluar");
   const dokumenModuleOn = enabledModules.has("pengendalian_dokumen");
   const crmModuleOn = enabledModules.has("crm");
+  // sdm_payroll ditambahkan di sini seiring halamannya dibangun (Fase 2 Tahap 4).
+  const sdmDataKaryawanOn = enabledModules.has("sdm_data_karyawan");
+  const sdmCutiAbsensiOn = enabledModules.has("sdm_cuti_absensi");
+  const sdmKompetensiOn = enabledModules.has("sdm_kompetensi");
 
   const groups: SidebarGroup[] = [];
 
@@ -86,6 +90,33 @@ export default async function CompanyDashboardLayout({
     crmItems.push({ href: `/${companySlug}/crm/dashboard`, label: "Dashboard CRM", icon: "layout-dashboard" });
   }
   if (crmItems.length) groups.push({ label: "CRM", items: crmItems });
+
+  const sdmItems: SidebarGroup["items"] = [];
+  if (sdmDataKaryawanOn && hasPermission(session.user.role, "VIEW_EMPLOYEES")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/karyawan`, label: "Karyawan", icon: "users" });
+  }
+  if (sdmCutiAbsensiOn && hasPermission(session.user.role, "VIEW_LEAVE_REQUESTS")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/cuti`, label: "Cuti", icon: "calendar-days" });
+  }
+  if (sdmCutiAbsensiOn && hasPermission(session.user.role, "VIEW_ATTENDANCE")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/absensi`, label: "Absensi", icon: "calendar-days" });
+  }
+  if (sdmCutiAbsensiOn && hasPermission(session.user.role, "MANAGE_LEAVE_TYPES")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/jenis-cuti`, label: "Jenis Cuti", icon: "settings" });
+  }
+  if (sdmKompetensiOn && hasPermission(session.user.role, "VIEW_EMPLOYEE_COMPETENCIES")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/kompetensi`, label: "Kompetensi", icon: "award" });
+  }
+  if (sdmKompetensiOn && hasPermission(session.user.role, "VIEW_CPD_ACTIVITIES")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/cpd`, label: "CPD", icon: "award" });
+  }
+  if (sdmKompetensiOn && hasPermission(session.user.role, "VIEW_CALIBRATION_MEETINGS")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/kalibrasi`, label: "Kalibrasi", icon: "users" });
+  }
+  if (sdmKompetensiOn && hasPermission(session.user.role, "MANAGE_COMPETENCY_TYPES")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/jenis-kompetensi`, label: "Jenis Kompetensi", icon: "settings" });
+  }
+  if (sdmItems.length) groups.push({ label: "SDM", items: sdmItems });
 
   const settingsItems: SidebarGroup["items"] = [];
   if (hasPermission(session.user.role, "MANAGE_DEPARTMENTS")) {

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { AttachmentEntityType } from "@/lib/storage/attachments";
 
 export type AttachmentSummary = {
   id: string;
@@ -20,7 +21,7 @@ export function AttachmentUploader({
   entityId,
   attachments,
 }: {
-  entityType: "surat_masuk" | "surat_keluar" | "nota_dinas" | "dokumen";
+  entityType: AttachmentEntityType;
   entityId: string;
   attachments: AttachmentSummary[];
 }) {

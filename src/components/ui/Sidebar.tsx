@@ -15,6 +15,10 @@ import {
   Settings,
   ArrowLeftRight,
   BarChart3,
+  Users,
+  CalendarDays,
+  Award,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,6 +38,10 @@ const ICON_MAP = {
   settings: Settings,
   "arrow-left-right": ArrowLeftRight,
   "bar-chart-3": BarChart3,
+  users: Users,
+  "calendar-days": CalendarDays,
+  award: Award,
+  wallet: Wallet,
 } satisfies Record<string, LucideIcon>;
 
 export type SidebarIconName = keyof typeof ICON_MAP;

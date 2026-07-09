@@ -51,6 +51,47 @@ export const PERMISSIONS = {
   CREATE_ACTIVITY: ["super_admin", "company_admin", "department_head", "staff"],
 
   VIEW_AUDIT_TRAIL: ["super_admin", "company_admin"],
+
+  // --- SDM / Data Karyawan ---
+  // VIEW_EMPLOYEES dibuka utk semua role tapi dibatasi ke diri sendiri/departemen via
+  // getVisibleEmployeeIds (app-level) + RLS row-level (DB-level, lihat migrasi 0036).
+  VIEW_EMPLOYEES: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_EMPLOYEES: ["super_admin", "company_admin"],
+  MANAGE_POSITION_HISTORY: ["super_admin", "company_admin"],
+
+  // --- SDM / Cuti & Absensi ---
+  MANAGE_LEAVE_TYPES: ["super_admin", "company_admin"],
+  VIEW_LEAVE_BALANCES: ["super_admin", "company_admin", "department_head", "staff"],
+  VIEW_LEAVE_REQUESTS: ["super_admin", "company_admin", "department_head", "staff"],
+  CREATE_LEAVE_REQUEST: ["super_admin", "company_admin", "department_head", "staff"],
+  APPROVE_LEAVE_REQUEST: ["super_admin", "company_admin", "department_head"],
+  // Absensi diisi manual oleh admin/department_head, bukan self check-in (keputusan Fase 2).
+  VIEW_ATTENDANCE: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_ATTENDANCE: ["super_admin", "company_admin", "department_head"],
+
+  // --- SDM / Kompetensi ---
+  MANAGE_COMPETENCY_TYPES: ["super_admin", "company_admin"],
+  VIEW_EMPLOYEE_COMPETENCIES: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_EMPLOYEE_COMPETENCIES: ["super_admin", "company_admin"],
+
+  // --- SDM / CPD (logbook pengembangan profesional, SOP Pemeliharaan Kompetensi Auditor) ---
+  VIEW_CPD_ACTIVITIES: ["super_admin", "company_admin", "department_head", "staff"], // staff: milik sendiri (getVisibleEmployeeIds)
+  CREATE_CPD_ACTIVITY: ["super_admin", "company_admin", "department_head", "staff"], // staff: milik sendiri
+  MANAGE_CPD_SETTINGS: ["super_admin", "company_admin"],
+
+  // --- SDM / Kalibrasi (notulen rapat kalibrasi tim, SOP Pemeliharaan Kompetensi Auditor) ---
+  // Sengaja TIDAK termasuk staff — notulen berisi diskusi kinerja, bukan self-service.
+  VIEW_CALIBRATION_MEETINGS: ["super_admin", "company_admin", "department_head"],
+  MANAGE_CALIBRATION_MEETINGS: ["super_admin", "company_admin", "department_head"],
+
+  // --- SDM / Payroll ---
+  MANAGE_SALARY_COMPONENTS: ["super_admin", "company_admin"],
+  MANAGE_EMPLOYEE_SALARY_STRUCTURE: ["super_admin", "company_admin"],
+  RUN_PAYROLL: ["super_admin", "company_admin"],
+  VIEW_PAYROLL_RUNS: ["super_admin", "company_admin"],
+  // department_head HANYA lihat payslip miliknya sendiri (RLS payslips tidak punya
+  // cabang department_head sama sekali, beda dari RLS employees — lihat migrasi 0044).
+  VIEW_PAYSLIPS: ["super_admin", "company_admin", "department_head", "staff"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSIONS;

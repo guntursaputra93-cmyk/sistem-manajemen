@@ -28,12 +28,16 @@ export const dbAdmin = drizzle(adminClient, { schema });
 export type TenantContext = {
   role: string;
   companyId: string | null;
+  // Opsional — dipakai HANYA oleh RLS row-level tambahan di tabel employees/payslips
+  // (Fase 2 SDM, lihat migrasi 0036 & 0044). Semua tabel lain tidak referensi GUC ini
+  // sama sekali, jadi caller lama yang tidak mengirim userId tidak terpengaruh.
+  userId?: string | null;
 };
 
 /**
  * Jalankan `callback` di dalam 1 transaksi dengan session variable RLS
- * (app.current_role, app.current_company_id) di-set SET LOCAL — jadi hanya berlaku
- * untuk transaksi ini saja, tidak bocor ke koneksi lain di connection pool.
+ * (app.current_role, app.current_company_id, app.current_user_id) di-set SET LOCAL —
+ * jadi hanya berlaku untuk transaksi ini saja, tidak bocor ke koneksi lain di connection pool.
  */
 export async function withTenantContext<T>(
   context: TenantContext,
@@ -42,6 +46,7 @@ export async function withTenantContext<T>(
   return db.transaction(async (tx) => {
     await tx.execute(sql`select set_config('app.current_role', ${context.role}, true)`);
     await tx.execute(sql`select set_config('app.current_company_id', ${context.companyId ?? ""}, true)`);
+    await tx.execute(sql`select set_config('app.current_user_id', ${context.userId ?? ""}, true)`);
     return callback(tx as unknown as typeof db);
   });
 }

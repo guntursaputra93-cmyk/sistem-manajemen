@@ -2,7 +2,11 @@ import type { ErrorEvent, EventHint } from "@sentry/nextjs";
 
 // Nama field yang dianggap PII dan wajib disamarkan sebelum dikirim ke Sentry.
 // Dicocokkan case-insensitive terhadap key object (termasuk snake_case dan camelCase).
-const SENSITIVE_KEY_PATTERN = /password|passwordhash|email|fullname/i;
+// nik/salary/gaji/payslip ditambahkan untuk Fase 2 SDM — kolom sensitif terkait
+// (mis. employeeSalaryStructures.salaryAmount, payslips.payslipDetail) sengaja diberi
+// nama yang mengandung salah satu token ini, bukan nama generik seperti "amount"/
+// "detail", supaya tertangkap pola ini tanpa over-match ke kolom "amount" modul lain.
+const SENSITIVE_KEY_PATTERN = /password|passwordhash|email|fullname|nik|salary|gaji|payslip/i;
 
 const REDACTED = "[REDACTED]";
 
