@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Settings,
   ArrowLeftRight,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 
@@ -32,6 +33,7 @@ const ICON_MAP = {
   "layout-dashboard": LayoutDashboard,
   settings: Settings,
   "arrow-left-right": ArrowLeftRight,
+  "bar-chart-3": BarChart3,
 } satisfies Record<string, LucideIcon>;
 
 export type SidebarIconName = keyof typeof ICON_MAP;

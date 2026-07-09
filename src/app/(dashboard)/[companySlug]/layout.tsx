@@ -64,6 +64,9 @@ export default async function CompanyDashboardLayout({
   ) {
     dokumenItems.push({ href: `/${companySlug}/arsip`, label: "Arsip", icon: "archive" });
   }
+  if (hasPermission(session.user.role, "VIEW_DASHBOARD_MONITORING")) {
+    dokumenItems.push({ href: `/${companySlug}/dokumen/monitoring`, label: "Monitoring", icon: "bar-chart-3" });
+  }
   if (dokumenItems.length) groups.push({ label: "Dokumen", items: dokumenItems });
 
   const crmItems: SidebarGroup["items"] = [];

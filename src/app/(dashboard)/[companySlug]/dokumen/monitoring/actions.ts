@@ -11,7 +11,7 @@ import { logAudit } from "@/lib/audit/log";
 
 export async function updateDashboardSettings(formData: FormData): Promise<void> {
   const companySlug = formData.get("companySlug")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/dashboard`;
+  const redirectBase = `/${companySlug}/dokumen/monitoring`;
 
   const session = await auth();
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_DASHBOARD_SETTINGS")) {

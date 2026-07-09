@@ -1,196 +1,287 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { companies } from "@/drizzle/schema";
-import { ROLE_LABEL, hasPermission } from "@/lib/rbac/permissions";
-import { expireOverdueDocumentVersions } from "@/lib/documents/versions";
-import { getDashboardSettings, getActiveDocumentCountByCategory, getAttentionItems, getAccessStatistics } from "@/lib/dashboard/monitoring";
-import { updateDashboardSettings } from "./actions";
+import {
+  companies,
+  incomingLetters,
+  outgoingLetters,
+  opportunities,
+  organizations,
+  pipelineStages,
+  approvalSteps,
+  users,
+} from "@/drizzle/schema";
+import type { Role } from "@/lib/rbac/permissions";
+import { getVisibleAssigneeIds } from "@/lib/crm/opportunities";
+import { Card } from "@/components/ui/Card";
+import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { TrailStepper } from "@/components/ui/TrailStepper";
+import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
+import { Inbox, Send, FileText, Target } from "lucide-react";
 
-const REASON_LABEL: Record<string, string> = {
-  in_review_lama: "Sedang direview kelamaan",
-  menunggu_approval_lama: "Menunggu approval kelamaan",
-  draft_mangkrak: "Draft mangkrak",
-  mendekati_kedaluwarsa: "Mendekati kedaluwarsa",
+const INCOMING_STATUS_LABEL: Record<string, string> = {
+  baru: "Baru",
+  didisposisikan: "Didisposisikan",
+  selesai: "Selesai",
+  diarsipkan: "Diarsipkan",
 };
+
+const INCOMING_STATUS_VARIANT: Record<string, BadgeVariant> = {
+  baru: "powder-blue",
+  didisposisikan: "sage",
+  selesai: "sage",
+  diarsipkan: "dusty-rose",
+};
+
+const OUTGOING_STATUS_LABEL: Record<string, string> = {
+  draft: "Draft",
+  menunggu_approval: "Menunggu Approval",
+  disetujui: "Disetujui",
+  terkirim: "Terkirim",
+  ditolak: "Ditolak",
+};
+
+function greeting(hour: number): string {
+  if (hour < 11) return "Selamat pagi";
+  if (hour < 15) return "Selamat siang";
+  if (hour < 19) return "Selamat sore";
+  return "Selamat malam";
+}
+
+function formatRupiah(value: string | null): string {
+  if (!value) return "-";
+  return `Rp ${Number(value).toLocaleString("id-ID")}`;
+}
 
 export default async function DashboardPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
   const session = await auth();
-  const role = session?.user.role as keyof typeof ROLE_LABEL | undefined;
   if (!session?.user) return null;
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
-
-  const canViewMonitoring = hasPermission(session.user.role, "VIEW_DASHBOARD_MONITORING");
-  const canManageSettings = hasPermission(session.user.role, "MANAGE_DASHBOARD_SETTINGS");
-
-  if (!canViewMonitoring) {
-    return (
-      <div className="max-w-2xl">
-        <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Selamat datang, {session.user.name} ({role ? ROLE_LABEL[role] : "-"}).
-        </p>
-        <div className="mt-6 bg-white border border-dashed border-gray-200 rounded-xl p-8 text-center">
-          <p className="text-gray-400 text-sm">Cek menu Surat Masuk, Surat Keluar, dan Dokumen di atas.</p>
-        </div>
-      </div>
-    );
-  }
 
   const [company] = await withTenantContext(tenantContext, (tx) =>
     tx.select().from(companies).where(eq(companies.slug, companySlug))
   );
   if (!company) notFound();
 
-  await withTenantContext(tenantContext, (tx) => expireOverdueDocumentVersions(tx, { companyId: company.id }));
+  const viewerRole = session.user.role as Role;
 
-  const settings = await withTenantContext(tenantContext, (tx) => getDashboardSettings(tx, company.id));
+  // Semua data kartu digabung dalam 1 transaksi (1 round-trip BEGIN/SET LOCAL/COMMIT,
+  // bukan 1 transaksi terpisah per kartu — pelajaran dari perbaikan layout.tsx).
+  const {
+    monthlyCounts,
+    activeDocumentCount,
+    opportunityOpenCount,
+    currentLetter,
+    currentLetterSteps,
+    currentLetterApprovers,
+    recentIncoming,
+    openOpportunities,
+  } = await withTenantContext(tenantContext, async (tx) => {
+    // department_head butuh tahu departemen sendiri dulu untuk visibility CRM;
+    // staff/company_admin/super_admin tidak perlu query tambahan sama sekali.
+    let viewerDepartmentId: string | null = null;
+    if (viewerRole === "department_head") {
+      const [self] = await tx.select({ departmentId: users.departmentId }).from(users).where(eq(users.id, session.user.id));
+      viewerDepartmentId = self?.departmentId ?? null;
+    }
+    const visibleAssigneeIds = await getVisibleAssigneeIds(tx, {
+      companyId: company.id,
+      viewer: { userId: session.user.id, role: viewerRole, departmentId: viewerDepartmentId },
+    });
 
-  const [categoryCounts, attentionItems, accessStats] = await Promise.all([
-    withTenantContext(tenantContext, (tx) => getActiveDocumentCountByCategory(tx, company.id)),
-    withTenantContext(tenantContext, (tx) => getAttentionItems(tx, company.id, settings)),
-    withTenantContext(tenantContext, (tx) => getAccessStatistics(tx, company.id)),
-  ]);
+    const [countsResult, oppCountResult, [letter], incomingRows, oppRows] = await Promise.all([
+      // 3 counter surat masuk/keluar bulan ini + dokumen aktif digabung 1 query (raw SQL scalar subquery).
+      tx.execute(sql`
+        select
+          (select count(*)::int from incoming_letters where company_id = ${company.id} and date_trunc('month', received_date) = date_trunc('month', current_date)) as "suratMasukCount",
+          (select count(*)::int from outgoing_letters where company_id = ${company.id} and date_trunc('month', created_at) = date_trunc('month', current_date)) as "suratKeluarCount",
+          (select count(*)::int from document_versions where company_id = ${company.id} and status = 'active') as "dokumenAktifCount"
+      `),
+      tx
+        .select({ count: sql<number>`count(*)::int` })
+        .from(opportunities)
+        .where(
+          and(
+            eq(opportunities.companyId, company.id),
+            eq(opportunities.status, "open"),
+            visibleAssigneeIds ? inArray(opportunities.assignedTo, visibleAssigneeIds) : undefined
+          )
+        ),
+      tx
+        .select()
+        .from(outgoingLetters)
+        .where(
+          and(
+            eq(outgoingLetters.companyId, company.id),
+            inArray(outgoingLetters.status, ["menunggu_approval", "disetujui"])
+          )
+        )
+        .orderBy(desc(outgoingLetters.updatedAt))
+        .limit(1),
+      tx
+        .select()
+        .from(incomingLetters)
+        .where(eq(incomingLetters.companyId, company.id))
+        .orderBy(desc(incomingLetters.createdAt))
+        .limit(5),
+      tx
+        .select({
+          id: opportunities.id,
+          title: opportunities.title,
+          estimatedValue: opportunities.estimatedValue,
+          organizationName: organizations.name,
+          stageKey: pipelineStages.stageKey,
+        })
+        .from(opportunities)
+        .innerJoin(organizations, eq(organizations.id, opportunities.organizationId))
+        .leftJoin(pipelineStages, eq(pipelineStages.id, opportunities.currentStageId))
+        .where(
+          and(
+            eq(opportunities.companyId, company.id),
+            eq(opportunities.status, "open"),
+            visibleAssigneeIds ? inArray(opportunities.assignedTo, visibleAssigneeIds) : undefined
+          )
+        )
+        .orderBy(desc(opportunities.estimatedValue), desc(opportunities.createdAt))
+        .limit(5),
+    ]);
+
+    const counts = countsResult[0] as unknown as { suratMasukCount: number; suratKeluarCount: number; dokumenAktifCount: number };
+
+    let steps: (typeof approvalSteps.$inferSelect)[] = [];
+    let approvers: { id: string; fullName: string }[] = [];
+    if (letter) {
+      steps = await tx
+        .select()
+        .from(approvalSteps)
+        .where(and(eq(approvalSteps.entityType, letter.letterCategory), eq(approvalSteps.entityId, letter.id)))
+        .orderBy(approvalSteps.stepOrder);
+      const approverIds = [...new Set(steps.map((s) => s.approverId).filter((id): id is string => id !== null))];
+      approvers = approverIds.length
+        ? await tx.select({ id: users.id, fullName: users.fullName }).from(users).where(inArray(users.id, approverIds))
+        : [];
+    }
+
+    return {
+      monthlyCounts: { suratMasuk: counts.suratMasukCount, suratKeluar: counts.suratKeluarCount },
+      activeDocumentCount: counts.dokumenAktifCount,
+      opportunityOpenCount: oppCountResult[0]?.count ?? 0,
+      currentLetter: letter,
+      currentLetterSteps: steps,
+      currentLetterApprovers: approvers,
+      recentIncoming: incomingRows,
+      openOpportunities: oppRows,
+    };
+  });
+
+  const now = new Date();
+  const tanggalHariIni = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+  const summaryCards = [
+    { label: "Surat Masuk Bulan Ini", value: monthlyCounts.suratMasuk, icon: Inbox, href: `/${companySlug}/surat-masuk` },
+    { label: "Surat Keluar Bulan Ini", value: monthlyCounts.suratKeluar, icon: Send, href: `/${companySlug}/surat-keluar` },
+    { label: "Dokumen Aktif", value: activeDocumentCount, icon: FileText, href: `/${companySlug}/dokumen` },
+    { label: "Opportunity Terbuka", value: opportunityOpenCount, icon: Target, href: `/${companySlug}/crm/opportunities` },
+  ];
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-5xl space-y-8">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Dashboard Pemantauan</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Selamat datang, {session.user.name} ({role ? ROLE_LABEL[role] : "-"}).
-        </p>
+        <h1 className="font-display text-2xl font-bold text-ink">
+          {greeting(now.getHours())}, {session.user.name ?? "Pengguna"}
+        </h1>
+        <p className="text-sm text-ink-muted mt-1">{tanggalHariIni}</p>
+        <p className="text-sm text-ink-muted">Ringkasan aktivitas {company.name} hari ini.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
-      )}
-
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Dokumen Aktif per Kategori</h2>
-        {categoryCounts.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Belum ada kategori dokumen.</p>
-        ) : (
-          <ul className="grid grid-cols-2 gap-3 text-sm">
-            {categoryCounts.map((c) => (
-              <li key={c.categoryId} className="flex justify-between border-b border-gray-100 pb-2">
-                <span>{c.categoryName}</span>
-                <span className="font-semibold text-gray-900">{c.count}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-900">Butuh Perhatian</h2>
-          <span className="text-xs text-gray-400">
-            Ambang: {settings.stalledThresholdDays} hari macet, {settings.expiryWarningDays} hari sebelum kedaluwarsa
-          </span>
-        </div>
-        {attentionItems.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Tidak ada yang butuh perhatian saat ini.</p>
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {attentionItems.map((item) => (
-              <li key={`${item.kind}-${item.id}-${item.reason}`} className="flex justify-between border-b border-gray-100 pb-2">
-                <span>
-                  [{item.kind === "dokumen" ? "Dokumen" : "Surat"}] {item.title}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {summaryCards.map(({ label, value, icon: Icon, href }) => (
+          <Link key={label} href={href}>
+            <Card className="hover:shadow-[0_2px_16px_rgba(0,0,0,0.08)] transition-shadow">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-medium text-ink-muted">{label}</p>
+                  <p className="font-display text-3xl font-bold text-ink mt-2">{value}</p>
+                </div>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sage/20">
+                  <Icon size={18} className="text-sage-deep" aria-hidden="true" />
                 </span>
-                <span className="text-gray-500">{REASON_LABEL[item.reason]}</span>
-              </li>
-            ))}
-          </ul>
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      <Card title="Proses Terkini" description="Surat keluar/nota dinas yang sedang berjalan approval-nya.">
+        {!currentLetter ? (
+          <EmptyState message="Tidak ada surat keluar atau nota dinas yang sedang dalam proses approval saat ini." />
+        ) : (
+          <div className="space-y-4">
+            <div>
+              <Link href={`/${companySlug}/surat-keluar/${currentLetter.id}`} className="font-medium text-ink hover:underline">
+                {currentLetter.letterNumber ?? "(Draft — belum ada nomor)"} — {currentLetter.subject}
+              </Link>
+              <p className="text-xs text-ink-muted mt-0.5">{OUTGOING_STATUS_LABEL[currentLetter.status] ?? currentLetter.status}</p>
+            </div>
+            {currentLetterSteps.length > 0 && (
+              <TrailStepper steps={approvalStepsToTrail(currentLetterSteps, currentLetterApprovers)} orientation="horizontal" />
+            )}
+          </div>
         )}
-      </section>
+      </Card>
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Statistik Akses Dokumen</h2>
-        <div className="grid grid-cols-2 gap-6 text-sm">
-          <div>
-            <h3 className="text-xs font-medium text-gray-500 mb-2">Paling Sering Dibaca</h3>
-            {accessStats.mostRead.length === 0 ? (
-              <p className="text-gray-400 italic">Belum ada data.</p>
-            ) : (
-              <ol className="space-y-1">
-                {accessStats.mostRead.map((s) => (
-                  <li key={s.documentVersionId} className="flex justify-between">
-                    <span>{s.title}</span>
-                    <span className="text-gray-500">{s.viewCount}x</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-          <div>
-            <h3 className="text-xs font-medium text-gray-500 mb-2">Paling Jarang Dibaca</h3>
-            {accessStats.leastRead.length === 0 ? (
-              <p className="text-gray-400 italic">Belum ada data.</p>
-            ) : (
-              <ol className="space-y-1">
-                {accessStats.leastRead.map((s) => (
-                  <li key={s.documentVersionId} className="flex justify-between">
-                    <span>{s.title}</span>
-                    <span className="text-gray-500">{s.viewCount}x</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
-        </div>
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card title="Surat Masuk Terbaru">
+          {recentIncoming.length === 0 ? (
+            <EmptyState message="Belum ada surat masuk. Surat yang diregistrasi akan muncul di sini." />
+          ) : (
+            <ul className="space-y-3">
+              {recentIncoming.map((letter) => (
+                <li key={letter.id}>
+                  <Link href={`/${companySlug}/surat-masuk/${letter.id}`} className="flex items-start justify-between gap-3 group">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-ink truncate group-hover:underline">{letter.subject}</p>
+                      <p className="text-xs text-ink-muted">{letter.sender} — {letter.agendaNumber}</p>
+                    </div>
+                    <Badge variant={INCOMING_STATUS_VARIANT[letter.status] ?? "powder-blue"}>
+                      {INCOMING_STATUS_LABEL[letter.status] ?? letter.status}
+                    </Badge>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
 
-      {canManageSettings && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Ambang Waktu Dashboard</h2>
-          <form action={updateDashboardSettings} className="flex items-end gap-4">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Macet (hari)</label>
-              <input
-                name="stalledThresholdDays"
-                type="number"
-                min={1}
-                defaultValue={settings.stalledThresholdDays}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-24"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Peringatan Kedaluwarsa (hari)</label>
-              <input
-                name="expiryWarningDays"
-                type="number"
-                min={1}
-                defaultValue={settings.expiryWarningDays}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-24"
-              />
-            </div>
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
-              Simpan
-            </button>
-          </form>
-        </section>
-      )}
-
-      <p className="text-xs text-gray-400">
-        Lihat detail lengkap surat & dokumen di halaman{" "}
-        <Link href={`/${companySlug}/arsip`} className="text-blue-600 hover:underline">
-          Arsip
-        </Link>
-        .
-      </p>
+        <Card title="CRM — Opportunity">
+          {openOpportunities.length === 0 ? (
+            <EmptyState message="Belum ada opportunity yang sedang berjalan. Opportunity baru akan muncul di sini." />
+          ) : (
+            <ul className="space-y-3">
+              {openOpportunities.map((opp) => (
+                <li key={opp.id}>
+                  <Link href={`/${companySlug}/crm/opportunities/${opp.id}`} className="flex items-start justify-between gap-3 group">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-ink truncate group-hover:underline">{opp.title}</p>
+                      <p className="text-xs text-ink-muted">{opp.organizationName}{opp.stageKey ? ` — ${opp.stageKey}` : ""}</p>
+                    </div>
+                    <span className="text-sm font-medium text-ink shrink-0">{formatRupiah(opp.estimatedValue)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }
