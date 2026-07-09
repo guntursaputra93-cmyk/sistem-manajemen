@@ -6,6 +6,7 @@ import { withTenantContext } from "@/lib/db";
 import { companies, departments, users } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { updateUser } from "../actions";
+import { Card } from "@/components/ui/Card";
 
 export default async function UserEditPage({
   params,
@@ -40,35 +41,48 @@ export default async function UserEditPage({
   );
 
   return (
-    <div className="max-w-xl space-y-8">
+    <div className="max-w-xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/pengaturan/user`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/pengaturan/user`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">{targetUser.fullName}</h1>
+        <h1 className="font-display text-2xl font-bold text-ink mt-2">{targetUser.fullName}</h1>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
-      )}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
+      <Card>
         <form action={updateUser} className="grid grid-cols-2 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <input type="hidden" name="userId" value={targetUser.id} />
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nama Lengkap</label>
-            <input name="fullName" defaultValue={targetUser.fullName} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Nama Lengkap</label>
+            <input
+              name="fullName"
+              defaultValue={targetUser.fullName}
+              required
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-            <input name="email" type="email" defaultValue={targetUser.email} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Email</label>
+            <input
+              name="email"
+              type="email"
+              defaultValue={targetUser.email}
+              required
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
-            <select name="role" defaultValue={targetUser.role} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <label className="block text-xs font-medium text-ink-muted mb-1">Role</label>
+            <select
+              name="role"
+              defaultValue={targetUser.role}
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            >
               <option value="staff">Staff</option>
               <option value="department_head">Kepala Departemen</option>
               <option value="company_admin">Admin Perusahaan</option>
@@ -76,15 +90,23 @@ export default async function UserEditPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-            <select name="isActive" defaultValue={String(targetUser.isActive)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <label className="block text-xs font-medium text-ink-muted mb-1">Status</label>
+            <select
+              name="isActive"
+              defaultValue={String(targetUser.isActive)}
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            >
               <option value="true">Aktif</option>
               <option value="false">Nonaktif</option>
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Departemen (wajib utk Staff/Kepala Departemen)</label>
-            <select name="departmentId" defaultValue={targetUser.departmentId ?? ""} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <label className="block text-xs font-medium text-ink-muted mb-1">Departemen (wajib utk Staff/Kepala Departemen)</label>
+            <select
+              name="departmentId"
+              defaultValue={targetUser.departmentId ?? ""}
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            >
               <option value="">-- tidak ada --</option>
               {deptList.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -94,16 +116,22 @@ export default async function UserEditPage({
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-gray-700 mb-1">Ganti Password (opsional)</label>
-            <input name="newPassword" type="password" minLength={8} placeholder="Kosongkan kalau tidak ganti" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Ganti Password (opsional)</label>
+            <input
+              name="newPassword"
+              type="password"
+              minLength={8}
+              placeholder="Kosongkan kalau tidak ganti"
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            />
           </div>
           <div className="col-span-2">
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
               Simpan
             </button>
           </div>
         </form>
-      </section>
+      </Card>
     </div>
   );
 }

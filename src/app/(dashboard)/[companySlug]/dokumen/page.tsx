@@ -9,6 +9,10 @@ import { expireOverdueDocumentVersions } from "@/lib/documents/versions";
 import { canViewDocument } from "@/lib/documents/access";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createDocument } from "./actions";
+import { Card } from "@/components/ui/Card";
+import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -17,6 +21,16 @@ const STATUS_LABEL: Record<string, string> = {
   superseded: "Digantikan",
   expired: "Kedaluwarsa",
 };
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  draft: "powder-blue",
+  in_review: "dusty-rose",
+  active: "sage",
+  superseded: "powder-blue",
+  expired: "destructive",
+};
+
+type DocRow = { id: string; title: string; categoryId: string; latestVersion: { versionNumber: number; status: string } | null };
 
 export default async function DokumenPage({
   params,
@@ -67,25 +81,51 @@ export default async function DokumenPage({
     return versionsForDoc.find((v) => v.status === "active") ?? versionsForDoc.sort((a, b) => b.versionNumber - a.versionNumber)[0];
   }
 
+  const rows: DocRow[] = docList.map((doc) => {
+    const version = latestVersionOf(doc.id);
+    return { id: doc.id, title: doc.title, categoryId: doc.categoryId, latestVersion: version ? { versionNumber: version.versionNumber, status: version.status } : null };
+  });
+
+  const columns: DataTableColumn<DocRow>[] = [
+    {
+      key: "title",
+      header: "Judul",
+      render: (doc) => (
+        <a href={`/${companySlug}/dokumen/${doc.id}`} className="font-medium text-sage-deep hover:underline">
+          {doc.title}
+        </a>
+      ),
+    },
+    { key: "category", header: "Kategori", render: (doc) => categories.find((c) => c.id === doc.categoryId)?.name ?? "-" },
+    { key: "version", header: "Versi Terbaru", render: (doc) => (doc.latestVersion ? `v${doc.latestVersion.versionNumber}` : "-") },
+    {
+      key: "status",
+      header: "Status",
+      render: (doc) =>
+        doc.latestVersion ? (
+          <Badge variant={STATUS_VARIANT[doc.latestVersion.status] ?? "powder-blue"}>{STATUS_LABEL[doc.latestVersion.status] ?? doc.latestVersion.status}</Badge>
+        ) : (
+          "-"
+        ),
+    },
+  ];
+
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Dokumen Perusahaan</h1>
-        <p className="text-gray-500 text-sm mt-1">Peraturan Perusahaan, SK Direktur, dan dokumen lain — dengan versioning.</p>
+        <h1 className="font-display text-2xl font-bold text-ink">Dokumen Perusahaan</h1>
+        <p className="text-sm text-ink-muted mt-1">Peraturan Perusahaan, SK Direktur, dan dokumen lain — dengan versioning.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
-      )}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       {canCreate && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Buat Dokumen Baru</h2>
+        <Card title="Buat Dokumen Baru">
           {categories.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">
+            <p className="text-sm text-ink-muted italic">
               Belum ada kategori dokumen. Admin perlu atur dulu di{" "}
-              <Link href={`/${companySlug}/pengaturan/kategori-dokumen`} className="text-blue-600 hover:underline">
+              <Link href={`/${companySlug}/pengaturan/kategori-dokumen`} className="text-sage-deep hover:underline">
                 Pengaturan &rarr; Kategori Dokumen
               </Link>
               .
@@ -94,12 +134,20 @@ export default async function DokumenPage({
             <form action={createDocument} className="grid grid-cols-2 gap-4">
               <input type="hidden" name="companySlug" value={companySlug} />
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Judul</label>
-                <input name="title" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Judul</label>
+                <input
+                  name="title"
+                  required
+                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Kategori</label>
-                <select name="categoryId" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                <label className="block text-xs font-medium text-ink-muted mb-1">Kategori</label>
+                <select
+                  name="categoryId"
+                  required
+                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.code})
@@ -108,60 +156,24 @@ export default async function DokumenPage({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal Efektif (opsional)</label>
-                <input name="effectiveDate" type="date" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Efektif (opsional)</label>
+                <DatePicker name="effectiveDate" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Berlaku Sampai (opsional)</label>
-                <input name="expiresAt" type="date" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
+                <DatePicker name="expiresAt" />
               </div>
               <div className="col-span-2">
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                   Buat Dokumen (Draft Versi 1)
                 </button>
               </div>
             </form>
           )}
-        </section>
+        </Card>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-2">Judul</th>
-              <th className="text-left px-4 py-2">Kategori</th>
-              <th className="text-left px-4 py-2">Versi Terbaru</th>
-              <th className="text-left px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {docList.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-400 italic">
-                  Belum ada dokumen.
-                </td>
-              </tr>
-            )}
-            {docList.map((doc) => {
-              const category = categories.find((c) => c.id === doc.categoryId);
-              const version = latestVersionOf(doc.id);
-              return (
-                <tr key={doc.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-2">
-                    <Link href={`/${companySlug}/dokumen/${doc.id}`} className="text-blue-600 hover:underline">
-                      {doc.title}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2">{category?.name ?? "-"}</td>
-                  <td className="px-4 py-2">{version ? `v${version.versionNumber}` : "-"}</td>
-                  <td className="px-4 py-2">{version ? STATUS_LABEL[version.status] ?? version.status : "-"}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
+      <DataTable columns={columns} rows={rows} rowKey={(doc) => doc.id} emptyMessage="Belum ada dokumen. Dokumen yang dibuat akan muncul di sini." />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { companies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { isModuleEnabled } from "@/lib/modules";
 import { updateCompanyCode } from "./actions";
+import { Card } from "@/components/ui/Card";
 
 export default async function PengaturanPage({
   params,
@@ -35,26 +36,16 @@ export default async function PengaturanPage({
   const crmModuleOn = await withTenantContext(tenantContext, (tx) => isModuleEnabled(tx, { companyId: company.id, moduleKey: "crm" }));
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Pengaturan</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Kode perusahaan & departemen dipakai untuk format nomor surat/nota dinas.
-        </p>
+        <h1 className="font-display text-2xl font-bold text-ink">Pengaturan</h1>
+        <p className="text-sm text-ink-muted mt-1">Kode perusahaan &amp; departemen dipakai untuk format nomor surat/nota dinas.</p>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
-      )}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">
-          Kode berhasil disimpan.
-        </div>
-      )}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Kode berhasil disimpan.</div>}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-1">Kode Perusahaan</h2>
-        <p className="text-xs text-gray-500 mb-4">Contoh: SMU. Huruf besar & angka, 2-10 karakter.</p>
+      <Card title="Kode Perusahaan" description="Contoh: SMU. Huruf besar & angka, 2-10 karakter.">
         {canEditCompanyCode ? (
           <form action={updateCompanyCode} className="flex items-center gap-3">
             <input type="hidden" name="companyId" value={company.id} />
@@ -64,92 +55,71 @@ export default async function PengaturanPage({
               defaultValue={company.code ?? ""}
               placeholder="mis. SMU"
               maxLength={10}
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm w-40 uppercase"
+              className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm w-40 uppercase text-ink bg-surface"
             />
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
-            >
+            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
               Simpan
             </button>
           </form>
         ) : (
-          <p className="text-sm text-gray-700">
-            {company.code ?? <span className="text-gray-400 italic">Belum diatur</span>}
-          </p>
+          <p className="text-sm text-ink">{company.code ?? <span className="text-ink-muted italic">Belum diatur</span>}</p>
         )}
-      </section>
+      </Card>
 
       {hasPermission(session.user.role, "MANAGE_DEPARTMENTS") && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Departemen</h2>
-          <p className="text-xs text-gray-500 mb-4">Tambah, ubah, atau hapus departemen (nama, kode, induk).</p>
-          <Link href={`/${companySlug}/pengaturan/departemen`} className="text-sm text-blue-600 hover:underline">
+        <Card title="Departemen" description="Tambah, ubah, atau hapus departemen (nama, kode, induk).">
+          <Link href={`/${companySlug}/pengaturan/departemen`} className="text-sm text-sage-deep hover:underline">
             Buka pengaturan departemen &rarr;
           </Link>
-        </section>
+        </Card>
       )}
 
       {hasPermission(session.user.role, "MANAGE_USERS") && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">User</h2>
-          <p className="text-xs text-gray-500 mb-4">Kelola akun user — nama, email, role, departemen.</p>
-          <Link href={`/${companySlug}/pengaturan/user`} className="text-sm text-blue-600 hover:underline">
+        <Card title="User" description="Kelola akun user — nama, email, role, departemen.">
+          <Link href={`/${companySlug}/pengaturan/user`} className="text-sm text-sage-deep hover:underline">
             Buka pengaturan user &rarr;
           </Link>
-        </section>
+        </Card>
       )}
 
       {hasPermission(session.user.role, "MANAGE_APPROVAL_FLOWS") && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Jenjang Approval</h2>
-          <p className="text-xs text-gray-500 mb-4">
-            Atur urutan approval per jenis surat keluar/nota dinas/dokumen.
-          </p>
-          <Link href={`/${companySlug}/pengaturan/approval`} className="text-sm text-blue-600 hover:underline">
+        <Card title="Jenjang Approval" description="Atur urutan approval per jenis surat keluar/nota dinas/dokumen.">
+          <Link href={`/${companySlug}/pengaturan/approval`} className="text-sm text-sage-deep hover:underline">
             Buka pengaturan jenjang approval &rarr;
           </Link>
-        </section>
+        </Card>
       )}
 
       {hasPermission(session.user.role, "MANAGE_DOCUMENT_CATEGORIES") && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Kategori Dokumen</h2>
-          <p className="text-xs text-gray-500 mb-4">Atur kode kategori dokumen (Peraturan Perusahaan, SK Direktur, dst).</p>
-          <Link href={`/${companySlug}/pengaturan/kategori-dokumen`} className="text-sm text-blue-600 hover:underline">
+        <Card title="Kategori Dokumen" description="Atur kode kategori dokumen (Peraturan Perusahaan, SK Direktur, dst).">
+          <Link href={`/${companySlug}/pengaturan/kategori-dokumen`} className="text-sm text-sage-deep hover:underline">
             Buka pengaturan kategori dokumen &rarr;
           </Link>
-        </section>
+        </Card>
       )}
 
       {hasPermission(session.user.role, "MANAGE_DOCUMENT_ACCESS_RULES") && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Jenjang Akses Dokumen</h2>
-          <p className="text-xs text-gray-500 mb-4">Default semua staf bisa lihat — atur rule kalau mau membatasi.</p>
-          <Link href={`/${companySlug}/pengaturan/akses-dokumen`} className="text-sm text-blue-600 hover:underline">
+        <Card title="Jenjang Akses Dokumen" description="Default semua staf bisa lihat — atur rule kalau mau membatasi.">
+          <Link href={`/${companySlug}/pengaturan/akses-dokumen`} className="text-sm text-sage-deep hover:underline">
             Buka pengaturan jenjang akses &rarr;
           </Link>
-        </section>
+        </Card>
       )}
 
       {hasPermission(session.user.role, "MANAGE_MODULES") && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Modul Aktif</h2>
-          <p className="text-xs text-gray-500 mb-4">Aktif/nonaktifkan Surat Masuk-Keluar & Pengendalian Dokumen.</p>
-          <Link href={`/${companySlug}/pengaturan/modul`} className="text-sm text-blue-600 hover:underline">
+        <Card title="Modul Aktif" description="Aktif/nonaktifkan Surat Masuk-Keluar & Pengendalian Dokumen.">
+          <Link href={`/${companySlug}/pengaturan/modul`} className="text-sm text-sage-deep hover:underline">
             Buka pengaturan modul &rarr;
           </Link>
-        </section>
+        </Card>
       )}
 
       {crmModuleOn && hasPermission(session.user.role, "MANAGE_PIPELINE_STAGES") && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-1">Tahap Pipeline (CRM)</h2>
-          <p className="text-xs text-gray-500 mb-4">Atur tahap penjualan (lead, kualifikasi, menang, hilang, dst).</p>
-          <Link href={`/${companySlug}/pengaturan/pipeline`} className="text-sm text-blue-600 hover:underline">
+        <Card title="Tahap Pipeline (CRM)" description="Atur tahap penjualan (lead, kualifikasi, menang, hilang, dst).">
+          <Link href={`/${companySlug}/pengaturan/pipeline`} className="text-sm text-sage-deep hover:underline">
             Buka pengaturan pipeline &rarr;
           </Link>
-        </section>
+        </Card>
       )}
     </div>
   );

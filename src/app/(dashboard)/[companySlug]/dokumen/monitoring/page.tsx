@@ -51,7 +51,7 @@ export default async function MonitoringPage({
   ]);
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-6">
       <div>
         <Link href={`/${companySlug}/dokumen`} className="text-sm text-blue-600 hover:underline">
           &larr; Kembali ke Dokumen

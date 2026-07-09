@@ -18,6 +18,7 @@ import { canViewDocument, logDocumentAccess } from "@/lib/documents/access";
 import { getTeamReadStatus } from "@/lib/documents/teamReadStatus";
 import { requireModuleEnabled } from "@/lib/modules";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { addNewVersion, submitVersionForReviewAction, decideVersionApprovalAction } from "../actions";
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
 import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
@@ -97,7 +98,7 @@ export default async function DokumenDetailPage({
   const canAddNewVersion = canManage && latestVersion && ["active", "superseded", "expired"].includes(latestVersion.status);
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-6">
       <div>
         <Link href={`/${companySlug}/dokumen`} className="text-sm text-blue-600 hover:underline">
           &larr; Kembali
@@ -119,11 +120,11 @@ export default async function DokumenDetailPage({
             <input type="hidden" name="documentId" value={doc.id} />
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal Efektif (opsional)</label>
-              <input name="effectiveDate" type="date" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <DatePicker name="effectiveDate" />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Berlaku Sampai (opsional)</label>
-              <input name="expiresAt" type="date" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <DatePicker name="expiresAt" />
             </div>
             <div className="col-span-2">
               <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">

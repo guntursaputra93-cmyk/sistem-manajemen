@@ -22,6 +22,7 @@ import { Pagination } from "@/components/Pagination";
 import { Tabs } from "@/components/ui/Tabs";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { UnreadBadge } from "@/components/ui/UnreadBadge";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const DOC_STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -406,11 +407,11 @@ function FilterForm({
       )}
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Dari Tanggal</label>
-        <input type="date" name={`${tabKey}_from`} defaultValue={sp[`${tabKey}_from`] ?? ""} className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+        <DatePicker name={`${tabKey}_from`} defaultValue={sp[`${tabKey}_from`]} />
       </div>
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Sampai Tanggal</label>
-        <input type="date" name={`${tabKey}_to`} defaultValue={sp[`${tabKey}_to`] ?? ""} className="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+        <DatePicker name={`${tabKey}_to`} defaultValue={sp[`${tabKey}_to`]} />
       </div>
       <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
         Filter

@@ -8,8 +8,11 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { changeStageAction, reassignOpportunityAction } from "../actions";
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
+import { Card } from "@/components/ui/Card";
+import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 
 const STATUS_LABEL: Record<string, string> = { open: "Berjalan", won: "Menang", lost: "Hilang" };
+const STATUS_VARIANT: Record<string, BadgeVariant> = { open: "powder-blue", won: "sage", lost: "destructive" };
 
 export default async function OpportunityDetailPage({
   params,
@@ -66,84 +69,135 @@ export default async function OpportunityDetailPage({
   });
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-blue-600 hover:underline">&larr; Kembali</Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">{opp.title}</h1>
-        <p className="text-gray-500 text-sm mt-1">{org?.name}</p>
+        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
+          &larr; Kembali
+        </Link>
+        <h1 className="font-display text-2xl font-bold text-ink mt-2">{opp.title}</h1>
+        <p className="text-sm text-ink-muted mt-1">{org?.name}</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       {pipelineTrail.length > 0 && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
+        <Card>
           <TrailStepper steps={pipelineTrail} orientation="horizontal" />
-        </section>
+        </Card>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
-        <div><span className="text-gray-500">Tahap Saat Ini</span><p className="text-gray-900">{currentStage?.stageKey}</p></div>
-        <div><span className="text-gray-500">Status</span><p className="text-gray-900">{STATUS_LABEL[opp.status]}</p></div>
-        <div><span className="text-gray-500">Estimasi Nilai</span><p className="text-gray-900">{opp.estimatedValue ? `Rp ${opp.estimatedValue}` : "-"}</p></div>
-        <div><span className="text-gray-500">Target Tutup</span><p className="text-gray-900">{opp.expectedCloseDate ?? "-"}</p></div>
-        <div><span className="text-gray-500">Ditugaskan ke</span><p className="text-gray-900">{assignee?.fullName ?? "-"}</p></div>
-        {opp.lostReason && <div className="col-span-2"><span className="text-gray-500">Alasan Hilang</span><p className="text-gray-900">{opp.lostReason}</p></div>}
-      </section>
+      <Card>
+        <dl className="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <dt className="text-ink-muted">Tahap Saat Ini</dt>
+            <dd className="text-ink">{currentStage?.stageKey}</dd>
+          </div>
+          <div>
+            <dt className="text-ink-muted">Status</dt>
+            <dd>
+              <Badge variant={STATUS_VARIANT[opp.status] ?? "powder-blue"}>{STATUS_LABEL[opp.status]}</Badge>
+            </dd>
+          </div>
+          <div>
+            <dt className="text-ink-muted">Estimasi Nilai</dt>
+            <dd className="text-ink">{opp.estimatedValue ? `Rp ${opp.estimatedValue}` : "-"}</dd>
+          </div>
+          <div>
+            <dt className="text-ink-muted">Target Tutup</dt>
+            <dd className="text-ink">{opp.expectedCloseDate ?? "-"}</dd>
+          </div>
+          <div>
+            <dt className="text-ink-muted">Ditugaskan ke</dt>
+            <dd className="text-ink">{assignee?.fullName ?? "-"}</dd>
+          </div>
+          {opp.lostReason && (
+            <div className="col-span-2">
+              <dt className="text-ink-muted">Alasan Hilang</dt>
+              <dd className="text-ink">{opp.lostReason}</dd>
+            </div>
+          )}
+        </dl>
+      </Card>
 
       {canAct && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Pindah Tahap</h2>
+        <Card title="Pindah Tahap">
           <form action={changeStageAction} className="grid grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="opportunityId" value={opp.id} />
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tahap Baru</label>
-              <select name="newStageId" defaultValue={opp.currentStageId} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                {stageList.map((s) => <option key={s.id} value={s.id}>{s.stageKey}{s.isWonStage ? " (menang)" : s.isLostStage ? " (hilang)" : ""}</option>)}
+              <label className="block text-xs font-medium text-ink-muted mb-1">Tahap Baru</label>
+              <select
+                name="newStageId"
+                defaultValue={opp.currentStageId}
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              >
+                {stageList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.stageKey}
+                    {s.isWonStage ? " (menang)" : s.isLostStage ? " (hilang)" : ""}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Alasan (kalau pindah ke tahap hilang)</label>
-              <input name="lostReason" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Alasan (kalau pindah ke tahap hilang)</label>
+              <input
+                name="lostReason"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div className="col-span-2">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">Pindahkan</button>
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                Pindahkan
+              </button>
             </div>
           </form>
-        </section>
+        </Card>
       )}
 
       {canReassign && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Pindahkan Kepemilikan</h2>
+        <Card title="Pindahkan Kepemilikan">
           <form action={reassignOpportunityAction} className="flex items-center gap-3">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="opportunityId" value={opp.id} />
-            <select name="newAssignedTo" defaultValue={opp.assignedTo} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-              {userList.map((u) => <option key={u.id} value={u.id}>{u.fullName}</option>)}
+            <select
+              name="newAssignedTo"
+              defaultValue={opp.assignedTo}
+              className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            >
+              {userList.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.fullName}
+                </option>
+              ))}
             </select>
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">Pindahkan</button>
+            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              Pindahkan
+            </button>
           </form>
-        </section>
+        </Card>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Riwayat Tahap</h2>
+      <Card title="Riwayat Tahap">
         <ol className="space-y-2 text-sm">
           {history.map((h) => {
             const stage = stageList.find((s) => s.id === h.stageId);
             return (
-              <li key={h.id} className="border-l-2 border-blue-200 pl-3">
-                <span className="font-medium">{stage?.stageKey}</span> — masuk {new Date(h.enteredAt).toLocaleString("id-ID")}
-                {h.exitedAt ? `, keluar ${new Date(h.exitedAt).toLocaleString("id-ID")}` : " (saat ini)"}
+              <li key={h.id} className="border-l-2 border-powder-blue pl-3">
+                <span className="font-medium text-ink">{stage?.stageKey}</span>
+                <span className="text-ink-muted">
+                  {" "}
+                  — masuk {new Date(h.enteredAt).toLocaleString("id-ID")}
+                  {h.exitedAt ? `, keluar ${new Date(h.exitedAt).toLocaleString("id-ID")}` : " (saat ini)"}
+                </span>
               </li>
             );
           })}
         </ol>
-      </section>
+      </Card>
     </div>
   );
 }

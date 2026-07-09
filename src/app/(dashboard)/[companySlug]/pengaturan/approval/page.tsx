@@ -5,6 +5,8 @@ import { withTenantContext } from "@/lib/db";
 import { companies, approvalFlows, users } from "@/drizzle/schema";
 import { hasPermission, ROLE_LABEL } from "@/lib/rbac/permissions";
 import { addApprovalStep, deleteApprovalStep } from "./actions";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const APPLIES_TO_LABEL: Record<string, string> = {
   surat_keluar: "Surat Keluar",
@@ -58,54 +60,58 @@ export default async function ApprovalFlowsPage({
   }
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Jenjang Approval</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Atur urutan approval per jenis. Tiap jenis boleh punya jumlah jenjang berbeda.
-        </p>
+        <h1 className="font-display text-2xl font-bold text-ink">Jenjang Approval</h1>
+        <p className="text-sm text-ink-muted mt-1">Atur urutan approval per jenis. Tiap jenis boleh punya jumlah jenjang berbeda.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">
-          Perubahan berhasil disimpan.
-        </div>
-      )}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Perubahan berhasil disimpan.</div>}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Tambah Jenjang</h2>
+      <Card title="Tambah Jenjang">
         <form action={addApprovalStep} className="grid grid-cols-2 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Berlaku untuk</label>
-            <select name="appliesTo" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" required>
+            <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku untuk</label>
+            <select
+              name="appliesTo"
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              required
+            >
               <option value="surat_keluar">Surat Keluar</option>
               <option value="nota_dinas">Nota Dinas</option>
               <option value="dokumen">Dokumen</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Jenis (bebas, mis. internal)</label>
-            <input name="jenisKey" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Jenis (bebas, mis. internal)</label>
+            <input
+              name="jenisKey"
+              required
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Urutan Jenjang</label>
+            <label className="block text-xs font-medium text-ink-muted mb-1">Urutan Jenjang</label>
             <input
               name="stepOrder"
               type="number"
               min={1}
               defaultValue={1}
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
             />
           </div>
           <div />
           <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-700 mb-1">
-              <input type="radio" name="approverMode" value="role" defaultChecked /> Berdasarkan Role
+            <label className="flex items-center gap-2 text-xs font-medium text-ink-muted mb-1">
+              <input type="radio" name="approverMode" value="role" defaultChecked className="accent-sage-deep" /> Berdasarkan Role
             </label>
-            <select name="requiredRole" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <select
+              name="requiredRole"
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            >
               <option value="department_head">Kepala Departemen (departemen pengirim)</option>
               <option value="company_admin">Admin Perusahaan</option>
               <option value="staff">Staff</option>
@@ -113,10 +119,13 @@ export default async function ApprovalFlowsPage({
             </select>
           </div>
           <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-gray-700 mb-1">
-              <input type="radio" name="approverMode" value="user" /> Orang Spesifik
+            <label className="flex items-center gap-2 text-xs font-medium text-ink-muted mb-1">
+              <input type="radio" name="approverMode" value="user" className="accent-sage-deep" /> Orang Spesifik
             </label>
-            <select name="requiredApproverUserId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <select
+              name="requiredApproverUserId"
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            >
               <option value="">-- pilih orang --</option>
               {userRows.map((u) => (
                 <option key={u.id} value={u.id}>
@@ -126,31 +135,27 @@ export default async function ApprovalFlowsPage({
             </select>
           </div>
           <div className="col-span-2">
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
-            >
+            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
               Tambah Jenjang
             </button>
           </div>
         </form>
-      </section>
+      </Card>
 
       <section className="space-y-4">
-        {grouped.size === 0 && (
-          <p className="text-sm text-gray-400 italic">Belum ada konfigurasi approval sama sekali.</p>
-        )}
+        {grouped.size === 0 && <EmptyState message="Belum ada konfigurasi approval sama sekali." />}
         {[...grouped.entries()].map(([key, rows]) => {
           const [appliesTo, jenisKey] = key.split("::");
           return (
-            <div key={key} className="bg-white border border-gray-100 rounded-xl p-6">
-              <h3 className="font-semibold text-gray-900 mb-3">
-                {APPLIES_TO_LABEL[appliesTo]} — <span className="text-blue-600">{jenisKey}</span>
-              </h3>
+            <Card
+              key={key}
+              title={APPLIES_TO_LABEL[appliesTo]}
+              description={jenisKey}
+            >
               <ol className="space-y-2">
                 {rows.map(({ flow, approverName }) => (
                   <li key={flow.id} className="flex items-center justify-between text-sm">
-                    <span>
+                    <span className="text-ink">
                       Jenjang {flow.stepOrder}:{" "}
                       {flow.requiredApproverUserId
                         ? `Orang spesifik — ${approverName ?? "?"}`
@@ -159,14 +164,14 @@ export default async function ApprovalFlowsPage({
                     <form action={deleteApprovalStep}>
                       <input type="hidden" name="companySlug" value={companySlug} />
                       <input type="hidden" name="id" value={flow.id} />
-                      <button type="submit" className="text-red-500 hover:underline text-xs">
+                      <button type="submit" className="text-destructive hover:underline text-xs">
                         Hapus
                       </button>
                     </form>
                   </li>
                 ))}
               </ol>
-            </div>
+            </Card>
           );
         })}
       </section>

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { format, parseISO } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import {
@@ -44,6 +46,14 @@ const OUTGOING_STATUS_LABEL: Record<string, string> = {
   ditolak: "Ditolak",
 };
 
+const OUTGOING_STATUS_VARIANT: Record<string, BadgeVariant> = {
+  draft: "powder-blue",
+  menunggu_approval: "dusty-rose",
+  disetujui: "sage",
+  terkirim: "sage",
+  ditolak: "destructive",
+};
+
 function greeting(hour: number): string {
   if (hour < 11) return "Selamat pagi";
   if (hour < 15) return "Selamat siang";
@@ -54,6 +64,10 @@ function greeting(hour: number): string {
 function formatRupiah(value: string | null): string {
   if (!value) return "-";
   return `Rp ${Number(value).toLocaleString("id-ID")}`;
+}
+
+function formatShortDate(isoDate: string): string {
+  return format(parseISO(isoDate), "d MMM yyyy", { locale: idLocale });
 }
 
 export default async function DashboardPage({
@@ -184,7 +198,7 @@ export default async function DashboardPage({
   });
 
   const now = new Date();
-  const tanggalHariIni = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const tanggalHariIni = now.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
   const summaryCards = [
     { label: "Surat Masuk Bulan Ini", value: monthlyCounts.suratMasuk, icon: Inbox, href: `/${companySlug}/surat-masuk` },
@@ -194,13 +208,14 @@ export default async function DashboardPage({
   ];
 
   return (
-    <div className="max-w-5xl space-y-8">
+    <div className="max-w-5xl space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-ink">
           {greeting(now.getHours())}, {session.user.name ?? "Pengguna"}
         </h1>
-        <p className="text-sm text-ink-muted mt-1">{tanggalHariIni}</p>
-        <p className="text-sm text-ink-muted">Ringkasan aktivitas {company.name} hari ini.</p>
+        <p className="text-sm text-ink-muted mt-1">
+          Berikut ringkasan aktivitas {company.name} hari ini, {tanggalHariIni}.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -221,7 +236,17 @@ export default async function DashboardPage({
         ))}
       </div>
 
-      <Card title="Proses Terkini" description="Surat keluar/nota dinas yang sedang berjalan approval-nya.">
+      <Card
+        title="Proses Terkini"
+        description="Surat keluar/nota dinas yang sedang berjalan approval-nya."
+        action={
+          currentLetter && (
+            <Badge variant={OUTGOING_STATUS_VARIANT[currentLetter.status] ?? "powder-blue"}>
+              {OUTGOING_STATUS_LABEL[currentLetter.status] ?? currentLetter.status}
+            </Badge>
+          )
+        }
+      >
         {!currentLetter ? (
           <EmptyState message="Tidak ada surat keluar atau nota dinas yang sedang dalam proses approval saat ini." />
         ) : (
@@ -230,7 +255,6 @@ export default async function DashboardPage({
               <Link href={`/${companySlug}/surat-keluar/${currentLetter.id}`} className="font-medium text-ink hover:underline">
                 {currentLetter.letterNumber ?? "(Draft — belum ada nomor)"} — {currentLetter.subject}
               </Link>
-              <p className="text-xs text-ink-muted mt-0.5">{OUTGOING_STATUS_LABEL[currentLetter.status] ?? currentLetter.status}</p>
             </div>
             {currentLetterSteps.length > 0 && (
               <TrailStepper steps={approvalStepsToTrail(currentLetterSteps, currentLetterApprovers)} orientation="horizontal" />
@@ -250,7 +274,9 @@ export default async function DashboardPage({
                   <Link href={`/${companySlug}/surat-masuk/${letter.id}`} className="flex items-start justify-between gap-3 group">
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-ink truncate group-hover:underline">{letter.subject}</p>
-                      <p className="text-xs text-ink-muted">{letter.sender} — {letter.agendaNumber}</p>
+                      <p className="text-xs text-ink-muted">
+                        {letter.agendaNumber} · {formatShortDate(letter.receivedDate)}
+                      </p>
                     </div>
                     <Badge variant={INCOMING_STATUS_VARIANT[letter.status] ?? "powder-blue"}>
                       {INCOMING_STATUS_LABEL[letter.status] ?? letter.status}

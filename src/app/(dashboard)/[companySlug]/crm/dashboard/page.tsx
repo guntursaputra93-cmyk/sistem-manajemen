@@ -46,7 +46,7 @@ export default async function CrmDashboardPage({
   const totalPipelineValue = pipelineValues.reduce((sum, s) => sum + s.totalValue, 0);
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-4xl space-y-6">
       <div>
         <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-blue-600 hover:underline">&larr; Kembali ke CRM</Link>
         <h1 className="text-xl font-bold text-gray-900 mt-2">Dashboard CRM</h1>

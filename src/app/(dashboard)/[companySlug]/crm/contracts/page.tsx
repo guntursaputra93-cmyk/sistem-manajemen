@@ -7,11 +7,19 @@ import { companies, contracts, opportunities, organizations, users } from "@/dri
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getVisibleAssigneeIds } from "@/lib/crm/opportunities";
+import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
   belum_dibayar: "Belum Dibayar",
   sebagian: "Sebagian",
   lunas: "Lunas",
+};
+
+const PAYMENT_STATUS_VARIANT: Record<string, BadgeVariant> = {
+  belum_dibayar: "dusty-rose",
+  sebagian: "powder-blue",
+  lunas: "sage",
 };
 
 export default async function ContractsPage({
@@ -51,49 +59,38 @@ export default async function ContractsPage({
       : rows
   );
 
+  const columns: DataTableColumn<(typeof contractList)[number]>[] = [
+    { key: "org", header: "Organisasi", render: (c) => orgList.find((o) => o.id === c.organizationId)?.name ?? "-" },
+    {
+      key: "deal",
+      header: "Deal",
+      render: (c) => (
+        <a href={`/${companySlug}/crm/contracts/${c.id}`} className="font-medium text-sage-deep hover:underline">
+          {oppList.find((o) => o.id === c.opportunityId)?.title ?? "-"}
+        </a>
+      ),
+    },
+    { key: "value", header: "Nilai Kontrak", render: (c) => `Rp ${Number(c.contractValue).toLocaleString("id-ID")}` },
+    { key: "start", header: "Mulai", render: (c) => c.startDate },
+    { key: "end", header: "Selesai", render: (c) => c.endDate ?? "-" },
+    {
+      key: "payment",
+      header: "Status Bayar",
+      render: (c) => <Badge variant={PAYMENT_STATUS_VARIANT[c.paymentStatus] ?? "powder-blue"}>{PAYMENT_STATUS_LABEL[c.paymentStatus] ?? c.paymentStatus}</Badge>,
+    },
+  ];
+
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="max-w-4xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-blue-600 hover:underline">&larr; Kembali ke CRM</Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">Contract (CRM)</h1>
-        <p className="text-gray-500 text-sm mt-1">Dibuat otomatis saat opportunity pindah ke tahap &quot;menang&quot;.</p>
+        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
+          &larr; Kembali ke CRM
+        </Link>
+        <h1 className="font-display text-2xl font-bold text-ink mt-2">Contract (CRM)</h1>
+        <p className="text-sm text-ink-muted mt-1">Dibuat otomatis saat opportunity pindah ke tahap &quot;menang&quot;.</p>
       </div>
 
-      <section className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-2">Organisasi</th>
-              <th className="text-left px-4 py-2">Deal</th>
-              <th className="text-left px-4 py-2">Nilai Kontrak</th>
-              <th className="text-left px-4 py-2">Mulai</th>
-              <th className="text-left px-4 py-2">Selesai</th>
-              <th className="text-left px-4 py-2">Status Bayar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {contractList.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400 italic">Belum ada contract.</td></tr>
-            )}
-            {contractList.map((c) => {
-              const org = orgList.find((o) => o.id === c.organizationId);
-              const opp = oppList.find((o) => o.id === c.opportunityId);
-              return (
-                <tr key={c.id} className="border-t border-gray-100 hover:bg-gray-50">
-                  <td className="px-4 py-2">{org?.name ?? "-"}</td>
-                  <td className="px-4 py-2">
-                    <Link href={`/${companySlug}/crm/contracts/${c.id}`} className="text-blue-600 hover:underline">{opp?.title ?? "-"}</Link>
-                  </td>
-                  <td className="px-4 py-2">Rp {Number(c.contractValue).toLocaleString("id-ID")}</td>
-                  <td className="px-4 py-2">{c.startDate}</td>
-                  <td className="px-4 py-2">{c.endDate ?? "-"}</td>
-                  <td className="px-4 py-2">{PAYMENT_STATUS_LABEL[c.paymentStatus] ?? c.paymentStatus}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </section>
+      <DataTable columns={columns} rows={contractList} rowKey={(c) => c.id} emptyMessage="Belum ada contract. Contract akan dibuat otomatis saat opportunity menang." />
     </div>
   );
 }

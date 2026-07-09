@@ -35,28 +35,24 @@ export default async function ModulePage({
   );
 
   return (
-    <div className="max-w-xl space-y-8">
+    <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Modul Aktif</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Aktif/nonaktifkan modul bisnis untuk {company.name}. Independen antar perusahaan.
-        </p>
+        <h1 className="font-display text-2xl font-bold text-ink">Modul Aktif</h1>
+        <p className="text-sm text-ink-muted mt-1">Aktif/nonaktifkan modul bisnis untuk {company.name}. Independen antar perusahaan.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
-      )}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <section className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+      <div className="bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-hidden">
         {MODULE_KEYS.map((key) => {
           const row = rows.find((r) => r.moduleKey === key);
           const enabled = row?.isEnabled ?? false;
           return (
-            <div key={key} className="flex items-center justify-between px-6 py-4 border-b border-gray-100 last:border-0">
+            <div key={key} className="flex items-center justify-between px-6 py-4 border-b border-ink-muted/10 last:border-0">
               <div>
-                <p className="text-sm font-medium text-gray-900">{MODULE_LABEL[key]}</p>
-                <p className="text-xs text-gray-400">{key}</p>
+                <p className="text-sm font-medium text-ink">{MODULE_LABEL[key]}</p>
+                <p className="text-xs text-ink-muted">{key}</p>
               </div>
               <form action={toggleModule}>
                 <input type="hidden" name="companySlug" value={companySlug} />
@@ -65,8 +61,8 @@ export default async function ModulePage({
                 <input type="hidden" name="enable" value={String(!enabled)} />
                 <button
                   type="submit"
-                  className={`text-sm font-semibold px-4 py-2 rounded-lg transition ${
-                    enabled ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-blue-600 text-white hover:bg-blue-700"
+                  className={`text-sm font-semibold px-4 py-2 rounded-lg transition-colors ${
+                    enabled ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : "bg-powder-blue-deep text-white hover:bg-powder-blue-deep/90"
                   }`}
                 >
                   {enabled ? "Nonaktifkan" : "Aktifkan"}
@@ -75,7 +71,7 @@ export default async function ModulePage({
             </div>
           );
         })}
-      </section>
+      </div>
     </div>
   );
 }

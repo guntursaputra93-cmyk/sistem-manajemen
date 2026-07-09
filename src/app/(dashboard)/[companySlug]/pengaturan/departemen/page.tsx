@@ -5,6 +5,8 @@ import { withTenantContext } from "@/lib/db";
 import { companies, departments } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { createDepartment, updateDepartment, deleteDepartment } from "./actions";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default async function DepartemenPage({
   params,
@@ -34,33 +36,41 @@ export default async function DepartemenPage({
   );
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Departemen</h1>
-        <p className="text-gray-500 text-sm mt-1">Kelola departemen di {company.name}.</p>
+        <h1 className="font-display text-2xl font-bold text-ink">Departemen</h1>
+        <p className="text-sm text-ink-muted mt-1">Kelola departemen di {company.name}.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
-      )}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Tambah Departemen</h2>
+      <Card title="Tambah Departemen">
         <form action={createDepartment} className="grid grid-cols-3 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nama</label>
-            <input name="name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+            <input
+              name="name"
+              required
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Kode (opsional)</label>
-            <input name="code" maxLength={10} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Kode (opsional)</label>
+            <input
+              name="code"
+              maxLength={10}
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm uppercase text-ink bg-surface"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Induk Departemen (opsional)</label>
-            <select name="parentDepartmentId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <label className="block text-xs font-medium text-ink-muted mb-1">Induk Departemen (opsional)</label>
+            <select
+              name="parentDepartmentId"
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            >
               <option value="">-- tidak ada --</option>
               {deptList.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -70,44 +80,58 @@ export default async function DepartemenPage({
             </select>
           </div>
           <div className="col-span-3">
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
               Tambah
             </button>
           </div>
         </form>
-      </section>
+      </Card>
 
       <section className="space-y-3">
-        {deptList.length === 0 && (
-          <p className="text-sm text-gray-400 italic">Belum ada departemen.</p>
-        )}
+        {deptList.length === 0 && <EmptyState message="Belum ada departemen. Departemen yang ditambahkan akan muncul di sini." />}
         {deptList.map((dept) => (
-          <div key={dept.id} className="bg-white border border-gray-100 rounded-xl p-4">
+          <div key={dept.id} className="bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-4">
             <form action={updateDepartment} className="grid grid-cols-4 gap-3 items-end">
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="departmentId" value={dept.id} />
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Nama</label>
-                <input name="name" defaultValue={dept.name} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+                <input
+                  name="name"
+                  defaultValue={dept.name}
+                  required
+                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Kode</label>
-                <input name="code" defaultValue={dept.code ?? ""} maxLength={10} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Kode</label>
+                <input
+                  name="code"
+                  defaultValue={dept.code ?? ""}
+                  maxLength={10}
+                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm uppercase text-ink bg-surface"
+                />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Induk</label>
-                <select name="parentDepartmentId" defaultValue={dept.parentDepartmentId ?? ""} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                <label className="block text-xs font-medium text-ink-muted mb-1">Induk</label>
+                <select
+                  name="parentDepartmentId"
+                  defaultValue={dept.parentDepartmentId ?? ""}
+                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                >
                   <option value="">-- tidak ada --</option>
-                  {deptList.filter((d) => d.id !== dept.id).map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
+                  {deptList
+                    .filter((d) => d.id !== dept.id)
+                    .map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
                 </select>
               </div>
               <div className="flex gap-2">
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-3 py-2 rounded-lg transition">
+                <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-3 py-2 rounded-lg transition-colors">
                   Simpan
                 </button>
               </div>
@@ -116,7 +140,7 @@ export default async function DepartemenPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="departmentId" value={dept.id} />
-              <button type="submit" className="text-red-500 hover:underline text-xs">
+              <button type="submit" className="text-destructive hover:underline text-xs">
                 Hapus Departemen
               </button>
             </form>

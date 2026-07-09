@@ -7,6 +7,8 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getPipelineStages } from "@/lib/crm/pipeline";
 import { addPipelineStage, updatePipelineStage, removePipelineStage } from "./actions";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default async function PipelinePage({
   params,
@@ -38,77 +40,102 @@ export default async function PipelinePage({
   const hasLostStage = stages.some((s) => s.isLostStage);
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Tahap Pipeline (CRM)</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Atur tahap pipeline penjualan untuk {company.name}. Bebas dikonfigurasi, urutan menentukan tampilan.
-        </p>
+        <h1 className="font-display text-2xl font-bold text-ink">Tahap Pipeline (CRM)</h1>
+        <p className="text-sm text-ink-muted mt-1">Atur tahap pipeline penjualan untuk {company.name}. Bebas dikonfigurasi, urutan menentukan tampilan.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
       {(!hasWonStage || !hasLostStage) && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded-lg px-4 py-3">
-          {!hasWonStage && <p>Belum ada tahap "menang" — tandai minimal 1 tahap sebagai tahap menang.</p>}
-          {!hasLostStage && <p>Belum ada tahap "hilang" — tandai minimal 1 tahap sebagai tahap hilang.</p>}
+        <div className="bg-dusty-rose/20 border border-dusty-rose-deep/20 text-ink text-sm rounded-lg px-4 py-3">
+          {!hasWonStage && <p>Belum ada tahap &quot;menang&quot; — tandai minimal 1 tahap sebagai tahap menang.</p>}
+          {!hasLostStage && <p>Belum ada tahap &quot;hilang&quot; — tandai minimal 1 tahap sebagai tahap hilang.</p>}
         </div>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Tambah Tahap</h2>
+      <Card title="Tambah Tahap">
         <form action={addPipelineStage} className="grid grid-cols-4 gap-4 items-end">
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Nama Tahap (stage_key)</label>
-            <input name="stageKey" required placeholder="mis. lead_baru" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Nama Tahap (stage_key)</label>
+            <input
+              name="stageKey"
+              required
+              placeholder="mis. lead_baru"
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">Urutan</label>
-            <input name="stageOrder" type="number" min={1} defaultValue={stages.length + 1} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            <label className="block text-xs font-medium text-ink-muted mb-1">Urutan</label>
+            <input
+              name="stageOrder"
+              type="number"
+              min={1}
+              defaultValue={stages.length + 1}
+              required
+              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+            />
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" name="isWonStage" value="true" id="add-won" className="h-4 w-4" />
-            <label htmlFor="add-won" className="text-sm text-gray-700">Tahap Menang</label>
+            <input type="checkbox" name="isWonStage" value="true" id="add-won" className="h-4 w-4 accent-sage-deep" />
+            <label htmlFor="add-won" className="text-sm text-ink-muted">
+              Tahap Menang
+            </label>
           </div>
           <div className="flex items-center gap-2">
-            <input type="checkbox" name="isLostStage" value="true" id="add-lost" className="h-4 w-4" />
-            <label htmlFor="add-lost" className="text-sm text-gray-700">Tahap Hilang</label>
+            <input type="checkbox" name="isLostStage" value="true" id="add-lost" className="h-4 w-4 accent-sage-deep" />
+            <label htmlFor="add-lost" className="text-sm text-ink-muted">
+              Tahap Hilang
+            </label>
           </div>
           <div className="col-span-4">
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
               Tambah
             </button>
           </div>
         </form>
-      </section>
+      </Card>
 
       <section className="space-y-3">
-        {stages.length === 0 && <p className="text-sm text-gray-400 italic">Belum ada tahap pipeline.</p>}
+        {stages.length === 0 && <EmptyState message="Belum ada tahap pipeline. Tahap yang ditambahkan akan muncul di sini." />}
         {stages.map((stage) => (
-          <div key={stage.id} className="bg-white border border-gray-100 rounded-xl p-4">
+          <div key={stage.id} className="bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-4">
             <form action={updatePipelineStage} className="grid grid-cols-5 gap-3 items-end">
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="stageId" value={stage.id} />
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Nama Tahap</label>
-                <input name="stageKey" defaultValue={stage.stageKey} required className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Nama Tahap</label>
+                <input
+                  name="stageKey"
+                  defaultValue={stage.stageKey}
+                  required
+                  className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface"
+                />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Urutan</label>
-                <input name="stageOrder" type="number" min={1} defaultValue={stage.stageOrder} required className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Urutan</label>
+                <input
+                  name="stageOrder"
+                  type="number"
+                  min={1}
+                  defaultValue={stage.stageOrder}
+                  required
+                  className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface"
+                />
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" name="isWonStage" value="true" defaultChecked={stage.isWonStage} className="h-4 w-4" />
-                <label className="text-sm text-gray-700">Menang</label>
+                <input type="checkbox" name="isWonStage" value="true" defaultChecked={stage.isWonStage} className="h-4 w-4 accent-sage-deep" />
+                <label className="text-sm text-ink-muted">Menang</label>
               </div>
               <div className="flex items-center gap-2">
-                <input type="checkbox" name="isLostStage" value="true" defaultChecked={stage.isLostStage} className="h-4 w-4" />
-                <label className="text-sm text-gray-700">Hilang</label>
+                <input type="checkbox" name="isLostStage" value="true" defaultChecked={stage.isLostStage} className="h-4 w-4 accent-sage-deep" />
+                <label className="text-sm text-ink-muted">Hilang</label>
               </div>
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
                 Simpan
               </button>
             </form>
@@ -116,7 +143,7 @@ export default async function PipelinePage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="stageId" value={stage.id} />
-              <button type="submit" className="text-red-500 hover:underline text-xs">
+              <button type="submit" className="text-destructive hover:underline text-xs">
                 Hapus Tahap
               </button>
             </form>

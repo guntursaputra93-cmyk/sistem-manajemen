@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -7,6 +6,8 @@ import { companies, organizations } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createOrganization } from "./actions";
+import { Card } from "@/components/ui/Card";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 
 export default async function OrganisasiPage({
   params,
@@ -38,82 +39,84 @@ export default async function OrganisasiPage({
 
   const canManage = hasPermission(session.user.role, "MANAGE_ORGANIZATIONS");
 
+  const columns: DataTableColumn<(typeof orgList)[number]>[] = [
+    {
+      key: "name",
+      header: "Nama",
+      render: (org) => (
+        <a href={`/${companySlug}/crm/organisasi/${org.id}`} className="font-medium text-sage-deep hover:underline">
+          {org.name}
+        </a>
+      ),
+    },
+    { key: "industry", header: "Industri", render: (org) => org.industry ?? "-" },
+    { key: "source", header: "Asal Akuisisi", render: (org) => org.source ?? "-" },
+  ];
+
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Organisasi / Klien (CRM)</h1>
-        <p className="text-gray-500 text-sm mt-1">Daftar organisasi/klien untuk {company.name}.</p>
+        <h1 className="font-display text-2xl font-bold text-ink">Organisasi / Klien (CRM)</h1>
+        <p className="text-sm text-ink-muted mt-1">Daftar organisasi/klien untuk {company.name}.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       {canManage && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Tambah Organisasi</h2>
+        <Card title="Tambah Organisasi">
           <form action={createOrganization} className="grid grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Nama Organisasi</label>
-              <input name="name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Organisasi</label>
+              <input
+                name="name"
+                required
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Industri</label>
-              <input name="industry" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Industri</label>
+              <input
+                name="industry"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Ukuran Perusahaan</label>
-              <input name="companySize" placeholder="mis. 50-100 karyawan" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Ukuran Perusahaan</label>
+              <input
+                name="companySize"
+                placeholder="mis. 50-100 karyawan"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Asal Akuisisi</label>
-              <input name="source" placeholder="mis. referral, website" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Asal Akuisisi</label>
+              <input
+                name="source"
+                placeholder="mis. referral, website"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Catatan</label>
-              <textarea name="notes" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan</label>
+              <textarea
+                name="notes"
+                rows={2}
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div className="col-span-2">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Tambah
               </button>
             </div>
           </form>
-        </section>
+        </Card>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-2">Nama</th>
-              <th className="text-left px-4 py-2">Industri</th>
-              <th className="text-left px-4 py-2">Asal Akuisisi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orgList.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-4 py-6 text-center text-gray-400 italic">
-                  Belum ada organisasi.
-                </td>
-              </tr>
-            )}
-            {orgList.map((org) => (
-              <tr key={org.id} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-2">
-                  <Link href={`/${companySlug}/crm/organisasi/${org.id}`} className="text-blue-600 hover:underline">
-                    {org.name}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">{org.industry ?? "-"}</td>
-                <td className="px-4 py-2">{org.source ?? "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <DataTable columns={columns} rows={orgList} rowKey={(org) => org.id} emptyMessage="Belum ada organisasi. Organisasi/klien yang ditambahkan akan muncul di sini." />
     </div>
   );
 }

@@ -104,7 +104,7 @@ export default async function SuratKeluarDetailPage({
   const proposalTotal = itemRows.reduce((sum, i) => sum + Number(i.subtotal), 0);
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-6">
       <div>
         <Link href={`/${companySlug}/surat-keluar`} className="text-sm text-blue-600 hover:underline">
           &larr; Kembali

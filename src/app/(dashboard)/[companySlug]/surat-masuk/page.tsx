@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { asc, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -7,12 +6,23 @@ import { companies, departments, incomingLetters } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createIncomingLetter } from "./actions";
+import { Card } from "@/components/ui/Card";
+import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const STATUS_LABEL: Record<string, string> = {
   baru: "Baru",
   didisposisikan: "Didisposisikan",
   selesai: "Selesai",
   diarsipkan: "Diarsipkan",
+};
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  baru: "powder-blue",
+  didisposisikan: "sage",
+  selesai: "sage",
+  diarsipkan: "dusty-rose",
 };
 
 export default async function SuratMasukPage({
@@ -50,38 +60,61 @@ export default async function SuratMasukPage({
 
   const canCreate = hasPermission(session.user.role, "CREATE_INCOMING_LETTER");
 
+  const columns: DataTableColumn<(typeof letters)[number]>[] = [
+    {
+      key: "agenda",
+      header: "No. Agenda",
+      render: (letter) => (
+        <a href={`/${companySlug}/surat-masuk/${letter.id}`} className="font-medium text-sage-deep hover:underline">
+          {letter.agendaNumber}
+        </a>
+      ),
+    },
+    { key: "sender", header: "Pengirim", render: (letter) => letter.sender },
+    { key: "subject", header: "Perihal", render: (letter) => letter.subject },
+    {
+      key: "status",
+      header: "Status",
+      render: (letter) => <Badge variant={STATUS_VARIANT[letter.status] ?? "powder-blue"}>{STATUS_LABEL[letter.status] ?? letter.status}</Badge>,
+    },
+  ];
+
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Surat Masuk</h1>
-        <p className="text-gray-500 text-sm mt-1">Registrasi surat masuk & riwayat disposisi.</p>
+        <h1 className="font-display text-2xl font-bold text-ink">Surat Masuk</h1>
+        <p className="text-sm text-ink-muted mt-1">Registrasi surat masuk &amp; riwayat disposisi.</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
-      )}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       {canCreate && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Registrasi Surat Masuk</h2>
+        <Card title="Registrasi Surat Masuk">
           <form action={createIncomingLetter} className="grid grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal Surat</label>
-              <input name="letterDate" type="date" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Surat</label>
+              <DatePicker name="letterDate" required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal Diterima</label>
-              <input name="receivedDate" type="date" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Diterima</label>
+              <DatePicker name="receivedDate" required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Pengirim</label>
-              <input name="sender" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Pengirim</label>
+              <input
+                name="sender"
+                required
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tujuan Awal (opsional)</label>
-              <select name="departmentId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              <label className="block text-xs font-medium text-ink-muted mb-1">Tujuan Awal (opsional)</label>
+              <select
+                name="departmentId"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              >
                 <option value="">-- belum ditentukan --</option>
                 {deptList.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -91,51 +124,23 @@ export default async function SuratMasukPage({
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Perihal</label>
-              <input name="subject" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Perihal</label>
+              <input
+                name="subject"
+                required
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div className="col-span-2">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Simpan
               </button>
             </div>
           </form>
-        </section>
+        </Card>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-2">No. Agenda</th>
-              <th className="text-left px-4 py-2">Pengirim</th>
-              <th className="text-left px-4 py-2">Perihal</th>
-              <th className="text-left px-4 py-2">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {letters.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-400 italic">
-                  Belum ada surat masuk.
-                </td>
-              </tr>
-            )}
-            {letters.map((letter) => (
-              <tr key={letter.id} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-2">
-                  <Link href={`/${companySlug}/surat-masuk/${letter.id}`} className="text-blue-600 hover:underline">
-                    {letter.agendaNumber}
-                  </Link>
-                </td>
-                <td className="px-4 py-2">{letter.sender}</td>
-                <td className="px-4 py-2">{letter.subject}</td>
-                <td className="px-4 py-2">{STATUS_LABEL[letter.status] ?? letter.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <DataTable columns={columns} rows={letters} rowKey={(letter) => letter.id} emptyMessage="Belum ada surat masuk. Surat yang diregistrasi akan muncul di sini." />
     </div>
   );
 }

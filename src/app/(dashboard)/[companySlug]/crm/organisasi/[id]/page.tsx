@@ -8,6 +8,10 @@ import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getVisibleAssigneeIds } from "@/lib/crm/opportunities";
 import { updateOrganization, createContact, createActivity } from "../actions";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 const ACTIVITY_TYPE_LABEL: Record<string, string> = {
   telepon: "Telepon",
@@ -63,72 +67,108 @@ export default async function OrganisasiDetailPage({
   const canLogActivity = hasPermission(session.user.role, "CREATE_ACTIVITY");
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">{org.name}</h1>
+        <h1 className="font-display text-2xl font-bold text-ink mt-2">{org.name}</h1>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Detail Organisasi</h2>
+      <Card title="Detail Organisasi">
         {canManage ? (
           <form action={updateOrganization} className="grid grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Nama Organisasi</label>
-              <input name="name" defaultValue={org.name} required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Organisasi</label>
+              <input
+                name="name"
+                defaultValue={org.name}
+                required
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Industri</label>
-              <input name="industry" defaultValue={org.industry ?? ""} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Industri</label>
+              <input
+                name="industry"
+                defaultValue={org.industry ?? ""}
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Ukuran Perusahaan</label>
-              <input name="companySize" defaultValue={org.companySize ?? ""} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Ukuran Perusahaan</label>
+              <input
+                name="companySize"
+                defaultValue={org.companySize ?? ""}
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Asal Akuisisi</label>
-              <input name="source" defaultValue={org.source ?? ""} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Asal Akuisisi</label>
+              <input
+                name="source"
+                defaultValue={org.source ?? ""}
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Catatan</label>
-              <textarea name="notes" defaultValue={org.notes ?? ""} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan</label>
+              <textarea
+                name="notes"
+                defaultValue={org.notes ?? ""}
+                rows={2}
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div className="col-span-2">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Simpan
               </button>
             </div>
           </form>
         ) : (
           <dl className="text-sm space-y-2">
-            <div><dt className="text-gray-500 inline">Industri: </dt><dd className="inline">{org.industry ?? "-"}</dd></div>
-            <div><dt className="text-gray-500 inline">Ukuran: </dt><dd className="inline">{org.companySize ?? "-"}</dd></div>
-            <div><dt className="text-gray-500 inline">Asal: </dt><dd className="inline">{org.source ?? "-"}</dd></div>
-            <div><dt className="text-gray-500 inline">Catatan: </dt><dd className="inline">{org.notes ?? "-"}</dd></div>
+            <div>
+              <dt className="text-ink-muted inline">Industri: </dt>
+              <dd className="inline text-ink">{org.industry ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-muted inline">Ukuran: </dt>
+              <dd className="inline text-ink">{org.companySize ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-muted inline">Asal: </dt>
+              <dd className="inline text-ink">{org.source ?? "-"}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-muted inline">Catatan: </dt>
+              <dd className="inline text-ink">{org.notes ?? "-"}</dd>
+            </div>
           </dl>
         )}
-      </section>
+      </Card>
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Kontak</h2>
+      <Card title="Kontak">
         {contacts.length === 0 ? (
-          <p className="text-sm text-gray-400 italic mb-4">Belum ada kontak.</p>
+          <EmptyState message="Belum ada kontak. Kontak yang ditambahkan akan muncul di sini." />
         ) : (
           <ul className="space-y-2 text-sm mb-4">
             {contacts.map((c) => (
-              <li key={c.id} className="border-b border-gray-100 pb-2">
-                <span className="font-medium">{c.name}</span>
-                {c.isPrimary && <span className="ml-2 text-xs text-green-600">(Utama)</span>}
-                {c.position && <span className="text-gray-500"> — {c.position}</span>}
-                <div className="text-gray-500">{[c.email, c.phone].filter(Boolean).join(" · ")}</div>
+              <li key={c.id} className="border-b border-ink-muted/10 pb-2">
+                <span className="font-medium text-ink">{c.name}</span>
+                {c.isPrimary && (
+                  <span className="ml-2">
+                    <Badge variant="sage">Utama</Badge>
+                  </span>
+                )}
+                {c.position && <span className="text-ink-muted"> — {c.position}</span>}
+                <div className="text-ink-muted">{[c.email, c.phone].filter(Boolean).join(" · ")}</div>
               </li>
             ))}
           </ul>
@@ -140,49 +180,69 @@ export default async function OrganisasiDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Nama Kontak</label>
-              <input name="name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Kontak</label>
+              <input
+                name="name"
+                required
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Jabatan</label>
-              <input name="position" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Jabatan</label>
+              <input
+                name="position"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Email</label>
-              <input name="email" type="email" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Email</label>
+              <input
+                name="email"
+                type="email"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Telepon</label>
-              <input name="phone" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Telepon</label>
+              <input
+                name="phone"
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div className="col-span-2 flex items-center gap-2">
-              <input type="checkbox" name="isPrimary" value="true" id="isPrimary" className="h-4 w-4" />
-              <label htmlFor="isPrimary" className="text-sm text-gray-700">Kontak utama</label>
+              <input type="checkbox" name="isPrimary" value="true" id="isPrimary" className="h-4 w-4 accent-sage-deep" />
+              <label htmlFor="isPrimary" className="text-sm text-ink-muted">
+                Kontak utama
+              </label>
             </div>
             <div className="col-span-2">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Tambah Kontak
               </button>
             </div>
           </form>
         )}
-      </section>
+      </Card>
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Aktivitas / Follow-up</h2>
+      <Card title="Aktivitas / Follow-up">
         {activityList.length === 0 ? (
-          <p className="text-sm text-gray-400 italic mb-4">Belum ada aktivitas tercatat.</p>
+          <EmptyState message="Belum ada aktivitas tercatat. Aktivitas yang dicatat akan muncul di sini." />
         ) : (
           <ul className="space-y-2 text-sm mb-4">
             {activityList.map((a) => {
               const creator = userList.find((u) => u.id === a.createdBy);
               const opp = oppList.find((o) => o.id === a.opportunityId);
               return (
-                <li key={a.id} className="border-b border-gray-100 pb-2">
-                  <span className="font-medium">{ACTIVITY_TYPE_LABEL[a.activityType]}</span>
-                  <span className="text-gray-500"> — {a.activityDate}{opp ? ` — ${opp.title}` : ""}{creator ? ` — oleh ${creator.fullName}` : ""}</span>
-                  {a.notes && <div className="text-gray-700">{a.notes}</div>}
-                  {a.nextFollowupDate && <div className="text-gray-500 text-xs">Follow-up berikutnya: {a.nextFollowupDate}</div>}
+                <li key={a.id} className="border-b border-ink-muted/10 pb-2">
+                  <span className="font-medium text-ink">{ACTIVITY_TYPE_LABEL[a.activityType]}</span>
+                  <span className="text-ink-muted">
+                    {" "}
+                    — {a.activityDate}
+                    {opp ? ` — ${opp.title}` : ""}
+                    {creator ? ` — oleh ${creator.fullName}` : ""}
+                  </span>
+                  {a.notes && <div className="text-ink">{a.notes}</div>}
+                  {a.nextFollowupDate && <div className="text-ink-muted text-xs">Follow-up berikutnya: {a.nextFollowupDate}</div>}
                 </li>
               );
             })}
@@ -195,8 +255,12 @@ export default async function OrganisasiDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Jenis</label>
-              <select name="activityType" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis</label>
+              <select
+                name="activityType"
+                required
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              >
                 <option value="telepon">Telepon</option>
                 <option value="meeting">Meeting</option>
                 <option value="email">Email</option>
@@ -204,34 +268,45 @@ export default async function OrganisasiDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal</label>
-              <input name="activityDate" type="date" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal</label>
+              <DatePicker name="activityDate" required />
             </div>
             {oppList.length > 0 && (
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Kaitkan ke Opportunity (opsional)</label>
-                <select name="opportunityId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                <label className="block text-xs font-medium text-ink-muted mb-1">Kaitkan ke Opportunity (opsional)</label>
+                <select
+                  name="opportunityId"
+                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                >
                   <option value="">-- tidak dikaitkan --</option>
-                  {oppList.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
+                  {oppList.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.title}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Catatan</label>
-              <textarea name="notes" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan</label>
+              <textarea
+                name="notes"
+                rows={2}
+                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Follow-up Berikutnya (opsional)</label>
-              <input name="nextFollowupDate" type="date" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Follow-up Berikutnya (opsional)</label>
+              <DatePicker name="nextFollowupDate" />
             </div>
             <div className="col-span-2">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Catat Aktivitas
               </button>
             </div>
           </form>
         )}
-      </section>
+      </Card>
     </div>
   );
 }
