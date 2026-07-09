@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 function safeCallbackUrl(raw: string | null): string {
-  if (!raw) return "/dashboard";
-  if (!raw.startsWith("/") || raw.startsWith("//")) return "/dashboard";
+  if (!raw) return "/pilih-perusahaan";
+  if (!raw.startsWith("/") || raw.startsWith("//")) return "/pilih-perusahaan";
   return raw;
 }
 
