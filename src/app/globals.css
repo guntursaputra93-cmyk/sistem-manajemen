@@ -30,6 +30,32 @@ body {
   font-family: var(--font-body);
 }
 
+/* Focus ring global (Bagian 6 aksesibilitas): reset outline browser default
+   (oranye/kuning) jadi ring pastel powder-blue-deep, 2px, di :focus-visible
+   saja (bukan :focus) supaya tidak muncul saat klik mouse. @layer base
+   supaya utility Tailwind lebih spesifik (mis. focus-visible:ring-sage-deep
+   di Sidebar) tetap bisa override tanpa !important. */
+@layer base {
+  input,
+  select,
+  textarea,
+  button,
+  a,
+  [tabindex] {
+    outline: none;
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  button:focus-visible,
+  a:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-powder-blue-deep);
+    outline-offset: 2px;
+  }
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
