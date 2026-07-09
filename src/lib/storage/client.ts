@@ -5,14 +5,14 @@ if (!supabaseUrl) {
   throw new Error("NEXT_PUBLIC_SUPABASE_URL belum diset di environment variables.");
 }
 
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!serviceRoleKey) {
-  throw new Error("SUPABASE_SERVICE_ROLE_KEY belum diset di environment variables.");
+const secretKey = process.env.SUPABASE_SECRET_KEY;
+if (!secretKey) {
+  throw new Error("SUPABASE_SECRET_KEY belum diset di environment variables.");
 }
 
-// service_role bypass SEMUA RLS Storage — hanya boleh dipakai di kode server
-// (route handler / server action), jangan pernah diimport dari komponen client.
-export const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+// secret key (sb_secret_...) bypass SEMUA RLS Storage — hanya boleh dipakai di kode
+// server (route handler / server action), jangan pernah diimport dari komponen client.
+export const supabaseAdmin = createClient(supabaseUrl, secretKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
