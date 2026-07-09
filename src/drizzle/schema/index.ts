@@ -37,3 +37,7 @@ export * from "./cpdActivities";
 export * from "./cpdSettings";
 export * from "./calibrationMeetings";
 export * from "./calibrationAttendees";
+export * from "./salaryComponents";
+export * from "./employeeSalaryStructures";
+export * from "./payrollRuns";
+export * from "./payslips";

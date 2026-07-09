@@ -42,10 +42,10 @@ export default async function CompanyDashboardLayout({
   const suratModuleOn = enabledModules.has("surat_masuk_keluar");
   const dokumenModuleOn = enabledModules.has("pengendalian_dokumen");
   const crmModuleOn = enabledModules.has("crm");
-  // sdm_payroll ditambahkan di sini seiring halamannya dibangun (Fase 2 Tahap 4).
   const sdmDataKaryawanOn = enabledModules.has("sdm_data_karyawan");
   const sdmCutiAbsensiOn = enabledModules.has("sdm_cuti_absensi");
   const sdmKompetensiOn = enabledModules.has("sdm_kompetensi");
+  const sdmPayrollOn = enabledModules.has("sdm_payroll");
 
   const groups: SidebarGroup[] = [];
 
@@ -115,6 +115,15 @@ export default async function CompanyDashboardLayout({
   }
   if (sdmKompetensiOn && hasPermission(session.user.role, "MANAGE_COMPETENCY_TYPES")) {
     sdmItems.push({ href: `/${companySlug}/sdm/jenis-kompetensi`, label: "Jenis Kompetensi", icon: "settings" });
+  }
+  if (sdmPayrollOn && hasPermission(session.user.role, "VIEW_PAYROLL_RUNS")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/payroll`, label: "Payroll", icon: "wallet" });
+  }
+  if (sdmPayrollOn && hasPermission(session.user.role, "MANAGE_EMPLOYEE_SALARY_STRUCTURE")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/struktur-gaji`, label: "Struktur Gaji", icon: "wallet" });
+  }
+  if (sdmPayrollOn && hasPermission(session.user.role, "MANAGE_SALARY_COMPONENTS")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/komponen-gaji`, label: "Komponen Gaji", icon: "settings" });
   }
   if (sdmItems.length) groups.push({ label: "SDM", items: sdmItems });
 

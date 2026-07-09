@@ -295,6 +295,20 @@
       "when": 1783624030881,
       "tag": "0041_rls_competency_cpd_calibration_module",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1783626781499,
+      "tag": "0042_create_payroll_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1783626812882,
+      "tag": "0043_rls_payroll_module",
+      "breakpoints": true
     }
   ]
 }
