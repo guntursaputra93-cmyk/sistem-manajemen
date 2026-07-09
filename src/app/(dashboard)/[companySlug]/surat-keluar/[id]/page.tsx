@@ -106,49 +106,49 @@ export default async function SuratKeluarDetailPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/surat-keluar`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/surat-keluar`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">{letter.letterNumber ?? "(Draft — belum ada nomor)"}</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-xl font-bold text-ink mt-2">{letter.letterNumber ?? "(Draft — belum ada nomor)"}</h1>
+        <p className="text-ink-muted text-sm mt-1">
           {CATEGORY_LABEL[letter.letterCategory]} — {letter.subject}
         </p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
+        <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
+      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
         <div>
-          <span className="text-gray-500">Status</span>
-          <p className="text-gray-900">{STATUS_LABEL[letter.status] ?? letter.status}</p>
+          <span className="text-ink-muted">Status</span>
+          <p className="text-ink">{STATUS_LABEL[letter.status] ?? letter.status}</p>
         </div>
         <div>
-          <span className="text-gray-500">Departemen</span>
-          <p className="text-gray-900">{department?.name ?? "-"}</p>
+          <span className="text-ink-muted">Departemen</span>
+          <p className="text-ink">{department?.name ?? "-"}</p>
         </div>
         <div>
-          <span className="text-gray-500">Jenis</span>
-          <p className="text-gray-900">{letter.jenisKey}</p>
+          <span className="text-ink-muted">Jenis</span>
+          <p className="text-ink">{letter.jenisKey}</p>
         </div>
         <div>
-          <span className="text-gray-500">Tujuan</span>
-          <p className="text-gray-900">
+          <span className="text-ink-muted">Tujuan</span>
+          <p className="text-ink">
             {letter.letterCategory === "surat_keluar" ? letter.recipient : [recipientDept?.name, recipientUser?.fullName].filter(Boolean).join(" — ")}
           </p>
         </div>
         {org && (
           <div>
-            <span className="text-gray-500">Organisasi (CRM)</span>
-            <p className="text-gray-900">{org.name}</p>
+            <span className="text-ink-muted">Organisasi (CRM)</span>
+            <p className="text-ink">{org.name}</p>
           </div>
         )}
         {letter.bodyContent && (
           <div className="col-span-2">
-            <span className="text-gray-500">Isi</span>
-            <p className="text-gray-900 whitespace-pre-wrap">{letter.bodyContent}</p>
+            <span className="text-ink-muted">Isi</span>
+            <p className="text-ink whitespace-pre-wrap">{letter.bodyContent}</p>
           </div>
         )}
       </section>
@@ -157,15 +157,15 @@ export default async function SuratKeluarDetailPage({
         <form action={submitForApprovalAction}>
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="letterId" value={letter.id} />
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+          <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
             Ajukan Approval
           </button>
         </form>
       )}
 
       {steps.length > 0 && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Jenjang Approval</h2>
+        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+          <h2 className="font-semibold text-ink mb-4">Jenjang Approval</h2>
           <TrailStepper steps={approvalStepsToTrail(steps, userList)} orientation="vertical" />
 
           {firstPendingStep && (
@@ -173,13 +173,13 @@ export default async function SuratKeluarDetailPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="letterId" value={letter.id} />
               <input type="hidden" name="stepOrder" value={firstPendingStep.stepOrder} />
-              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
               <div className="flex gap-3">
                 <button
                   type="submit"
                   name="decision"
                   value="approved"
-                  className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+                  className="bg-sage-deep hover:bg-sage-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
                 >
                   Setujui Jenjang {firstPendingStep.stepOrder}
                 </button>
@@ -187,7 +187,7 @@ export default async function SuratKeluarDetailPage({
                   type="submit"
                   name="decision"
                   value="rejected"
-                  className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition"
+                  className="bg-destructive hover:bg-destructive/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
                 >
                   Tolak
                 </button>
@@ -201,18 +201,18 @@ export default async function SuratKeluarDetailPage({
         <form action={markSentAction}>
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="letterId" value={letter.id} />
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+          <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
             Tandai Terkirim
           </button>
         </form>
       )}
 
       {showProposalItems && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Item Proposal</h2>
+        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+          <h2 className="font-semibold text-ink mb-4">Item Proposal</h2>
 
           <table className="w-full text-sm mb-4">
-            <thead className="text-gray-500 text-xs uppercase">
+            <thead className="text-ink-muted text-xs uppercase">
               <tr>
                 <th className="text-left py-1">Item</th>
                 <th className="text-left py-1">Kuantitas</th>
@@ -225,12 +225,12 @@ export default async function SuratKeluarDetailPage({
             </thead>
             <tbody>
               {itemRows.length === 0 && (
-                <tr><td colSpan={canAct ? 7 : 6} className="py-3 text-center text-gray-400 italic">Belum ada item.</td></tr>
+                <tr><td colSpan={canAct ? 7 : 6} className="py-3 text-center text-ink-muted italic">Belum ada item.</td></tr>
               )}
               {itemRows.map((item) => {
                 const opp = oppList.find((o) => o.id === item.opportunityId);
                 return (
-                  <tr key={item.id} className="border-t border-gray-100 align-top">
+                  <tr key={item.id} className="border-t border-ink-muted/10 align-top">
                     <td className="py-2">{item.itemName}</td>
                     <td className="py-2">{item.quantity}</td>
                     <td className="py-2">{item.unit}</td>
@@ -240,26 +240,26 @@ export default async function SuratKeluarDetailPage({
                     {canAct && (
                       <td className="py-2">
                         <details className="inline-block mr-2">
-                          <summary className="text-blue-600 hover:underline text-xs cursor-pointer inline">Ubah</summary>
+                          <summary className="text-sage-deep hover:underline text-xs cursor-pointer inline">Ubah</summary>
                           <form action={updateProposalItemAction} className="mt-2 space-y-2 w-64">
                             <input type="hidden" name="companySlug" value={companySlug} />
                             <input type="hidden" name="outgoingLetterId" value={letter.id} />
                             <input type="hidden" name="itemId" value={item.id} />
-                            <input name="itemName" defaultValue={item.itemName} required className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                            <input name="itemName" defaultValue={item.itemName} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
                             <div className="flex gap-2">
-                              <input name="quantity" type="number" step="0.01" defaultValue={item.quantity} required className="w-1/2 border border-gray-200 rounded-lg px-2 py-1 text-xs" />
-                              <input name="unit" defaultValue={item.unit} required className="w-1/2 border border-gray-200 rounded-lg px-2 py-1 text-xs" />
+                              <input name="quantity" type="number" step="0.01" defaultValue={item.quantity} required className="w-1/2 border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
+                              <input name="unit" defaultValue={item.unit} required className="w-1/2 border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
                             </div>
-                            <input name="unitPrice" type="number" step="0.01" defaultValue={item.unitPrice} required className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
-                            <input name="notes" defaultValue={item.notes ?? ""} placeholder="Catatan" className="w-full border border-gray-200 rounded-lg px-2 py-1 text-xs" />
-                            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1 rounded-lg transition">Simpan</button>
+                            <input name="unitPrice" type="number" step="0.01" defaultValue={item.unitPrice} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
+                            <input name="notes" defaultValue={item.notes ?? ""} placeholder="Catatan" className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
+                            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-xs font-semibold px-3 py-1 rounded-lg transition-colors">Simpan</button>
                           </form>
                         </details>
                         <form action={deleteProposalItemAction} className="inline">
                           <input type="hidden" name="companySlug" value={companySlug} />
                           <input type="hidden" name="outgoingLetterId" value={letter.id} />
                           <input type="hidden" name="itemId" value={item.id} />
-                          <button type="submit" className="text-red-600 hover:underline text-xs">Hapus</button>
+                          <button type="submit" className="text-destructive hover:underline text-xs">Hapus</button>
                         </form>
                       </td>
                     )}
@@ -268,7 +268,7 @@ export default async function SuratKeluarDetailPage({
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t border-gray-200 font-semibold">
+              <tr className="border-t border-ink-muted/20 font-semibold">
                 <td className="py-2" colSpan={4}>Total Nilai Proposal</td>
                 <td className="py-2">Rp {proposalTotal.toLocaleString("id-ID")}</td>
                 <td colSpan={canAct ? 2 : 1} />
@@ -281,36 +281,36 @@ export default async function SuratKeluarDetailPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="outgoingLetterId" value={letter.id} />
               <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Nama Item</label>
-                <input name="itemName" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Nama Item</label>
+                <input name="itemName" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Kuantitas</label>
-                <input name="quantity" type="number" step="0.01" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Kuantitas</label>
+                <input name="quantity" type="number" step="0.01" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Satuan</label>
-                <input name="unit" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Satuan</label>
+                <input name="unit" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Harga Satuan (Rp)</label>
-                <input name="unitPrice" type="number" step="0.01" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Harga Satuan (Rp)</label>
+                <input name="unitPrice" type="number" step="0.01" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
               </div>
               {oppList.length > 0 && (
                 <div className="col-span-3">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Kaitkan ke Opportunity (opsional — estimasi nilai opportunity akan otomatis diperbarui)</label>
-                  <select name="opportunityId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                  <label className="block text-xs font-medium text-ink-muted mb-1">Kaitkan ke Opportunity (opsional — estimasi nilai opportunity akan otomatis diperbarui)</label>
+                  <select name="opportunityId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
                     <option value="">-- tidak dikaitkan --</option>
                     {oppList.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
                   </select>
                 </div>
               )}
               <div className="col-span-3">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Catatan (opsional)</label>
-                <input name="notes" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                <label className="block text-xs font-medium text-ink-muted mb-1">Catatan (opsional)</label>
+                <input name="notes" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
               </div>
               <div className="col-span-3">
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                   Tambah Item
                 </button>
               </div>
@@ -319,8 +319,8 @@ export default async function SuratKeluarDetailPage({
         </section>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Lampiran</h2>
+      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+        <h2 className="font-semibold text-ink mb-4">Lampiran</h2>
         <AttachmentUploader entityType={letter.letterCategory} entityId={letter.id} attachments={attachmentRows} />
       </section>
     </div>

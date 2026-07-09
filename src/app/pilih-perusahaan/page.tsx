@@ -20,56 +20,56 @@ export default async function PilihPerusahaanPage({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-16 px-4">
+    <div className="min-h-screen flex flex-col items-center py-16 px-4">
       <div className="w-full max-w-2xl space-y-6">
         <div className="text-center">
-          <h1 className="text-xl font-bold text-gray-900">Pilih Perusahaan</h1>
-          <p className="text-sm text-gray-500 mt-1">Anda login sebagai Super Admin</p>
+          <h1 className="text-xl font-bold text-ink">Pilih Perusahaan</h1>
+          <p className="text-sm text-ink-muted mt-1">Anda login sebagai Super Admin</p>
         </div>
 
-        {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
+        {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
+          <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Tambah Perusahaan</h2>
+        <div className="bg-surface rounded-xl border border-ink-muted/10 shadow-sm p-6">
+          <h2 className="font-semibold text-ink mb-4">Tambah Perusahaan</h2>
           <form action={createCompany} className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Nama</label>
-              <input name="name" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+              <input name="name" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Kode (opsional)</label>
-              <input name="code" maxLength={10} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm uppercase" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Kode (opsional)</label>
+              <input name="code" maxLength={10} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface uppercase" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Jenis Bisnis</label>
-              <input name="businessType" required className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis Bisnis</label>
+              <input name="businessType" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
             </div>
             <div className="col-span-3">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Tambah Perusahaan
               </button>
             </div>
           </form>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm divide-y divide-gray-50">
+        <div className="bg-surface rounded-xl border border-ink-muted/10 shadow-sm divide-y divide-ink-muted/10">
           {allCompanies.length === 0 ? (
-            <p className="p-6 text-sm text-gray-400 text-center">Belum ada perusahaan terdaftar.</p>
+            <p className="p-6 text-sm text-ink-muted text-center">Belum ada perusahaan terdaftar.</p>
           ) : (
             allCompanies.map((company) => (
               <div key={company.id} className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <Link href={`/${company.slug}/dashboard`} className="font-medium text-gray-900 hover:text-blue-600">
+                  <Link href={`/${company.slug}/dashboard`} className="font-medium text-ink hover:text-sage-deep">
                     {company.name}
                   </Link>
                   <div className="flex items-center gap-3">
-                    <Link href={`/${company.slug}/pengaturan/modul`} className="text-xs text-blue-600 hover:underline">
+                    <Link href={`/${company.slug}/pengaturan/modul`} className="text-xs text-sage-deep hover:underline">
                       Modul
                     </Link>
-                    <span className={company.isActive ? "text-xs text-green-600" : "text-xs text-gray-400"}>
+                    <span className={company.isActive ? "text-xs text-sage-deep" : "text-xs text-ink-muted"}>
                       {company.isActive ? "Aktif" : "Nonaktif"}
                     </span>
                   </div>
@@ -77,23 +77,23 @@ export default async function PilihPerusahaanPage({
                 <form action={updateCompany} className="grid grid-cols-4 gap-3 items-end">
                   <input type="hidden" name="companyId" value={company.id} />
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Nama</label>
-                    <input name="name" defaultValue={company.name} required className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm" />
+                    <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+                    <input name="name" defaultValue={company.name} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Kode</label>
-                    <input name="code" defaultValue={company.code ?? ""} maxLength={10} className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm uppercase" />
+                    <label className="block text-xs font-medium text-ink-muted mb-1">Kode</label>
+                    <input name="code" defaultValue={company.code ?? ""} maxLength={10} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface uppercase" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">Jenis Bisnis</label>
-                    <input name="businessType" defaultValue={company.businessType} required className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm" />
+                    <label className="block text-xs font-medium text-ink-muted mb-1">Jenis Bisnis</label>
+                    <input name="businessType" defaultValue={company.businessType} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface" />
                   </div>
                   <div className="flex gap-2">
-                    <select name="isActive" defaultValue={String(company.isActive)} className="border border-gray-200 rounded-lg px-2 py-1.5 text-sm">
+                    <select name="isActive" defaultValue={String(company.isActive)} className="border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface">
                       <option value="true">Aktif</option>
                       <option value="false">Nonaktif</option>
                     </select>
-                    <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+                    <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
                       Simpan
                     </button>
                   </div>

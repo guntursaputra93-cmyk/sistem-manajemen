@@ -104,8 +104,8 @@ export default async function ArsipPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Arsip & Pencarian</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-xl font-bold text-ink">Arsip & Pencarian</h1>
+        <p className="text-ink-muted text-sm mt-1">
           Tiap bagian punya halaman & filter sendiri — tidak digabung jadi 1 daftar panjang.
         </p>
       </div>
@@ -202,7 +202,7 @@ async function DocumentTab({
       key: "judul",
       header: "Judul",
       render: (doc) => (
-        <Link href={`/${companySlug}/dokumen/${doc.id}`} className="text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/dokumen/${doc.id}`} className="text-sage-deep hover:underline">
           {doc.title}
         </Link>
       ),
@@ -269,7 +269,7 @@ async function NotaDinasTab({
       key: "nomor",
       header: "No. Nota Dinas",
       render: (letter) => (
-        <Link href={`/${companySlug}/surat-keluar/${letter.id}`} className="text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/surat-keluar/${letter.id}`} className="text-sage-deep hover:underline">
           {letter.letterNumber ?? "(draft)"}
         </Link>
       ),
@@ -330,7 +330,7 @@ async function SuratMasukKeluarTab({
       key: "perihal",
       header: "Perihal",
       render: (row) => (
-        <Link href={`/${companySlug}/${row.jenis === "masuk" ? "surat-masuk" : "surat-keluar"}/${row.id}`} className="text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/${row.jenis === "masuk" ? "surat-masuk" : "surat-keluar"}/${row.id}`} className="text-sage-deep hover:underline">
           {row.subject}
         </Link>
       ),
@@ -367,12 +367,12 @@ function FilterForm({
   showJenis?: boolean;
 }) {
   return (
-    <form method="get" className="bg-white border border-gray-100 rounded-xl p-4 flex flex-wrap items-end gap-3 text-sm">
+    <form method="get" className="bg-surface border border-ink-muted/10 rounded-xl p-4 flex flex-wrap items-end gap-3 text-sm">
       <input type="hidden" name="tab" value={tabKey} />
       {showDepartment && (
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Departemen</label>
-          <select name={`${tabKey}_dept`} defaultValue={sp[`${tabKey}_dept`] ?? ""} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <label className="block text-xs font-medium text-ink-muted mb-1">Departemen</label>
+          <select name={`${tabKey}_dept`} defaultValue={sp[`${tabKey}_dept`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
             <option value="">Semua</option>
             {deptList?.map((d) => (
               <option key={d.id} value={d.id}>
@@ -384,8 +384,8 @@ function FilterForm({
       )}
       {showJenis && (
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Arah</label>
-          <select name={`${tabKey}_jenis`} defaultValue={sp[`${tabKey}_jenis`] ?? ""} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <label className="block text-xs font-medium text-ink-muted mb-1">Arah</label>
+          <select name={`${tabKey}_jenis`} defaultValue={sp[`${tabKey}_jenis`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
             <option value="">Semua</option>
             <option value="masuk">Masuk</option>
             <option value="keluar">Keluar</option>
@@ -394,8 +394,8 @@ function FilterForm({
       )}
       {statusOptions && (
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-          <select name={`${tabKey}_status`} defaultValue={sp[`${tabKey}_status`] ?? ""} className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <label className="block text-xs font-medium text-ink-muted mb-1">Status</label>
+          <select name={`${tabKey}_status`} defaultValue={sp[`${tabKey}_status`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
             <option value="">Semua</option>
             {Object.entries(statusOptions).map(([value, label]) => (
               <option key={value} value={value}>
@@ -406,14 +406,14 @@ function FilterForm({
         </div>
       )}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Dari Tanggal</label>
+        <label className="block text-xs font-medium text-ink-muted mb-1">Dari Tanggal</label>
         <DatePicker name={`${tabKey}_from`} defaultValue={sp[`${tabKey}_from`]} />
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Sampai Tanggal</label>
+        <label className="block text-xs font-medium text-ink-muted mb-1">Sampai Tanggal</label>
         <DatePicker name={`${tabKey}_to`} defaultValue={sp[`${tabKey}_to`]} />
       </div>
-      <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+      <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
         Filter
       </button>
     </form>

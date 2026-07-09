@@ -100,34 +100,34 @@ export default async function DokumenDetailPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/dokumen`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/dokumen`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">{doc.title}</h1>
-        <p className="text-gray-500 text-sm mt-1">{category?.name}</p>
+        <h1 className="text-xl font-bold text-ink mt-2">{doc.title}</h1>
+        <p className="text-ink-muted text-sm mt-1">{category?.name}</p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
+        <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
       )}
 
       {canAddNewVersion && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Tambah Versi Baru</h2>
+        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+          <h2 className="font-semibold text-ink mb-4">Tambah Versi Baru</h2>
           <form action={addNewVersion} className="grid grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="documentId" value={doc.id} />
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Tanggal Efektif (opsional)</label>
+              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Efektif (opsional)</label>
               <DatePicker name="effectiveDate" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Berlaku Sampai (opsional)</label>
+              <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
               <DatePicker name="expiresAt" />
             </div>
             <div className="col-span-2">
-              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                 Buat Draft Versi {latestVersion.versionNumber + 1}
               </button>
             </div>
@@ -136,8 +136,8 @@ export default async function DokumenDetailPage({
       )}
 
       {versionList.length > 1 && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Riwayat Versi</h2>
+        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+          <h2 className="font-semibold text-ink mb-4">Riwayat Versi</h2>
           <TrailStepper
             orientation="horizontal"
             steps={[...versionList]
@@ -219,25 +219,25 @@ async function VersionCard({
     : null;
 
   return (
-    <section className="bg-white border border-gray-100 rounded-xl p-6 space-y-4">
+    <section className="bg-surface border border-ink-muted/10 rounded-xl p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">
+        <h2 className="font-semibold text-ink">
           Versi {version.versionNumber} — {STATUS_LABEL[version.status] ?? version.status}
         </h2>
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div>
-          <span className="text-gray-500">Tanggal Efektif</span>
-          <p className="text-gray-900">{version.effectiveDate ?? "-"}</p>
+          <span className="text-ink-muted">Tanggal Efektif</span>
+          <p className="text-ink">{version.effectiveDate ?? "-"}</p>
         </div>
         <div>
-          <span className="text-gray-500">Berlaku Sampai</span>
-          <p className="text-gray-900">{version.expiresAt ?? "-"}</p>
+          <span className="text-ink-muted">Berlaku Sampai</span>
+          <p className="text-ink">{version.expiresAt ?? "-"}</p>
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Lampiran</h3>
+        <h3 className="text-sm font-medium text-ink-muted mb-2">Lampiran</h3>
         <AttachmentUploader entityType="dokumen" entityId={version.id} attachments={versionAttachments} />
       </div>
 
@@ -246,18 +246,18 @@ async function VersionCard({
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="documentId" value={documentId} />
           <input type="hidden" name="versionId" value={version.id} />
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+          <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
             Ajukan Review
           </button>
         </form>
       )}
       {version.status === "draft" && !version.fileAttachmentId && (
-        <p className="text-xs text-gray-400 italic">Unggah file PDF dulu sebelum bisa diajukan review.</p>
+        <p className="text-xs text-ink-muted italic">Unggah file PDF dulu sebelum bisa diajukan review.</p>
       )}
 
       {steps.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Jenjang Approval</h3>
+          <h3 className="text-sm font-medium text-ink-muted mb-2">Jenjang Approval</h3>
           <TrailStepper steps={approvalStepsToTrail(steps, userList)} orientation="vertical" />
           {firstPendingStep && (
             <form action={decideVersionApprovalAction} className="mt-3 space-y-2">
@@ -265,12 +265,12 @@ async function VersionCard({
               <input type="hidden" name="documentId" value={documentId} />
               <input type="hidden" name="versionId" value={version.id} />
               <input type="hidden" name="stepOrder" value={firstPendingStep.stepOrder} />
-              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
               <div className="flex gap-3">
-                <button type="submit" name="decision" value="approved" className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                <button type="submit" name="decision" value="approved" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                   Setujui
                 </button>
-                <button type="submit" name="decision" value="rejected" className="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+                <button type="submit" name="decision" value="rejected" className="bg-destructive hover:bg-destructive/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                   Tolak
                 </button>
               </div>
@@ -281,17 +281,17 @@ async function VersionCard({
 
       {teamReadStatus && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
+          <h3 className="text-sm font-medium text-ink-muted mb-2">
             Status Baca {teamReadAccess?.role === "department_head" ? "Tim" : "Perusahaan"}
           </h3>
           {teamReadStatus.length === 0 ? (
-            <p className="text-xs text-gray-400 italic">Belum ada staf di departemen ini.</p>
+            <p className="text-xs text-ink-muted italic">Belum ada staf di departemen ini.</p>
           ) : (
             <ul className="space-y-1 text-sm">
               {teamReadStatus.map((u) => (
                 <li key={u.id} className="flex items-center justify-between">
-                  <span className={u.hasRead ? "text-gray-700" : "text-red-600 font-medium"}>{u.fullName}</span>
-                  <span className={u.hasRead ? "text-xs text-green-600" : "text-xs text-red-600"}>
+                  <span className={u.hasRead ? "text-ink-muted" : "text-destructive font-medium"}>{u.fullName}</span>
+                  <span className={u.hasRead ? "text-xs text-sage-deep" : "text-xs text-destructive"}>
                     {u.hasRead ? "Sudah dibaca" : "Belum dibaca"}
                   </span>
                 </li>

@@ -78,53 +78,53 @@ export default async function SuratMasukDetailPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/surat-masuk`} className="text-sm text-blue-600 hover:underline">
+        <Link href={`/${companySlug}/surat-masuk`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">{letter.agendaNumber}</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-xl font-bold text-ink mt-2">{letter.agendaNumber}</h1>
+        <p className="text-ink-muted text-sm mt-1">
           {letter.sender} — {letter.subject}
         </p>
       </div>
 
-      {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>}
+      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
+        <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
       )}
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
+      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
         <div>
-          <span className="text-gray-500">Tanggal Surat</span>
-          <p className="text-gray-900">{letter.letterDate}</p>
+          <span className="text-ink-muted">Tanggal Surat</span>
+          <p className="text-ink">{letter.letterDate}</p>
         </div>
         <div>
-          <span className="text-gray-500">Tanggal Diterima</span>
-          <p className="text-gray-900">{letter.receivedDate}</p>
+          <span className="text-ink-muted">Tanggal Diterima</span>
+          <p className="text-ink">{letter.receivedDate}</p>
         </div>
         <div>
-          <span className="text-gray-500">Status</span>
-          <p className="text-gray-900">{STATUS_LABEL[letter.status] ?? letter.status}</p>
+          <span className="text-ink-muted">Status</span>
+          <p className="text-ink">{STATUS_LABEL[letter.status] ?? letter.status}</p>
         </div>
       </section>
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Riwayat Disposisi</h2>
+      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+        <h2 className="font-semibold text-ink mb-4">Riwayat Disposisi</h2>
         {dispositions.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Belum ada disposisi.</p>
+          <p className="text-sm text-ink-muted italic">Belum ada disposisi.</p>
         ) : (
           <TrailStepper steps={dispositionSteps} orientation="vertical" />
         )}
       </section>
 
       {canDispose && (
-        <section className="bg-white border border-gray-100 rounded-xl p-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Tambah Disposisi</h2>
+        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+          <h2 className="font-semibold text-ink mb-4">Tambah Disposisi</h2>
           <form action={addDisposition} className="space-y-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="incomingLetterId" value={letter.id} />
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Ke Departemen (opsional)</label>
-              <select name="targetDepartmentId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              <label className="block text-xs font-medium text-ink-muted mb-1">Ke Departemen (opsional)</label>
+              <select name="targetDepartmentId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {deptList.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -134,8 +134,8 @@ export default async function SuratMasukDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Ke Orang (opsional)</label>
-              <select name="targetUserId" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              <label className="block text-xs font-medium text-ink-muted mb-1">Ke Orang (opsional)</label>
+              <select name="targetUserId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>
@@ -145,10 +145,10 @@ export default async function SuratMasukDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Instruksi (opsional)</label>
-              <textarea name="instruction" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              <label className="block text-xs font-medium text-ink-muted mb-1">Instruksi (opsional)</label>
+              <textarea name="instruction" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
             </div>
-            <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
               Kirim Disposisi
             </button>
           </form>

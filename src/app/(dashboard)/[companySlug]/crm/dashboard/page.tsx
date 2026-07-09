@@ -48,21 +48,21 @@ export default async function CrmDashboardPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-blue-600 hover:underline">&larr; Kembali ke CRM</Link>
-        <h1 className="text-xl font-bold text-gray-900 mt-2">Dashboard CRM</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">&larr; Kembali ke CRM</Link>
+        <h1 className="text-xl font-bold text-ink mt-2">Dashboard CRM</h1>
+        <p className="text-ink-muted text-sm mt-1">
           {session.user.role === "staff" ? "Ringkasan pipeline milikmu." : session.user.role === "department_head" ? "Ringkasan pipeline departemenmu." : `Ringkasan pipeline ${company.name}.`}
         </p>
       </div>
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Pipeline Value per Tahap</h2>
+      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+        <h2 className="font-semibold text-ink mb-4">Pipeline Value per Tahap</h2>
         {pipelineValues.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Belum ada tahap pipeline dikonfigurasi.</p>
+          <p className="text-sm text-ink-muted italic">Belum ada tahap pipeline dikonfigurasi.</p>
         ) : (
           <>
             <table className="w-full text-sm mb-3">
-              <thead className="text-gray-500 text-xs uppercase">
+              <thead className="text-ink-muted text-xs uppercase">
                 <tr>
                   <th className="text-left py-1">Tahap</th>
                   <th className="text-left py-1">Jumlah Deal (Open)</th>
@@ -71,7 +71,7 @@ export default async function CrmDashboardPage({
               </thead>
               <tbody>
                 {pipelineValues.map((s) => (
-                  <tr key={s.stageId} className="border-t border-gray-100">
+                  <tr key={s.stageId} className="border-t border-ink-muted/10">
                     <td className="py-2">{s.stageKey}</td>
                     <td className="py-2">{s.count}</td>
                     <td className="py-2">Rp {s.totalValue.toLocaleString("id-ID")}</td>
@@ -79,43 +79,43 @@ export default async function CrmDashboardPage({
                 ))}
               </tbody>
             </table>
-            <p className="text-sm font-semibold text-gray-900">Total Pipeline Value: Rp {totalPipelineValue.toLocaleString("id-ID")}</p>
+            <p className="text-sm font-semibold text-ink">Total Pipeline Value: Rp {totalPipelineValue.toLocaleString("id-ID")}</p>
           </>
         )}
       </section>
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Win Rate</h2>
+      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+        <h2 className="font-semibold text-ink mb-4">Win Rate</h2>
         {winRate.winRate === null ? (
-          <p className="text-sm text-gray-400 italic">Belum ada deal yang closed (menang/hilang).</p>
+          <p className="text-sm text-ink-muted italic">Belum ada deal yang closed (menang/hilang).</p>
         ) : (
           <div className="flex gap-8 text-sm">
-            <div><span className="text-gray-500">Menang</span><p className="text-xl font-bold text-gray-900">{winRate.wonCount}</p></div>
-            <div><span className="text-gray-500">Hilang</span><p className="text-xl font-bold text-gray-900">{winRate.lostCount}</p></div>
-            <div><span className="text-gray-500">Win Rate</span><p className="text-xl font-bold text-gray-900">{(winRate.winRate * 100).toFixed(1)}%</p></div>
+            <div><span className="text-ink-muted">Menang</span><p className="text-xl font-bold text-ink">{winRate.wonCount}</p></div>
+            <div><span className="text-ink-muted">Hilang</span><p className="text-xl font-bold text-ink">{winRate.lostCount}</p></div>
+            <div><span className="text-ink-muted">Win Rate</span><p className="text-xl font-bold text-ink">{(winRate.winRate * 100).toFixed(1)}%</p></div>
           </div>
         )}
       </section>
 
-      <section className="bg-white border border-gray-100 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Reminder Renewal / Follow-up Kontrak</h2>
+      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
+        <h2 className="font-semibold text-ink mb-4">Reminder Renewal / Follow-up Kontrak</h2>
         {reminders.length === 0 ? (
-          <p className="text-sm text-gray-400 italic">Tidak ada kontrak yang perlu dihubungi lagi dalam 60 hari ke depan.</p>
+          <p className="text-sm text-ink-muted italic">Tidak ada kontrak yang perlu dihubungi lagi dalam 60 hari ke depan.</p>
         ) : (
           <ul className="space-y-2 text-sm">
             {reminders.map((r) => (
-              <li key={r.contractId} className="border-b border-gray-100 pb-2">
-                <Link href={`/${companySlug}/crm/contracts/${r.contractId}`} className="text-blue-600 hover:underline font-medium">{r.organizationName}</Link>
-                <span className="text-gray-500"> — {r.opportunityTitle} — {REMINDER_REASON_LABEL[r.reason]} ({r.dueDate})</span>
+              <li key={r.contractId} className="border-b border-ink-muted/10 pb-2">
+                <Link href={`/${companySlug}/crm/contracts/${r.contractId}`} className="text-sage-deep hover:underline font-medium">{r.organizationName}</Link>
+                <span className="text-ink-muted"> — {r.opportunityTitle} — {REMINDER_REASON_LABEL[r.reason]} ({r.dueDate})</span>
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="bg-white border border-dashed border-gray-200 rounded-xl p-6">
-        <h2 className="font-semibold text-gray-900 mb-2">Ketersediaan Personil Bersertifikasi</h2>
-        <p className="text-sm text-gray-400 italic">
+      <section className="bg-surface border border-dashed border-ink-muted/20 rounded-xl p-6">
+        <h2 className="font-semibold text-ink mb-2">Ketersediaan Personil Bersertifikasi</h2>
+        <p className="text-sm text-ink-muted italic">
           Belum tersedia — bagian ini akan menampilkan lookup read-only ke data kompetensi karyawan (Fase 2) setelah modul tersebut dibangun.
         </p>
       </section>
