@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import { auth, signOut } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { companies } from "@/drizzle/schema";
+import { companies, companyModules } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { ROLE_LABEL, hasPermission } from "@/lib/rbac/permissions";
-import { isModuleEnabled } from "@/lib/modules";
 import { Sidebar, type SidebarGroup } from "@/components/ui/Sidebar";
 import { TopBar } from "@/components/ui/TopBar";
 
@@ -21,19 +20,28 @@ export default async function CompanyDashboardLayout({
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
 
-  const [company] = await withTenantContext(tenantContext, (tx) =>
-    tx.select().from(companies).where(eq(companies.slug, companySlug))
+  // 1 query (LEFT JOIN companies + company_modules) di dalam 1 transaksi — dulu ini
+  // 2 withTenantContext terpisah (lookup company, lalu 3x isModuleEnabled berurutan),
+  // ±12 round-trip DB per page load. Digabung supaya cuma 1 SELECT per page load.
+  const rows = await withTenantContext(tenantContext, (tx) =>
+    tx
+      .select({
+        company: companies,
+        moduleKey: companyModules.moduleKey,
+        moduleEnabled: companyModules.isEnabled,
+      })
+      .from(companies)
+      .leftJoin(companyModules, eq(companyModules.companyId, companies.id))
+      .where(eq(companies.slug, companySlug))
   );
 
+  const company = rows[0]?.company;
   if (!company) notFound();
 
-  const [suratModuleOn, dokumenModuleOn, crmModuleOn] = await withTenantContext(tenantContext, (tx) =>
-    Promise.all([
-      isModuleEnabled(tx, { companyId: company.id, moduleKey: "surat_masuk_keluar" }),
-      isModuleEnabled(tx, { companyId: company.id, moduleKey: "pengendalian_dokumen" }),
-      isModuleEnabled(tx, { companyId: company.id, moduleKey: "crm" }),
-    ])
-  );
+  const enabledModules = new Set(rows.filter((r) => r.moduleEnabled).map((r) => r.moduleKey));
+  const suratModuleOn = enabledModules.has("surat_masuk_keluar");
+  const dokumenModuleOn = enabledModules.has("pengendalian_dokumen");
+  const crmModuleOn = enabledModules.has("crm");
 
   const groups: SidebarGroup[] = [];
 
