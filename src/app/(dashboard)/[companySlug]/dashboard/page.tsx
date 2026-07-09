@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { auth } from "@/auth";
@@ -99,6 +99,7 @@ export default async function DashboardPage({
     currentLetterApprovers,
     recentIncoming,
     openOpportunities,
+    pipelineStageList,
   } = await withTenantContext(tenantContext, async (tx) => {
     // department_head butuh tahu departemen sendiri dulu untuk visibility CRM;
     // staff/company_admin/super_admin tidak perlu query tambahan sama sekali.
@@ -112,7 +113,7 @@ export default async function DashboardPage({
       viewer: { userId: session.user.id, role: viewerRole, departmentId: viewerDepartmentId },
     });
 
-    const [countsResult, oppCountResult, [letter], incomingRows, oppRows] = await Promise.all([
+    const [countsResult, oppCountResult, [letter], incomingRows, oppRows, stageList] = await Promise.all([
       // 3 counter surat masuk/keluar bulan ini + dokumen aktif digabung 1 query (raw SQL scalar subquery).
       tx.execute(sql`
         select
@@ -154,6 +155,7 @@ export default async function DashboardPage({
           estimatedValue: opportunities.estimatedValue,
           organizationName: organizations.name,
           stageKey: pipelineStages.stageKey,
+          currentStageId: opportunities.currentStageId,
         })
         .from(opportunities)
         .innerJoin(organizations, eq(organizations.id, opportunities.organizationId))
@@ -167,6 +169,13 @@ export default async function DashboardPage({
         )
         .orderBy(desc(opportunities.estimatedValue), desc(opportunities.createdAt))
         .limit(5),
+      // Dipakai hitung progres bar per opportunity (posisi tahap saat ini / total tahap) —
+      // tabelnya kecil (biasanya <10 baris per company), aman digabung di sini.
+      tx
+        .select({ id: pipelineStages.id, stageOrder: pipelineStages.stageOrder })
+        .from(pipelineStages)
+        .where(eq(pipelineStages.companyId, company.id))
+        .orderBy(asc(pipelineStages.stageOrder)),
     ]);
 
     const counts = countsResult[0] as unknown as { suratMasukCount: number; suratKeluarCount: number; dokumenAktifCount: number };
@@ -194,6 +203,7 @@ export default async function DashboardPage({
       currentLetterApprovers: approvers,
       recentIncoming: incomingRows,
       openOpportunities: oppRows,
+      pipelineStageList: stageList,
     };
   });
 
@@ -292,18 +302,27 @@ export default async function DashboardPage({
           {openOpportunities.length === 0 ? (
             <EmptyState message="Belum ada opportunity yang sedang berjalan. Opportunity baru akan muncul di sini." />
           ) : (
-            <ul className="space-y-3">
-              {openOpportunities.map((opp) => (
-                <li key={opp.id}>
-                  <Link href={`/${companySlug}/crm/opportunities/${opp.id}`} className="flex items-start justify-between gap-3 group">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-ink truncate group-hover:underline">{opp.title}</p>
-                      <p className="text-xs text-ink-muted">{opp.organizationName}{opp.stageKey ? ` — ${opp.stageKey}` : ""}</p>
-                    </div>
-                    <span className="text-sm font-medium text-ink shrink-0">{formatRupiah(opp.estimatedValue)}</span>
-                  </Link>
-                </li>
-              ))}
+            <ul className="space-y-4">
+              {openOpportunities.map((opp) => {
+                const stageIndex = pipelineStageList.findIndex((s) => s.id === opp.currentStageId);
+                const progressPct = stageIndex >= 0 && pipelineStageList.length > 0 ? Math.round(((stageIndex + 1) / pipelineStageList.length) * 100) : 0;
+                return (
+                  <li key={opp.id}>
+                    <Link href={`/${companySlug}/crm/opportunities/${opp.id}`} className="block group">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-ink truncate group-hover:underline">{opp.title}</p>
+                          <p className="text-xs text-ink-muted">{opp.organizationName}{opp.stageKey ? ` — ${opp.stageKey}` : ""}</p>
+                        </div>
+                        <span className="text-sm font-medium text-ink shrink-0">{formatRupiah(opp.estimatedValue)}</span>
+                      </div>
+                      <div className="mt-2 h-1.5 w-full rounded-full bg-sage/20 overflow-hidden">
+                        <div className="h-full rounded-full bg-sage-deep transition-[width]" style={{ width: `${progressPct}%` }} />
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </Card>

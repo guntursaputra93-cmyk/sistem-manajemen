@@ -9,6 +9,10 @@ export type TrailStep = {
   id: string;
   label: string;
   description?: string;
+  // Beda dari `description` (isi tooltip, cuma tampil saat dot di-klik/hover) —
+  // `caption` selalu tampil di bawah label, mis. tanggal step selesai atau
+  // "Berjalan" utk step aktif (Bagian 3 spesifikasi desain, referensi mockup).
+  caption?: string;
   status: TrailStepStatus;
 };
 
@@ -127,6 +131,7 @@ export function TrailStepper({
               )}
             </div>
             <p className="mt-2 max-w-24 text-center text-xs font-medium text-ink">{step.label}</p>
+            {step.caption && <p className="max-w-24 text-center text-xs text-ink-muted">{step.caption}</p>}
           </div>
         ))}
       </div>
@@ -152,6 +157,7 @@ export function TrailStepper({
           </div>
           <div className="pb-6">
             <p className="text-sm font-medium text-ink">{step.label}</p>
+            {step.caption && <p className="text-xs text-ink-muted">{step.caption}</p>}
           </div>
         </div>
       ))}

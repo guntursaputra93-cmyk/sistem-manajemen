@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 import type { TrailStep, TrailStepStatus } from "@/components/ui/TrailStepper";
 
 type ApprovalStepRow = {
@@ -6,6 +8,7 @@ type ApprovalStepRow = {
   approverId: string | null;
   status: string;
   catatan: string | null;
+  approvedAt: Date | null;
 };
 
 // approval_steps semua dibuat di depan (default status "pending"), jadi "pending"
@@ -26,6 +29,13 @@ export function approvalStepsToTrail(
     else if (step.status === "rejected") status = "rejected";
     else status = step.id === firstPendingId ? "pending" : "upcoming";
 
-    return { id: step.id, label, description: step.catatan ?? undefined, status };
+    let caption: string | undefined;
+    if ((status === "done" || status === "rejected") && step.approvedAt) {
+      caption = format(step.approvedAt, "d MMM", { locale: idLocale });
+    } else if (status === "pending") {
+      caption = "Berjalan";
+    }
+
+    return { id: step.id, label, description: step.catatan ?? undefined, caption, status };
   });
 }
