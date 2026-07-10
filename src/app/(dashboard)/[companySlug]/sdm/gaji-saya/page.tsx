@@ -40,7 +40,7 @@ export default async function GajiSayaPage({
   if (!employee) {
     return (
       <div className="max-w-2xl space-y-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Gaji Saya</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Gaji Saya</h1>
         <EmptyState message="Akun Anda belum terhubung ke data karyawan — hubungi admin." />
       </div>
     );
@@ -58,7 +58,7 @@ export default async function GajiSayaPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Gaji Saya</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Gaji Saya</h1>
         <p className="text-sm text-ink-muted mt-1">Riwayat slip gaji milikmu.</p>
       </div>
 

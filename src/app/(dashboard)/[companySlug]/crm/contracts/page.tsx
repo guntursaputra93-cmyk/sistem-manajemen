@@ -86,7 +86,7 @@ export default async function ContractsPage({
         <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali ke CRM
         </Link>
-        <h1 className="font-display text-2xl font-bold text-ink mt-2">Contract (CRM)</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">Contract (CRM)</h1>
         <p className="text-sm text-ink-muted mt-1">Dibuat otomatis saat opportunity pindah ke tahap &quot;menang&quot;.</p>
       </div>
 

@@ -56,7 +56,7 @@ export default async function OrganisasiPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Organisasi / Klien (CRM)</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Organisasi / Klien (CRM)</h1>
         <p className="text-sm text-ink-muted mt-1">Daftar organisasi/klien untuk {company.name}.</p>
       </div>
 
@@ -69,42 +69,42 @@ export default async function OrganisasiPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Organisasi</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Organisasi</label>
               <input
                 name="name"
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Industri</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Industri</label>
               <input
                 name="industry"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Ukuran Perusahaan</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ukuran Perusahaan</label>
               <input
                 name="companySize"
                 placeholder="mis. 50-100 karyawan"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Asal Akuisisi</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Asal Akuisisi</label>
               <input
                 name="source"
                 placeholder="mis. referral, website"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan</label>
               <textarea
                 name="notes"
                 rows={2}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2">

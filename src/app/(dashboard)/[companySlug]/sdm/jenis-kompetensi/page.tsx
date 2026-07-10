@@ -40,7 +40,7 @@ export default async function JenisKompetensiPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Jenis Kompetensi</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Jenis Kompetensi</h1>
         <p className="text-sm text-ink-muted mt-1">Konfigurasi jenis sertifikasi/kompetensi untuk {company.name}.</p>
       </div>
 
@@ -52,16 +52,16 @@ export default async function JenisKompetensiPage({
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Kode</label>
-            <input name="code" required placeholder="mis. AK3-UMUM" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface uppercase" />
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
+            <input name="code" required placeholder="mis. AK3-UMUM" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface uppercase" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
-            <input name="name" required placeholder="mis. AK3 Umum" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
+            <input name="name" required placeholder="mis. AK3 Umum" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Kategori (opsional)</label>
-            <input name="category" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori (opsional)</label>
+            <input name="category" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
           </div>
           <div className="col-span-3">
             <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
@@ -80,17 +80,17 @@ export default async function JenisKompetensiPage({
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="competencyTypeId" value={ct.id} />
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Kode</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
                 <p className="text-sm text-ink py-2">{ct.code}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
-                <input name="name" defaultValue={ct.name} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
+                <input name="name" defaultValue={ct.name} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               </div>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
-                  <label className="block text-xs font-medium text-ink-muted mb-1">Kategori</label>
-                  <input name="category" defaultValue={ct.category ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
+                  <input name="category" defaultValue={ct.category ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
                 </div>
                 <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
                   Simpan

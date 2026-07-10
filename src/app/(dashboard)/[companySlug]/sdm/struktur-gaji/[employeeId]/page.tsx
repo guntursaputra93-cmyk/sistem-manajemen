@@ -95,7 +95,7 @@ export default async function StrukturGajiDetailPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Struktur Gaji — {employee.fullName}</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Struktur Gaji — {employee.fullName}</h1>
         <p className="text-sm text-ink-muted mt-1">{employee.currentPositionTitle ?? "-"}</p>
       </div>
 
@@ -108,8 +108,8 @@ export default async function StrukturGajiDetailPage({
           <input type="hidden" name="companyId" value={company.id} />
           <input type="hidden" name="employeeId" value={employee.id} />
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Komponen</label>
-            <select name="salaryComponentId" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Komponen</label>
+            <select name="salaryComponentId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
               <option value="">-- pilih --</option>
               {componentList.map((c) => (
                 <option key={c.id} value={c.id}>{c.name} ({TYPE_LABEL[c.componentType]})</option>
@@ -117,11 +117,11 @@ export default async function StrukturGajiDetailPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Nominal (Rp)</label>
-            <input name="salaryAmount" type="number" step="0.01" min={0} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nominal (Rp)</label>
+            <input name="salaryAmount" type="number" step="0.01" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Efektif Sejak</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Efektif Sejak</label>
             <DatePicker name="effectiveDate" required />
           </div>
           <div className="col-span-3">

@@ -19,12 +19,12 @@ export function DataTable<T>({
   emptyMessage: string;
 }) {
   return (
-    <div className="bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="text-ink-muted text-xs uppercase">
+    <div className="bg-surface rounded-[14px] shadow-[0_2px_10px_rgba(51,57,59,0.05)] overflow-x-auto">
+      <table className="w-full text-[11px]">
+        <thead className="text-ink-muted text-[10px] uppercase tracking-wide">
           <tr>
             {columns.map((col) => (
-              <th key={col.key} className={`text-left px-4 py-2 font-medium ${col.className ?? ""}`}>
+              <th key={col.key} className={`text-left px-4 py-[7px] font-bold ${col.className ?? ""}`}>
                 {col.header}
               </th>
             ))}
@@ -41,7 +41,7 @@ export function DataTable<T>({
           {rows.map((row) => (
             <tr key={rowKey(row)} className="border-t border-ink-muted/10 hover:bg-bg-base transition-colors">
               {columns.map((col) => (
-                <td key={col.key} className={`px-4 py-2 text-ink ${col.className ?? ""}`}>
+                <td key={col.key} className={`px-4 py-[7px] text-ink ${col.className ?? ""}`}>
                   {col.render(row)}
                 </td>
               ))}

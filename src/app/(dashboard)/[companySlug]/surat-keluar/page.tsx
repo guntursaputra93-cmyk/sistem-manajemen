@@ -93,7 +93,7 @@ export default async function SuratKeluarPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Surat Keluar &amp; Nota Dinas</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Surat Keluar &amp; Nota Dinas</h1>
         <p className="text-sm text-ink-muted mt-1">Draft, ajukan approval, sampai nomor resmi &amp; terkirim.</p>
       </div>
 
@@ -105,10 +105,10 @@ export default async function SuratKeluarPage({
           <form action={createOutgoingLetter} className="grid grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Kategori</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
               <select
                 name="letterCategory"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 required
               >
                 <option value="surat_keluar">Surat Keluar</option>
@@ -116,7 +116,7 @@ export default async function SuratKeluarPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Departemen (penentu nomor)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (penentu nomor)</label>
               {restrictOwnDepartment ? (
                 <>
                   <input type="hidden" name="departmentId" value={self?.departmentId ?? ""} />
@@ -127,7 +127,7 @@ export default async function SuratKeluarPage({
               ) : (
                 <select
                   name="departmentId"
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                   required
                 >
                   {deptList.map((d) => (
@@ -139,25 +139,25 @@ export default async function SuratKeluarPage({
               )}
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis (bebas, mis. internal)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis (bebas, mis. internal)</label>
               <input
                 name="jenisKey"
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tujuan Eksternal (utk Surat Keluar)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tujuan Eksternal (utk Surat Keluar)</label>
               <input
                 name="recipient"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tujuan Internal — Departemen (utk Nota Dinas)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tujuan Internal — Departemen (utk Nota Dinas)</label>
               <select
                 name="recipientDepartmentId"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               >
                 <option value="">-- tidak ada --</option>
                 {deptList.map((d) => (
@@ -168,10 +168,10 @@ export default async function SuratKeluarPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tujuan Internal — Orang (utk Nota Dinas)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tujuan Internal — Orang (utk Nota Dinas)</label>
               <select
                 name="recipientUserId"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               >
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
@@ -182,19 +182,19 @@ export default async function SuratKeluarPage({
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Perihal</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Perihal</label>
               <input
                 name="subject"
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Isi (opsional)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Isi (opsional)</label>
               <textarea
                 name="bodyContent"
                 rows={3}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2">

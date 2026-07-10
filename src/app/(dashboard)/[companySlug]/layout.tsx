@@ -3,9 +3,10 @@ import { auth, signOut } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, companyModules } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
-import { ROLE_LABEL, hasPermission } from "@/lib/rbac/permissions";
+import { ROLE_LABEL, hasPermission, type Role } from "@/lib/rbac/permissions";
 import { Sidebar, type SidebarGroup } from "@/components/ui/Sidebar";
 import { TopBar } from "@/components/ui/TopBar";
+import { getNotificationSummary } from "@/lib/notifications/getNotificationSummary";
 
 export default async function CompanyDashboardLayout({
   children,
@@ -56,7 +57,7 @@ export default async function CompanyDashboardLayout({
   if (suratModuleOn && hasPermission(session.user.role, "VIEW_OUTGOING_LETTERS")) {
     suratItems.push({ href: `/${companySlug}/surat-keluar`, label: "Surat Keluar", icon: "send" });
   }
-  if (suratItems.length) groups.push({ label: "Surat", items: suratItems });
+  if (suratItems.length) groups.push({ label: "Surat", icon: "mail", items: suratItems });
 
   const dokumenItems: SidebarGroup["items"] = [];
   if (dokumenModuleOn && hasPermission(session.user.role, "VIEW_DOCUMENTS")) {
@@ -71,7 +72,7 @@ export default async function CompanyDashboardLayout({
   if (hasPermission(session.user.role, "VIEW_DASHBOARD_MONITORING")) {
     dokumenItems.push({ href: `/${companySlug}/dokumen/monitoring`, label: "Monitoring", icon: "bar-chart-3" });
   }
-  if (dokumenItems.length) groups.push({ label: "Dokumen", items: dokumenItems });
+  if (dokumenItems.length) groups.push({ label: "Dokumen", icon: "folder", items: dokumenItems });
 
   const crmItems: SidebarGroup["items"] = [];
   if (crmModuleOn && hasPermission(session.user.role, "VIEW_ORGANIZATIONS")) {
@@ -89,7 +90,7 @@ export default async function CompanyDashboardLayout({
   if (crmModuleOn && hasPermission(session.user.role, "VIEW_OPPORTUNITIES")) {
     crmItems.push({ href: `/${companySlug}/crm/dashboard`, label: "Dashboard CRM", icon: "layout-dashboard" });
   }
-  if (crmItems.length) groups.push({ label: "CRM", items: crmItems });
+  if (crmItems.length) groups.push({ label: "CRM", icon: "handshake", items: crmItems });
 
   const sdmItems: SidebarGroup["items"] = [];
   if (sdmDataKaryawanOn && hasPermission(session.user.role, "VIEW_EMPLOYEES")) {
@@ -136,7 +137,7 @@ export default async function CompanyDashboardLayout({
   if (sdmPayrollOn && hasPermission(session.user.role, "VIEW_PAYSLIPS")) {
     sdmItems.push({ href: `/${companySlug}/sdm/gaji-saya`, label: "Gaji Saya", icon: "wallet" });
   }
-  if (sdmItems.length) groups.push({ label: "SDM", items: sdmItems });
+  if (sdmItems.length) groups.push({ label: "SDM", icon: "contact", items: sdmItems });
 
   const settingsItems: SidebarGroup["items"] = [];
   if (hasPermission(session.user.role, "MANAGE_DEPARTMENTS")) {
@@ -147,27 +148,43 @@ export default async function CompanyDashboardLayout({
   }
   if (settingsItems.length) groups.push({ items: settingsItems });
 
+  // Notifikasi lonceng top bar (redesign Bagian 3) — gate per sumber pakai flag
+  // module aktif + permission yang sama dipakai untuk bangun sidebar di atas,
+  // supaya konsisten dengan apa yang benar-benar bisa diakses user ini.
+  const notification = await withTenantContext(tenantContext, (tx) =>
+    getNotificationSummary(tx, {
+      companyId: company.id,
+      userId: session.user.id,
+      role: session.user.role as Role,
+      companySlug,
+      flags: {
+        competency: sdmKompetensiOn && hasPermission(session.user.role, "VIEW_EMPLOYEE_COMPETENCIES"),
+        leaveApproval: sdmCutiAbsensiOn && hasPermission(session.user.role, "APPROVE_LEAVE_REQUEST"),
+        documents: dokumenModuleOn && hasPermission(session.user.role, "VIEW_DOCUMENTS"),
+      },
+    })
+  );
+
   return (
     <div className="h-screen flex bg-bg-base">
-      <Sidebar groups={groups} />
+      <Sidebar
+        groups={groups}
+        companyName={company.name}
+        companyCode={company.code}
+        companyTagline={company.businessType}
+        onLogout={async () => {
+          "use server";
+          await signOut({ redirectTo: "/login" });
+        }}
+      />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopBar
-          companyName={company.name}
+          groups={groups}
+          userName={session.user.name ?? session.user.email ?? "User"}
           roleLabel={ROLE_LABEL[session.user.role as keyof typeof ROLE_LABEL] ?? session.user.role}
-          actions={
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/login" });
-              }}
-            >
-              <button type="submit" className="text-sm text-ink-muted hover:text-ink transition-colors">
-                Keluar
-              </button>
-            </form>
-          }
+          notification={notification}
         />
-        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+        <main className="flex-1 px-6 py-3.5 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

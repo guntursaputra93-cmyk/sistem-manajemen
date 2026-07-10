@@ -49,7 +49,7 @@ export default async function CutiSayaPage({
   if (!employee) {
     return (
       <div className="max-w-2xl space-y-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Cuti Saya</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Cuti Saya</h1>
         <EmptyState message="Akun Anda belum terhubung ke data karyawan — hubungi admin." />
       </div>
     );
@@ -68,7 +68,7 @@ export default async function CutiSayaPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Cuti Saya</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Cuti Saya</h1>
         <p className="text-sm text-ink-muted mt-1">Saldo dan riwayat pengajuan cutimu.</p>
       </div>
 
@@ -96,8 +96,8 @@ export default async function CutiSayaPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis Cuti</label>
-              <select name="leaveTypeId" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Cuti</label>
+              <select name="leaveTypeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- pilih --</option>
                 {leaveTypeList.map((lt) => (
                   <option key={lt.id} value={lt.id}>{lt.name}</option>
@@ -105,16 +105,16 @@ export default async function CutiSayaPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Mulai</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Mulai</label>
               <DatePicker name="startDate" required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Selesai</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Selesai</label>
               <DatePicker name="endDate" required />
             </div>
             <div className="col-span-3">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Alasan (opsional)</label>
-              <textarea name="reason" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Alasan (opsional)</label>
+              <textarea name="reason" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-3">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

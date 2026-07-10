@@ -37,7 +37,7 @@ export default async function ModulePage({
   return (
     <div className="max-w-xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Modul Aktif</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Modul Aktif</h1>
         <p className="text-sm text-ink-muted mt-1">Aktif/nonaktifkan modul bisnis untuk {company.name}. Independen antar perusahaan.</p>
       </div>
 

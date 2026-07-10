@@ -49,7 +49,7 @@ export default async function StrukturGajiPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Struktur Gaji Karyawan</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Struktur Gaji Karyawan</h1>
         <p className="text-sm text-ink-muted mt-1">Pilih karyawan untuk atur komponen gaji — {company.name}.</p>
       </div>
 

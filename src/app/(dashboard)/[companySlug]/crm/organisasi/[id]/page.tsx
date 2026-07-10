@@ -72,7 +72,7 @@ export default async function OrganisasiDetailPage({
         <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="font-display text-2xl font-bold text-ink mt-2">{org.name}</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{org.name}</h1>
       </div>
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
@@ -85,45 +85,45 @@ export default async function OrganisasiDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Organisasi</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Organisasi</label>
               <input
                 name="name"
                 defaultValue={org.name}
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Industri</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Industri</label>
               <input
                 name="industry"
                 defaultValue={org.industry ?? ""}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Ukuran Perusahaan</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ukuran Perusahaan</label>
               <input
                 name="companySize"
                 defaultValue={org.companySize ?? ""}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Asal Akuisisi</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Asal Akuisisi</label>
               <input
                 name="source"
                 defaultValue={org.source ?? ""}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan</label>
               <textarea
                 name="notes"
                 defaultValue={org.notes ?? ""}
                 rows={2}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2">
@@ -180,33 +180,33 @@ export default async function OrganisasiDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Kontak</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Kontak</label>
               <input
                 name="name"
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jabatan</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jabatan</label>
               <input
                 name="position"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Email</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email</label>
               <input
                 name="email"
                 type="email"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Telepon</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Telepon</label>
               <input
                 name="phone"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2 flex items-center gap-2">
@@ -255,11 +255,11 @@ export default async function OrganisasiDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis</label>
               <select
                 name="activityType"
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               >
                 <option value="telepon">Telepon</option>
                 <option value="meeting">Meeting</option>
@@ -268,15 +268,15 @@ export default async function OrganisasiDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal</label>
               <DatePicker name="activityDate" required />
             </div>
             {oppList.length > 0 && (
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-ink-muted mb-1">Kaitkan ke Opportunity (opsional)</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kaitkan ke Opportunity (opsional)</label>
                 <select
                   name="opportunityId"
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 >
                   <option value="">-- tidak dikaitkan --</option>
                   {oppList.map((o) => (
@@ -288,15 +288,15 @@ export default async function OrganisasiDetailPage({
               </div>
             )}
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan</label>
               <textarea
                 name="notes"
                 rows={2}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Follow-up Berikutnya (opsional)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Follow-up Berikutnya (opsional)</label>
               <DatePicker name="nextFollowupDate" />
             </div>
             <div className="col-span-2">

@@ -85,7 +85,7 @@ export default async function OpportunitiesPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Opportunity / Pipeline (CRM)</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Opportunity / Pipeline (CRM)</h1>
         <p className="text-sm text-ink-muted mt-1">
           {session.user.role === "staff" ? "Opportunity milikmu." : session.user.role === "department_head" ? "Opportunity di departemenmu." : `Semua opportunity di ${company.name}.`}
         </p>
@@ -113,19 +113,19 @@ export default async function OpportunitiesPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-ink-muted mb-1">Judul Deal</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Judul Deal</label>
                 <input
                   name="title"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Organisasi</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Organisasi</label>
                 <select
                   name="organizationId"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 >
                   {orgList.map((o) => (
                     <option key={o.id} value={o.id}>
@@ -135,11 +135,11 @@ export default async function OpportunitiesPage({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Tahap Awal</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahap Awal</label>
                 <select
                   name="currentStageId"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 >
                   {stageList.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -149,24 +149,24 @@ export default async function OpportunitiesPage({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Estimasi Nilai (Rp)</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Estimasi Nilai (Rp)</label>
                 <input
                   name="estimatedValue"
                   type="number"
                   step="0.01"
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Target Tutup</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Target Tutup</label>
                 <DatePicker name="expectedCloseDate" />
               </div>
               {!restrictAssignee && (
                 <div className="col-span-2">
-                  <label className="block text-xs font-medium text-ink-muted mb-1">Ditugaskan ke</label>
+                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ditugaskan ke</label>
                   <select
                     name="assignedTo"
-                    className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                    className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                     defaultValue={session.user.id}
                   >
                     {userList.map((u) => (

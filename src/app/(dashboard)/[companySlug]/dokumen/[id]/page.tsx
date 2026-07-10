@@ -119,11 +119,11 @@ export default async function DokumenDetailPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="documentId" value={doc.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Efektif (opsional)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Efektif (opsional)</label>
               <DatePicker name="effectiveDate" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
               <DatePicker name="expiresAt" />
             </div>
             <div className="col-span-2">
@@ -265,9 +265,9 @@ async function VersionCard({
               <input type="hidden" name="documentId" value={documentId} />
               <input type="hidden" name="versionId" value={version.id} />
               <input type="hidden" name="stepOrder" value={firstPendingStep.stepOrder} />
-              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               <div className="flex gap-3">
-                <button type="submit" name="decision" value="approved" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                <button type="submit" name="decision" value="approved" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                   Setujui
                 </button>
                 <button type="submit" name="decision" value="rejected" className="bg-destructive hover:bg-destructive/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

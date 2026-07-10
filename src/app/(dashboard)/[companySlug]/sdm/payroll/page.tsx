@@ -67,7 +67,7 @@ export default async function PayrollPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Payroll</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Payroll</h1>
         <p className="text-sm text-ink-muted mt-1">Riwayat payroll run {company.name}.</p>
       </div>
 
@@ -80,16 +80,16 @@ export default async function PayrollPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Bulan</label>
-              <select name="periodMonth" defaultValue={currentDate.getMonth() + 1} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Bulan</label>
+              <select name="periodMonth" defaultValue={currentDate.getMonth() + 1} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 {MONTH_LABEL.map((label, i) => (
                   <option key={label} value={i + 1}>{label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tahun</label>
-              <input name="periodYear" type="number" defaultValue={currentDate.getFullYear()} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahun</label>
+              <input name="periodYear" type="number" defaultValue={currentDate.getFullYear()} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

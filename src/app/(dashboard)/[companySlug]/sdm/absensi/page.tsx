@@ -91,7 +91,7 @@ export default async function AbsensiPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Absensi</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Absensi</h1>
         <p className="text-sm text-ink-muted mt-1">
           {session.user.role === "staff"
             ? "Absensi milikmu."
@@ -110,8 +110,8 @@ export default async function AbsensiPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Karyawan</label>
-              <select name="employeeId" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
+              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- pilih --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
@@ -119,12 +119,12 @@ export default async function AbsensiPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal</label>
               <DatePicker name="attendanceDate" required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Status</label>
-              <select name="status" required defaultValue="hadir" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
+              <select name="status" required defaultValue="hadir" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 {Object.entries(STATUS_LABEL).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
@@ -136,8 +136,8 @@ export default async function AbsensiPage({
               </button>
             </div>
             <div className="col-span-4">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan (opsional)</label>
-              <input name="notes" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan (opsional)</label>
+              <input name="notes" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
           </form>
         </Card>

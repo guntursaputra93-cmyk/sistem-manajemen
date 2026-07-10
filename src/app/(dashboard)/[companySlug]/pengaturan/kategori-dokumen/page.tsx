@@ -58,7 +58,7 @@ export default async function DocumentCategoriesPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Kategori Dokumen</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Kategori Dokumen</h1>
         <p className="text-sm text-ink-muted mt-1">
           Kode kategori baku (mis. PP, SK, KTR). Kode ini juga jadi acuan jenjang approval dokumen di halaman Jenjang Approval.
         </p>
@@ -71,7 +71,7 @@ export default async function DocumentCategoriesPage({
         <form action={addDocumentCategory} className="grid grid-cols-3 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Kode</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
             <input
               name="code"
               required
@@ -80,22 +80,22 @@ export default async function DocumentCategoriesPage({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
             <input
               name="name"
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Hierarchy Level</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Hierarchy Level</label>
             <input
               name="hierarchyLevel"
               type="number"
               min={1}
               defaultValue={1}
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div className="col-span-3">

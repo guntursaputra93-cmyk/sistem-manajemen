@@ -46,7 +46,7 @@ export default async function UserEditPage({
         <Link href={`/${companySlug}/pengaturan/user`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="font-display text-2xl font-bold text-ink mt-2">{targetUser.fullName}</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{targetUser.fullName}</h1>
       </div>
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
@@ -58,30 +58,30 @@ export default async function UserEditPage({
           <input type="hidden" name="companyId" value={company.id} />
           <input type="hidden" name="userId" value={targetUser.id} />
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Nama Lengkap</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Lengkap</label>
             <input
               name="fullName"
               defaultValue={targetUser.fullName}
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Email</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email</label>
             <input
               name="email"
               type="email"
               defaultValue={targetUser.email}
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Role</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Role</label>
             <select
               name="role"
               defaultValue={targetUser.role}
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="staff">Staff</option>
               <option value="department_head">Kepala Departemen</option>
@@ -90,22 +90,22 @@ export default async function UserEditPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Status</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
             <select
               name="isActive"
               defaultValue={String(targetUser.isActive)}
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="true">Aktif</option>
               <option value="false">Nonaktif</option>
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-ink-muted mb-1">Departemen (wajib utk Staff/Kepala Departemen)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (wajib utk Staff/Kepala Departemen)</label>
             <select
               name="departmentId"
               defaultValue={targetUser.departmentId ?? ""}
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="">-- tidak ada --</option>
               {deptList.map((d) => (
@@ -116,13 +116,13 @@ export default async function UserEditPage({
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-ink-muted mb-1">Ganti Password (opsional)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ganti Password (opsional)</label>
             <input
               name="newPassword"
               type="password"
               minLength={8}
               placeholder="Kosongkan kalau tidak ganti"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div className="col-span-2">

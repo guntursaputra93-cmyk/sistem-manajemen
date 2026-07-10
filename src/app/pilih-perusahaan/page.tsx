@@ -36,16 +36,16 @@ export default async function PilihPerusahaanPage({
           <h2 className="font-semibold text-ink mb-4">Tambah Perusahaan</h2>
           <form action={createCompany} className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
-              <input name="name" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
+              <input name="name" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Kode (opsional)</label>
-              <input name="code" maxLength={10} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface uppercase" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode (opsional)</label>
+              <input name="code" maxLength={10} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface uppercase" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis Bisnis</label>
-              <input name="businessType" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Bisnis</label>
+              <input name="businessType" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-3">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
@@ -77,15 +77,15 @@ export default async function PilihPerusahaanPage({
                 <form action={updateCompany} className="grid grid-cols-4 gap-3 items-end">
                   <input type="hidden" name="companyId" value={company.id} />
                   <div>
-                    <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+                    <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
                     <input name="name" defaultValue={company.name} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-ink-muted mb-1">Kode</label>
+                    <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
                     <input name="code" defaultValue={company.code ?? ""} maxLength={10} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface uppercase" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-ink-muted mb-1">Jenis Bisnis</label>
+                    <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Bisnis</label>
                     <input name="businessType" defaultValue={company.businessType} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1.5 text-sm text-ink bg-surface" />
                   </div>
                   <div className="flex gap-2">

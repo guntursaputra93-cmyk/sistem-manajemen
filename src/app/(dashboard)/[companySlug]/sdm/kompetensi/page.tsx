@@ -106,19 +106,19 @@ export default async function KompetensiPage({
                 <input type="hidden" name="companyId" value={company.id} />
                 <input type="hidden" name="employeeCompetencyId" value={r.id} />
                 <div>
-                  <label className="block text-xs font-medium text-ink-muted mb-1">No. Sertifikat</label>
+                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">No. Sertifikat</label>
                   <input name="certificateNumber" defaultValue={r.certificateNumber ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-ink-muted mb-1">Skema Sektor</label>
+                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Skema Sektor</label>
                   <input name="sectorScheme" defaultValue={r.sectorScheme ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku Sampai</label>
+                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai</label>
                   <DatePicker name="expiresAt" defaultValue={r.expiresAt} />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-ink-muted mb-1">Status</label>
+                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
                   <select name="status" defaultValue={r.status} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface">
                     {Object.entries(STATUS_LABEL).map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
@@ -144,7 +144,7 @@ export default async function KompetensiPage({
   return (
     <div className="max-w-5xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Kompetensi & Sertifikasi</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Kompetensi & Sertifikasi</h1>
         <p className="text-sm text-ink-muted mt-1">
           {session.user.role === "staff" ? "Kompetensi milikmu." : session.user.role === "department_head" ? "Kompetensi di departemenmu." : `Kompetensi ${company.name}.`}
         </p>
@@ -176,8 +176,8 @@ export default async function KompetensiPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Karyawan</label>
-              <select name="employeeId" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
+              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- pilih --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
@@ -185,8 +185,8 @@ export default async function KompetensiPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis Kompetensi</label>
-              <select name="competencyTypeId" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Kompetensi</label>
+              <select name="competencyTypeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- pilih --</option>
                 {typeList.map((t) => (
                   <option key={t.id} value={t.id}>{t.name}</option>
@@ -194,19 +194,19 @@ export default async function KompetensiPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Skema Sektor (opsional)</label>
-              <input name="sectorScheme" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Skema Sektor (opsional)</label>
+              <input name="sectorScheme" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">No. Sertifikat</label>
-              <input name="certificateNumber" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">No. Sertifikat</label>
+              <input name="certificateNumber" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Terbit</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Terbit</label>
               <DatePicker name="issuedDate" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku Sampai</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai</label>
               <DatePicker name="expiresAt" />
             </div>
             <div className="col-span-3">

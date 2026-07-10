@@ -92,7 +92,7 @@ export default async function CpdPage({
   return (
     <div className="max-w-5xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Logbook CPD</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Logbook CPD</h1>
         <p className="text-sm text-ink-muted mt-1">Continuing Professional Development — {company.name}.</p>
       </div>
 
@@ -122,14 +122,14 @@ export default async function CpdPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Target Jam CPD per Tahun</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Target Jam CPD per Tahun</label>
               <input
                 name="annualTargetHours"
                 type="number"
                 step="0.5"
                 min={0}
                 defaultValue={currentTarget ?? ""}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
@@ -145,8 +145,8 @@ export default async function CpdPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Karyawan</label>
-              <select name="employeeId" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
+              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- pilih --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
@@ -154,31 +154,31 @@ export default async function CpdPage({
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Aktivitas</label>
-              <input name="activityName" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Aktivitas</label>
+              <input name="activityName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Kategori</label>
-              <select name="category" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
+              <select name="category" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="internal">Internal</option>
                 <option value="eksternal">Eksternal</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Penyelenggara (opsional)</label>
-              <input name="organizer" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Penyelenggara (opsional)</label>
+              <input name="organizer" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Durasi (jam)</label>
-              <input name="durationHours" type="number" step="0.5" min={0} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Durasi (jam)</label>
+              <input name="durationHours" type="number" step="0.5" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal (opsional)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal (opsional)</label>
               <DatePicker name="activityDate" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tahun</label>
-              <input name="year" type="number" defaultValue={currentYear} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahun</label>
+              <input name="year" type="number" defaultValue={currentYear} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-3">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

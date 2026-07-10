@@ -123,8 +123,8 @@ export default async function SuratMasukDetailPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="incomingLetterId" value={letter.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Ke Departemen (opsional)</label>
-              <select name="targetDepartmentId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ke Departemen (opsional)</label>
+              <select name="targetDepartmentId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {deptList.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -134,8 +134,8 @@ export default async function SuratMasukDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Ke Orang (opsional)</label>
-              <select name="targetUserId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ke Orang (opsional)</label>
+              <select name="targetUserId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>
@@ -145,8 +145,8 @@ export default async function SuratMasukDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Instruksi (opsional)</label>
-              <textarea name="instruction" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Instruksi (opsional)</label>
+              <textarea name="instruction" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
               Kirim Disposisi

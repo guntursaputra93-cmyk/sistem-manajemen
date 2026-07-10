@@ -173,13 +173,13 @@ export default async function SuratKeluarDetailPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="letterId" value={letter.id} />
               <input type="hidden" name="stepOrder" value={firstPendingStep.stepOrder} />
-              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               <div className="flex gap-3">
                 <button
                   type="submit"
                   name="decision"
                   value="approved"
-                  className="bg-sage-deep hover:bg-sage-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                  className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]"
                 >
                   Setujui Jenjang {firstPendingStep.stepOrder}
                 </button>
@@ -281,33 +281,33 @@ export default async function SuratKeluarDetailPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="outgoingLetterId" value={letter.id} />
               <div className="col-span-3">
-                <label className="block text-xs font-medium text-ink-muted mb-1">Nama Item</label>
-                <input name="itemName" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Item</label>
+                <input name="itemName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Kuantitas</label>
-                <input name="quantity" type="number" step="0.01" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kuantitas</label>
+                <input name="quantity" type="number" step="0.01" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Satuan</label>
-                <input name="unit" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Satuan</label>
+                <input name="unit" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Harga Satuan (Rp)</label>
-                <input name="unitPrice" type="number" step="0.01" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Harga Satuan (Rp)</label>
+                <input name="unitPrice" type="number" step="0.01" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               </div>
               {oppList.length > 0 && (
                 <div className="col-span-3">
-                  <label className="block text-xs font-medium text-ink-muted mb-1">Kaitkan ke Opportunity (opsional — estimasi nilai opportunity akan otomatis diperbarui)</label>
-                  <select name="opportunityId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kaitkan ke Opportunity (opsional — estimasi nilai opportunity akan otomatis diperbarui)</label>
+                  <select name="opportunityId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                     <option value="">-- tidak dikaitkan --</option>
                     {oppList.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
                   </select>
                 </div>
               )}
               <div className="col-span-3">
-                <label className="block text-xs font-medium text-ink-muted mb-1">Catatan (opsional)</label>
-                <input name="notes" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan (opsional)</label>
+                <input name="notes" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
               </div>
               <div className="col-span-3">
                 <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

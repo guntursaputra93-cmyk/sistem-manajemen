@@ -60,7 +60,7 @@ export default async function UserListPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">User</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">User</h1>
         <p className="text-sm text-ink-muted mt-1">Kelola akun user di {company.name}.</p>
       </div>
 
@@ -76,39 +76,39 @@ export default async function UserListPage({
           <input type="hidden" name="companyId" value={company.id} />
           {linkEmployeeId && <input type="hidden" name="linkEmployeeId" value={linkEmployeeId} />}
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Nama Lengkap</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Lengkap</label>
             <input
               name="fullName"
               defaultValue={prefillFullName ?? ""}
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Email</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email</label>
             <input
               name="email"
               type="email"
               defaultValue={prefillEmail ?? ""}
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Password</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Password</label>
             <input
               name="password"
               type="password"
               required
               minLength={8}
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Role</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Role</label>
             <select
               name="role"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="staff">Staff</option>
               <option value="department_head">Kepala Departemen</option>
@@ -117,10 +117,10 @@ export default async function UserListPage({
             </select>
           </div>
           <div className="col-span-2">
-            <label className="block text-xs font-medium text-ink-muted mb-1">Departemen (wajib utk Staff/Kepala Departemen)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (wajib utk Staff/Kepala Departemen)</label>
             <select
               name="departmentId"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="">-- tidak ada --</option>
               {deptList.map((d) => (

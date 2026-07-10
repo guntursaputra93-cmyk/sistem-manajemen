@@ -80,7 +80,7 @@ export default async function PayrollRunDetailPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">
+        <h1 className="font-display text-[17px] font-extrabold text-ink">
           Payroll {MONTH_LABEL[run.periodMonth - 1]} {run.periodYear}
         </h1>
       </div>
@@ -117,7 +117,7 @@ export default async function PayrollRunDetailPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="payrollRunId" value={run.id} />
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
               Tandai Selesai
             </button>
           </form>

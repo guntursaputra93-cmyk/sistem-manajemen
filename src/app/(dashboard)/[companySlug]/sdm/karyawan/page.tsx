@@ -94,7 +94,7 @@ export default async function KaryawanPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Data Karyawan</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Data Karyawan</h1>
         <p className="text-sm text-ink-muted mt-1">
           {session.user.role === "staff"
             ? "Data karyawan milikmu."
@@ -113,32 +113,32 @@ export default async function KaryawanPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">NIK</label>
-              <input name="nik" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">NIK</label>
+              <input name="nik" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Lengkap</label>
-              <input name="fullName" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Lengkap</label>
+              <input name="fullName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Email (opsional)</label>
-              <input name="email" type="email" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email (opsional)</label>
+              <input name="email" type="email" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Bergabung</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Bergabung</label>
               <DatePicker name="joinDate" required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Lahir (opsional)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Lahir (opsional)</label>
               <DatePicker name="birthDate" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jabatan Awal</label>
-              <input name="positionTitle" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jabatan Awal</label>
+              <input name="positionTitle" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Departemen</label>
-              <select name="departmentId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen</label>
+              <select name="departmentId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {deptList.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -148,24 +148,24 @@ export default async function KaryawanPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenjang (opsional)</label>
-              <input name="jobLevel" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenjang (opsional)</label>
+              <input name="jobLevel" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Telepon</label>
-              <input name="phone" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Telepon</label>
+              <input name="phone" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Alamat</label>
-              <input name="address" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Alamat</label>
+              <input name="address" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Kontak Darurat — Nama</label>
-              <input name="emergencyContactName" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontak Darurat — Nama</label>
+              <input name="emergencyContactName" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Kontak Darurat — Telepon</label>
-              <input name="emergencyContactPhone" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontak Darurat — Telepon</label>
+              <input name="emergencyContactPhone" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

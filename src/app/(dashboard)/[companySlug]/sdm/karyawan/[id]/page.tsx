@@ -102,7 +102,7 @@ export default async function KaryawanDetailPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">{employee.fullName}</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">{employee.fullName}</h1>
         <p className="text-sm text-ink-muted mt-1">
           {employee.currentPositionTitle ?? "-"} — <Badge variant={employee.employmentStatus === "aktif" ? "sage" : "dusty-rose"}>{STATUS_LABEL[employee.employmentStatus] ?? employee.employmentStatus}</Badge>
         </p>
@@ -118,36 +118,36 @@ export default async function KaryawanDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="employeeId" value={employee.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">NIK</label>
-              <input name="nik" defaultValue={employee.nik} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">NIK</label>
+              <input name="nik" defaultValue={employee.nik} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama Lengkap</label>
-              <input name="fullName" defaultValue={employee.fullName} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Lengkap</label>
+              <input name="fullName" defaultValue={employee.fullName} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Email (opsional)</label>
-              <input name="email" type="email" defaultValue={employee.email ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email (opsional)</label>
+              <input name="email" type="email" defaultValue={employee.email ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Lahir</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Lahir</label>
               <DatePicker name="birthDate" defaultValue={employee.birthDate} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Telepon</label>
-              <input name="phone" defaultValue={employee.phone ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Telepon</label>
+              <input name="phone" defaultValue={employee.phone ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Alamat</label>
-              <input name="address" defaultValue={employee.address ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Alamat</label>
+              <input name="address" defaultValue={employee.address ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Kontak Darurat — Nama</label>
-              <input name="emergencyContactName" defaultValue={employee.emergencyContactName ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontak Darurat — Nama</label>
+              <input name="emergencyContactName" defaultValue={employee.emergencyContactName ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Kontak Darurat — Telepon</label>
-              <input name="emergencyContactPhone" defaultValue={employee.emergencyContactPhone ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontak Darurat — Telepon</label>
+              <input name="emergencyContactPhone" defaultValue={employee.emergencyContactPhone ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
@@ -198,20 +198,20 @@ export default async function KaryawanDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="employeeId" value={employee.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jabatan Baru</label>
-              <input name="positionTitle" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jabatan Baru</label>
+              <input name="positionTitle" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenis Perubahan</label>
-              <select name="changeType" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Perubahan</label>
+              <select name="changeType" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="promosi">Promosi</option>
                 <option value="demosi">Demosi</option>
                 <option value="mutasi">Mutasi</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Departemen</label>
-              <select name="departmentId" defaultValue={employee.departmentId ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen</label>
+              <select name="departmentId" defaultValue={employee.departmentId ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {deptList.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}</option>
@@ -219,16 +219,16 @@ export default async function KaryawanDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Jenjang (opsional)</label>
-              <input name="jobLevel" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenjang (opsional)</label>
+              <input name="jobLevel" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Efektif</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Efektif</label>
               <DatePicker name="effectiveDate" required />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan (opsional)</label>
-              <textarea name="notes" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan (opsional)</label>
+              <textarea name="notes" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
@@ -250,15 +250,15 @@ export default async function KaryawanDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="employeeId" value={employee.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Status</label>
-              <select name="employmentStatus" defaultValue={employee.employmentStatus} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
+              <select name="employmentStatus" defaultValue={employee.employmentStatus} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 {Object.entries(STATUS_LABEL).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Resign/Diberhentikan (kalau relevan)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Resign/Diberhentikan (kalau relevan)</label>
               <DatePicker name="resignDate" defaultValue={employee.resignDate} />
             </div>
             <div className="col-span-2">

@@ -5,6 +5,9 @@
   --color-bg-base: #FAF9F6;
   --color-surface: #FFFFFF;
 
+  /* Revert ke hijau sage original — iterasi mint cerah (green-300/800) dinilai
+     terlalu kuat/memblok. Sidebar sekarang pakai gradient dari token ini (lihat
+     Sidebar.tsx), bukan solid, jadi warna dasar boleh kembali ke tone original. */
   --color-sage: #A8C3A0;
   --color-sage-deep: #4A6741;
 

@@ -38,7 +38,7 @@ export default async function DepartemenPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Departemen</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Departemen</h1>
         <p className="text-sm text-ink-muted mt-1">Kelola departemen di {company.name}.</p>
       </div>
 
@@ -50,15 +50,15 @@ export default async function DepartemenPage({
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
             <input
               name="name"
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Kode (opsional)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode (opsional)</label>
             <input
               name="code"
               maxLength={10}
@@ -66,10 +66,10 @@ export default async function DepartemenPage({
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Induk Departemen (opsional)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Induk Departemen (opsional)</label>
             <select
               name="parentDepartmentId"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="">-- tidak ada --</option>
               {deptList.map((d) => (
@@ -96,16 +96,16 @@ export default async function DepartemenPage({
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="departmentId" value={dept.id} />
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Nama</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
                 <input
                   name="name"
                   defaultValue={dept.name}
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Kode</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
                 <input
                   name="code"
                   defaultValue={dept.code ?? ""}
@@ -114,11 +114,11 @@ export default async function DepartemenPage({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Induk</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Induk</label>
                 <select
                   name="parentDepartmentId"
                   defaultValue={dept.parentDepartmentId ?? ""}
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 >
                   <option value="">-- tidak ada --</option>
                   {deptList

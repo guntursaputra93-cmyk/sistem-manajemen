@@ -69,7 +69,7 @@ export default async function ContractDetailPage({
         <Link href={`/${companySlug}/crm/contracts`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="font-display text-2xl font-bold text-ink mt-2">{opp?.title ?? "Contract"}</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{opp?.title ?? "Contract"}</h1>
         <p className="text-sm text-ink-muted mt-1">{org?.name}</p>
       </div>
 
@@ -83,23 +83,23 @@ export default async function ContractDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="contractId" value={contract.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nilai Kontrak (Rp)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nilai Kontrak (Rp)</label>
               <input
                 name="contractValue"
                 type="number"
                 step="0.01"
                 defaultValue={contract.contractValue}
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Status Pembayaran</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status Pembayaran</label>
               <select
                 name="paymentStatus"
                 defaultValue={contract.paymentStatus}
                 required
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               >
                 <option value="belum_dibayar">Belum Dibayar</option>
                 <option value="sebagian">Sebagian</option>
@@ -107,15 +107,15 @@ export default async function ContractDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Mulai</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Mulai</label>
               <DatePicker name="startDate" defaultValue={contract.startDate} required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Selesai</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Selesai</label>
               <DatePicker name="endDate" defaultValue={contract.endDate} />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Reminder Renewal (opsional)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Reminder Renewal (opsional)</label>
               <DatePicker name="renewalReminderDate" defaultValue={contract.renewalReminderDate} />
             </div>
             <div className="col-span-2">

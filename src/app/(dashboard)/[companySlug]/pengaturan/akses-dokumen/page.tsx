@@ -82,7 +82,7 @@ export default async function DocumentAccessRulesPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Jenjang Akses Dokumen</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Jenjang Akses Dokumen</h1>
         <p className="text-sm text-ink-muted mt-1">
           <strong>Default: tanpa rule, semua staf perusahaan bisa lihat.</strong> Tambah rule di sini kalau mau membatasi kategori/dokumen tertentu.
         </p>
@@ -100,7 +100,7 @@ export default async function DocumentAccessRulesPage({
             </label>
             <select
               name="documentCategoryId"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -115,7 +115,7 @@ export default async function DocumentAccessRulesPage({
             </label>
             <select
               name="documentId"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="">-- pilih dokumen --</option>
               {docList.map((d) => (
@@ -126,10 +126,10 @@ export default async function DocumentAccessRulesPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Scope</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Scope</label>
             <select
               name="scope"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               required
             >
               <option value="semua_staf">Semua Staf</option>
@@ -138,10 +138,10 @@ export default async function DocumentAccessRulesPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Departemen (kalau scope departemen)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (kalau scope departemen)</label>
             <select
               name="departmentId"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="">-- tidak ada --</option>
               {deptList.map((d) => (
@@ -152,10 +152,10 @@ export default async function DocumentAccessRulesPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Role (kalau scope role)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Role (kalau scope role)</label>
             <select
               name="role"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="">-- tidak ada --</option>
               <option value="company_admin">Admin Perusahaan</option>

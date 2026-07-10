@@ -51,7 +51,7 @@ export default async function KalibrasiDetailPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Rapat Kalibrasi — {meeting.meetingDate}</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Rapat Kalibrasi — {meeting.meetingDate}</h1>
         <p className="text-sm text-ink-muted mt-1">Pemimpin: {userList.find((u) => u.id === meeting.leaderUserId)?.fullName ?? "-"}</p>
       </div>
 
@@ -65,24 +65,24 @@ export default async function KalibrasiDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="meetingId" value={meeting.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Rapat</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Rapat</label>
               <DatePicker name="meetingDate" defaultValue={meeting.meetingDate} required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Lokasi/Media</label>
-              <input name="locationOrMedia" defaultValue={meeting.locationOrMedia ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Lokasi/Media</label>
+              <input name="locationOrMedia" defaultValue={meeting.locationOrMedia ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Pemimpin Rapat</label>
-              <select name="leaderUserId" defaultValue={meeting.leaderUserId} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Pemimpin Rapat</label>
+              <select name="leaderUserId" defaultValue={meeting.leaderUserId} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Notulis</label>
-              <select name="notetakerUserId" defaultValue={meeting.notetakerUserId ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Notulis</label>
+              <select name="notetakerUserId" defaultValue={meeting.notetakerUserId ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
@@ -90,12 +90,12 @@ export default async function KalibrasiDetailPage({
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Agenda</label>
-              <textarea name="agenda" defaultValue={meeting.agenda ?? ""} rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Agenda</label>
+              <textarea name="agenda" defaultValue={meeting.agenda ?? ""} rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Catatan Diskusi</label>
-              <textarea name="discussionNotes" defaultValue={meeting.discussionNotes ?? ""} rows={4} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan Diskusi</label>
+              <textarea name="discussionNotes" defaultValue={meeting.discussionNotes ?? ""} rows={4} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
@@ -153,8 +153,8 @@ export default async function KalibrasiDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="meetingId" value={meeting.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Karyawan (opsional)</label>
-              <select name="employeeId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan (opsional)</label>
+              <select name="employeeId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
@@ -162,12 +162,12 @@ export default async function KalibrasiDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Nama (kalau bukan karyawan)</label>
-              <input name="attendeeName" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama (kalau bukan karyawan)</label>
+              <input name="attendeeName" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Peran (opsional)</label>
-              <input name="attendeeRole" placeholder="mis. Asesor" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Peran (opsional)</label>
+              <input name="attendeeRole" placeholder="mis. Asesor" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-3">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

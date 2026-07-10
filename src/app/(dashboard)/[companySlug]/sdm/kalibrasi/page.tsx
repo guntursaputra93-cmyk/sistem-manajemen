@@ -60,7 +60,7 @@ export default async function KalibrasiPage({
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Rapat Kalibrasi</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Rapat Kalibrasi</h1>
         <p className="text-sm text-ink-muted mt-1">Notulen rapat kalibrasi tim {company.name}.</p>
       </div>
 
@@ -73,16 +73,16 @@ export default async function KalibrasiPage({
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Rapat</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Rapat</label>
               <DatePicker name="meetingDate" required />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Lokasi/Media (opsional)</label>
-              <input name="locationOrMedia" placeholder="mis. Ruang Rapat A / Zoom" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Lokasi/Media (opsional)</label>
+              <input name="locationOrMedia" placeholder="mis. Ruang Rapat A / Zoom" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Pemimpin Rapat</label>
-              <select name="leaderUserId" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Pemimpin Rapat</label>
+              <select name="leaderUserId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- pilih --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
@@ -90,8 +90,8 @@ export default async function KalibrasiPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Notulis (opsional)</label>
-              <select name="notetakerUserId" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Notulis (opsional)</label>
+              <select name="notetakerUserId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
@@ -99,8 +99,8 @@ export default async function KalibrasiPage({
               </select>
             </div>
             <div className="col-span-2">
-              <label className="block text-xs font-medium text-ink-muted mb-1">Agenda (opsional)</label>
-              <textarea name="agenda" rows={2} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Agenda (opsional)</label>
+              <textarea name="agenda" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
             </div>
             <div className="col-span-2">
               <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

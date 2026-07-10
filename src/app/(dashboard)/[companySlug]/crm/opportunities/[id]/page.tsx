@@ -74,7 +74,7 @@ export default async function OpportunityDetailPage({
         <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="font-display text-2xl font-bold text-ink mt-2">{opp.title}</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{opp.title}</h1>
         <p className="text-sm text-ink-muted mt-1">{org?.name}</p>
       </div>
 
@@ -127,11 +127,11 @@ export default async function OpportunityDetailPage({
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="opportunityId" value={opp.id} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Tahap Baru</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahap Baru</label>
               <select
                 name="newStageId"
                 defaultValue={opp.currentStageId}
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               >
                 {stageList.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -142,10 +142,10 @@ export default async function OpportunityDetailPage({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Alasan (kalau pindah ke tahap hilang)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Alasan (kalau pindah ke tahap hilang)</label>
               <input
                 name="lostReason"
-                className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               />
             </div>
             <div className="col-span-2">

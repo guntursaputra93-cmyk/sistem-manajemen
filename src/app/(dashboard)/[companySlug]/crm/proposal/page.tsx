@@ -110,7 +110,7 @@ export default async function ProposalPage({
         <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali ke CRM
         </Link>
-        <h1 className="font-display text-2xl font-bold text-ink mt-2">Proposal / Penawaran (CRM)</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">Proposal / Penawaran (CRM)</h1>
         <p className="text-sm text-ink-muted mt-1">Proposal adalah surat keluar (jenis: penawaran) dgn item &amp; nilai — kelola item &amp; lifecycle approval di halaman detail surat.</p>
       </div>
 
@@ -125,11 +125,11 @@ export default async function ProposalPage({
             <form action={createProposalAction} className="grid grid-cols-2 gap-4">
               <input type="hidden" name="companySlug" value={companySlug} />
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Organisasi</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Organisasi</label>
                 <select
                   name="organizationId"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 >
                   {orgList.map((o) => (
                     <option key={o.id} value={o.id}>
@@ -139,11 +139,11 @@ export default async function ProposalPage({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Departemen (penentu nomor)</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (penentu nomor)</label>
                 <select
                   name="departmentId"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 >
                   {deptList.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -153,11 +153,11 @@ export default async function ProposalPage({
                 </select>
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-ink-muted mb-1">Perihal</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Perihal</label>
                 <input
                   name="subject"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 />
               </div>
               <div className="col-span-2">

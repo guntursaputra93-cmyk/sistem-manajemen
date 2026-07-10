@@ -220,10 +220,10 @@ export default async function DashboardPage({
   return (
     <div className="max-w-5xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">
+        <h1 className="font-display text-[17px] font-extrabold text-ink">
           {greeting(now.getHours())}, {session.user.name ?? "Pengguna"}
         </h1>
-        <p className="text-sm text-ink-muted mt-1">
+        <p className="text-[11px] text-ink-muted mt-1">
           Berikut ringkasan aktivitas {company.name} hari ini, {tanggalHariIni}.
         </p>
       </div>
@@ -231,14 +231,14 @@ export default async function DashboardPage({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map(({ label, value, icon: Icon, href }) => (
           <Link key={label} href={href}>
-            <Card className="hover:shadow-[0_2px_16px_rgba(0,0,0,0.08)] transition-shadow">
+            <Card className="border border-transparent hover:border-sage-deep/20 hover:shadow-[0_2px_16px_rgba(0,0,0,0.08)] transition-all">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-medium text-ink-muted">{label}</p>
-                  <p className="font-display text-3xl font-bold text-ink mt-2">{value}</p>
+                  <p className="text-[10px] font-semibold text-ink-muted">{label}</p>
+                  <p className="font-display text-4xl font-extrabold text-ink mt-2">{value}</p>
                 </div>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sage/20">
-                  <Icon size={18} className="text-sage-deep" aria-hidden="true" />
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sage/20">
+                  <Icon size={14} className="text-sage-deep" aria-hidden="true" />
                 </span>
               </div>
             </Card>

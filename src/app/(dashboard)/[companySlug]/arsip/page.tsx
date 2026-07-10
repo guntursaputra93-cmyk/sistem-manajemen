@@ -371,7 +371,7 @@ function FilterForm({
       <input type="hidden" name="tab" value={tabKey} />
       {showDepartment && (
         <div>
-          <label className="block text-xs font-medium text-ink-muted mb-1">Departemen</label>
+          <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen</label>
           <select name={`${tabKey}_dept`} defaultValue={sp[`${tabKey}_dept`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
             <option value="">Semua</option>
             {deptList?.map((d) => (
@@ -384,7 +384,7 @@ function FilterForm({
       )}
       {showJenis && (
         <div>
-          <label className="block text-xs font-medium text-ink-muted mb-1">Arah</label>
+          <label className="block text-[10px] font-semibold text-ink-muted mb-1">Arah</label>
           <select name={`${tabKey}_jenis`} defaultValue={sp[`${tabKey}_jenis`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
             <option value="">Semua</option>
             <option value="masuk">Masuk</option>
@@ -394,7 +394,7 @@ function FilterForm({
       )}
       {statusOptions && (
         <div>
-          <label className="block text-xs font-medium text-ink-muted mb-1">Status</label>
+          <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
           <select name={`${tabKey}_status`} defaultValue={sp[`${tabKey}_status`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
             <option value="">Semua</option>
             {Object.entries(statusOptions).map(([value, label]) => (
@@ -406,11 +406,11 @@ function FilterForm({
         </div>
       )}
       <div>
-        <label className="block text-xs font-medium text-ink-muted mb-1">Dari Tanggal</label>
+        <label className="block text-[10px] font-semibold text-ink-muted mb-1">Dari Tanggal</label>
         <DatePicker name={`${tabKey}_from`} defaultValue={sp[`${tabKey}_from`]} />
       </div>
       <div>
-        <label className="block text-xs font-medium text-ink-muted mb-1">Sampai Tanggal</label>
+        <label className="block text-[10px] font-semibold text-ink-muted mb-1">Sampai Tanggal</label>
         <DatePicker name={`${tabKey}_to`} defaultValue={sp[`${tabKey}_to`]} />
       </div>
       <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">

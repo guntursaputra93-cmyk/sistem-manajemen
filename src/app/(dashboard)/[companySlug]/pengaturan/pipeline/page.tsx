@@ -42,7 +42,7 @@ export default async function PipelinePage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Tahap Pipeline (CRM)</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Tahap Pipeline (CRM)</h1>
         <p className="text-sm text-ink-muted mt-1">Atur tahap pipeline penjualan untuk {company.name}. Bebas dikonfigurasi, urutan menentukan tampilan.</p>
       </div>
 
@@ -60,23 +60,23 @@ export default async function PipelinePage({
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Nama Tahap (stage_key)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Tahap (stage_key)</label>
             <input
               name="stageKey"
               required
               placeholder="mis. lead_baru"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Urutan</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Urutan</label>
             <input
               name="stageOrder"
               type="number"
               min={1}
               defaultValue={stages.length + 1}
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -108,7 +108,7 @@ export default async function PipelinePage({
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="stageId" value={stage.id} />
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Nama Tahap</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Tahap</label>
                 <input
                   name="stageKey"
                   defaultValue={stage.stageKey}
@@ -117,7 +117,7 @@ export default async function PipelinePage({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Urutan</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Urutan</label>
                 <input
                   name="stageOrder"
                   type="number"

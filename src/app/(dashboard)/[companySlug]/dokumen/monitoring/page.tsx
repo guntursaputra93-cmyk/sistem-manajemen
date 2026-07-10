@@ -146,7 +146,7 @@ export default async function MonitoringPage({
           <form action={updateDashboardSettings} className="flex items-end gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Macet (hari)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Macet (hari)</label>
               <input
                 name="stalledThresholdDays"
                 type="number"
@@ -156,7 +156,7 @@ export default async function MonitoringPage({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">Peringatan Kedaluwarsa (hari)</label>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Peringatan Kedaluwarsa (hari)</label>
               <input
                 name="expiryWarningDays"
                 type="number"

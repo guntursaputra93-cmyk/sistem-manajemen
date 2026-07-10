@@ -62,7 +62,7 @@ export default async function ApprovalFlowsPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Jenjang Approval</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Jenjang Approval</h1>
         <p className="text-sm text-ink-muted mt-1">Atur urutan approval per jenis. Tiap jenis boleh punya jumlah jenjang berbeda.</p>
       </div>
 
@@ -73,10 +73,10 @@ export default async function ApprovalFlowsPage({
         <form action={addApprovalStep} className="grid grid-cols-2 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku untuk</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku untuk</label>
             <select
               name="appliesTo"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
               required
             >
               <option value="surat_keluar">Surat Keluar</option>
@@ -85,22 +85,22 @@ export default async function ApprovalFlowsPage({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Jenis (bebas, mis. internal)</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis (bebas, mis. internal)</label>
             <input
               name="jenisKey"
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Urutan Jenjang</label>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Urutan Jenjang</label>
             <input
               name="stepOrder"
               type="number"
               min={1}
               defaultValue={1}
               required
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             />
           </div>
           <div />
@@ -110,7 +110,7 @@ export default async function ApprovalFlowsPage({
             </label>
             <select
               name="requiredRole"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="department_head">Kepala Departemen (departemen pengirim)</option>
               <option value="company_admin">Admin Perusahaan</option>
@@ -124,7 +124,7 @@ export default async function ApprovalFlowsPage({
             </label>
             <select
               name="requiredApproverUserId"
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
             >
               <option value="">-- pilih orang --</option>
               {userRows.map((u) => (

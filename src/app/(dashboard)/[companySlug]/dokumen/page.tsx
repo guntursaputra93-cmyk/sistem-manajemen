@@ -113,7 +113,7 @@ export default async function DokumenPage({
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold text-ink">Dokumen Perusahaan</h1>
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Dokumen Perusahaan</h1>
         <p className="text-sm text-ink-muted mt-1">Peraturan Perusahaan, SK Direktur, dan dokumen lain — dengan versioning.</p>
       </div>
 
@@ -134,19 +134,19 @@ export default async function DokumenPage({
             <form action={createDocument} className="grid grid-cols-2 gap-4">
               <input type="hidden" name="companySlug" value={companySlug} />
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-ink-muted mb-1">Judul</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Judul</label>
                 <input
                   name="title"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Kategori</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
                 <select
                   name="categoryId"
                   required
-                  className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
                 >
                   {categories.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -156,11 +156,11 @@ export default async function DokumenPage({
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Efektif (opsional)</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Efektif (opsional)</label>
                 <DatePicker name="effectiveDate" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
+                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
                 <DatePicker name="expiresAt" />
               </div>
               <div className="col-span-2">
