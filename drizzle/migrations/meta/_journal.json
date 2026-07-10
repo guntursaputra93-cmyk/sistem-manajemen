@@ -309,6 +309,13 @@
       "when": 1783626812882,
       "tag": "0043_rls_payroll_module",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1783650479397,
+      "tag": "0044_add_email_to_employees",
+      "breakpoints": true
     }
   ]
 }

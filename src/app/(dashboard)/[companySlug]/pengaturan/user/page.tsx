@@ -14,10 +14,10 @@ export default async function UserListPage({
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; prefillFullName?: string; prefillEmail?: string; linkEmployeeId?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
+  const { error, success, prefillFullName, prefillEmail, linkEmployeeId } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -67,14 +67,19 @@ export default async function UserListPage({
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <Card title="Tambah User">
+      <Card
+        title="Tambah User"
+        description={linkEmployeeId ? "Membuat akses sistem untuk karyawan yang dipilih dari halaman Data Karyawan." : undefined}
+      >
         <form action={createUser} className="grid grid-cols-2 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
+          {linkEmployeeId && <input type="hidden" name="linkEmployeeId" value={linkEmployeeId} />}
           <div>
             <label className="block text-xs font-medium text-ink-muted mb-1">Nama Lengkap</label>
             <input
               name="fullName"
+              defaultValue={prefillFullName ?? ""}
               required
               className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
             />
@@ -84,6 +89,7 @@ export default async function UserListPage({
             <input
               name="email"
               type="email"
+              defaultValue={prefillEmail ?? ""}
               required
               className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface"
             />

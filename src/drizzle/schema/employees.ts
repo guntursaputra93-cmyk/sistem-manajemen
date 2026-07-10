@@ -19,6 +19,11 @@ export const employees = pgTable("employees", {
   // departments.code), dikecualikan dari Sentry via lib/sentry/scrub.ts.
   nik: text("nik").notNull(),
   fullName: text("full_name").notNull(),
+  // Email kontak karyawan — informasional saja, TIDAK sama dengan users.email
+  // (kredensial login). Nullable, tanpa unique constraint (bukan identitas
+  // sistem). Dipakai untuk prefill form pembuatan akun saat admin klik
+  // "Berikan Akses Sistem" di halaman detail karyawan.
+  email: text("email"),
   // Denormalized dari position_history (baris status='active' terkini) — supaya
   // listing tidak perlu join tiap saat. Disinkronkan oleh changeEmployeePosition()
   // di lib/hr/employees.ts, jangan diupdate langsung di luar fungsi itu.

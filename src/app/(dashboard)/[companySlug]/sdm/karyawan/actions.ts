@@ -25,6 +25,7 @@ export async function createEmployee(formData: FormData): Promise<void> {
 
   const nik = formData.get("nik")?.toString().trim() ?? "";
   const fullName = formData.get("fullName")?.toString().trim() ?? "";
+  const email = formData.get("email")?.toString().trim().toLowerCase() || null;
   const joinDate = formData.get("joinDate")?.toString() || "";
   const positionTitle = formData.get("positionTitle")?.toString().trim() ?? "";
   const departmentId = formData.get("departmentId")?.toString() || null;
@@ -44,7 +45,7 @@ export async function createEmployee(formData: FormData): Promise<void> {
   const employeeId = await withTenantContext(tenantContext, async (tx) => {
     const [emp] = await tx
       .insert(employees)
-      .values({ companyId, nik, fullName, joinDate, phone, address, emergencyContactName, emergencyContactPhone, birthDate })
+      .values({ companyId, nik, fullName, email, joinDate, phone, address, emergencyContactName, emergencyContactPhone, birthDate })
       .returning();
 
     await changeEmployeePosition(tx, {
@@ -88,6 +89,7 @@ export async function updateEmployee(formData: FormData): Promise<void> {
 
   const nik = formData.get("nik")?.toString().trim() ?? "";
   const fullName = formData.get("fullName")?.toString().trim() ?? "";
+  const email = formData.get("email")?.toString().trim().toLowerCase() || null;
   const phone = formData.get("phone")?.toString().trim() || null;
   const address = formData.get("address")?.toString().trim() || null;
   const emergencyContactName = formData.get("emergencyContactName")?.toString().trim() || null;
@@ -101,7 +103,7 @@ export async function updateEmployee(formData: FormData): Promise<void> {
   await withTenantContext({ role: session.user.role, companyId: session.user.companyId, userId: session.user.id }, (tx) =>
     tx
       .update(employees)
-      .set({ nik, fullName, phone, address, emergencyContactName, emergencyContactPhone, birthDate, updatedAt: new Date() })
+      .set({ nik, fullName, email, phone, address, emergencyContactName, emergencyContactPhone, birthDate, updatedAt: new Date() })
       .where(and(eq(employees.id, employeeId), eq(employees.companyId, companyId)))
   );
 

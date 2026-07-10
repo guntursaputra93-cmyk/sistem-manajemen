@@ -121,6 +121,10 @@ export default async function KaryawanPage({
               <input name="fullName" required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
             </div>
             <div>
+              <label className="block text-xs font-medium text-ink-muted mb-1">Email (opsional)</label>
+              <input name="email" type="email" className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+            </div>
+            <div>
               <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Bergabung</label>
               <DatePicker name="joinDate" required />
             </div>

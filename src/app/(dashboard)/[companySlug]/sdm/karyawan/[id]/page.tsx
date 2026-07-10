@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { companies, employees, departments, positionHistory, attachments } from "@/drizzle/schema";
+import { companies, employees, departments, positionHistory, attachments, users } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getVisibleEmployeeIds, resolveViewer } from "@/lib/hr/employees";
@@ -69,7 +70,7 @@ export default async function KaryawanDetailPage({
     notFound();
   }
 
-  const [deptList, historyRows, docAttachments] = await Promise.all([
+  const [deptList, historyRows, docAttachments, linkedUser] = await Promise.all([
     withTenantContext(tenantContext, (tx) => tx.select().from(departments).where(eq(departments.companyId, company.id)).orderBy(asc(departments.name))),
     withTenantContext(tenantContext, (tx) =>
       tx.select().from(positionHistory).where(eq(positionHistory.employeeId, employee.id)).orderBy(asc(positionHistory.effectiveDate))
@@ -77,10 +78,18 @@ export default async function KaryawanDetailPage({
     withTenantContext(tenantContext, (tx) =>
       tx.select().from(attachments).where(and(eq(attachments.entityType, "employee"), eq(attachments.entityId, employee.id)))
     ),
+    employee.userId
+      ? withTenantContext(tenantContext, (tx) => tx.select().from(users).where(eq(users.id, employee.userId!))).then((r) => r[0] ?? null)
+      : Promise.resolve(null),
   ]);
 
   const canManage = hasPermission(session.user.role, "MANAGE_EMPLOYEES");
   const canManagePosition = hasPermission(session.user.role, "MANAGE_POSITION_HISTORY");
+  // Tombol "Berikan Akses Sistem" mengarah ke /pengaturan/user (MANAGE_USERS) —
+  // gate ganda supaya tombol tidak muncul untuk role yang nanti akan ditolak
+  // begitu sampai di halaman itu (saat ini kedua permission sama-sama
+  // super_admin/company_admin, tapi dicek eksplisit untuk jaga-jaga kalau beda nanti).
+  const canGrantAccess = canManage && hasPermission(session.user.role, "MANAGE_USERS");
 
   const positionSteps: TrailStep[] = historyRows.map((p): TrailStep => ({
     id: p.id,
@@ -117,6 +126,10 @@ export default async function KaryawanDetailPage({
               <input name="fullName" defaultValue={employee.fullName} required className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
             </div>
             <div>
+              <label className="block text-xs font-medium text-ink-muted mb-1">Email (opsional)</label>
+              <input name="email" type="email" defaultValue={employee.email ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface" />
+            </div>
+            <div>
               <label className="block text-xs font-medium text-ink-muted mb-1">Tanggal Lahir</label>
               <DatePicker name="birthDate" defaultValue={employee.birthDate} />
             </div>
@@ -145,11 +158,30 @@ export default async function KaryawanDetailPage({
         ) : (
           <dl className="text-sm space-y-2">
             <div><dt className="text-ink-muted inline">NIK: </dt><dd className="inline text-ink">{employee.nik}</dd></div>
+            <div><dt className="text-ink-muted inline">Email: </dt><dd className="inline text-ink">{employee.email ?? "-"}</dd></div>
             <div><dt className="text-ink-muted inline">Tanggal Bergabung: </dt><dd className="inline text-ink">{employee.joinDate}</dd></div>
             <div><dt className="text-ink-muted inline">Telepon: </dt><dd className="inline text-ink">{employee.phone ?? "-"}</dd></div>
             <div><dt className="text-ink-muted inline">Alamat: </dt><dd className="inline text-ink">{employee.address ?? "-"}</dd></div>
             <div><dt className="text-ink-muted inline">Kontak Darurat: </dt><dd className="inline text-ink">{[employee.emergencyContactName, employee.emergencyContactPhone].filter(Boolean).join(" — ") || "-"}</dd></div>
           </dl>
+        )}
+      </Card>
+
+      <Card title="Akses Sistem">
+        {linkedUser ? (
+          <p className="text-sm text-ink">Sudah punya akses sistem (email: {linkedUser.email}).</p>
+        ) : canGrantAccess ? (
+          <>
+            <p className="text-sm text-ink-muted mb-3">Karyawan ini belum terhubung ke akun login manapun.</p>
+            <Link
+              href={`/${companySlug}/pengaturan/user?linkEmployeeId=${employee.id}&prefillFullName=${encodeURIComponent(employee.fullName)}&prefillEmail=${encodeURIComponent(employee.email ?? "")}`}
+              className="inline-block bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+            >
+              Berikan Akses Sistem
+            </Link>
+          </>
+        ) : (
+          <p className="text-sm text-ink-muted italic">Karyawan ini belum punya akses sistem.</p>
         )}
       </Card>
 
