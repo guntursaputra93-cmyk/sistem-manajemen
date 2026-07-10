@@ -125,6 +125,17 @@ export default async function CompanyDashboardLayout({
   if (sdmPayrollOn && hasPermission(session.user.role, "MANAGE_SALARY_COMPONENTS")) {
     sdmItems.push({ href: `/${companySlug}/sdm/komponen-gaji`, label: "Komponen Gaji", icon: "settings" });
   }
+  // Self-service (Tahap 5) — semua role termasuk staff, gated permission dasar
+  // yang sudah dimiliki staff (VIEW_LEAVE_BALANCES/VIEW_CPD_ACTIVITIES/VIEW_PAYSLIPS).
+  if (sdmCutiAbsensiOn && hasPermission(session.user.role, "VIEW_LEAVE_BALANCES")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/cuti-saya`, label: "Cuti Saya", icon: "calendar-days" });
+  }
+  if (sdmKompetensiOn && hasPermission(session.user.role, "VIEW_CPD_ACTIVITIES")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/cpd-saya`, label: "CPD Saya", icon: "award" });
+  }
+  if (sdmPayrollOn && hasPermission(session.user.role, "VIEW_PAYSLIPS")) {
+    sdmItems.push({ href: `/${companySlug}/sdm/gaji-saya`, label: "Gaji Saya", icon: "wallet" });
+  }
   if (sdmItems.length) groups.push({ label: "SDM", items: sdmItems });
 
   const settingsItems: SidebarGroup["items"] = [];

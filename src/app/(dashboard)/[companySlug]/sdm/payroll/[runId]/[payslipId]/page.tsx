@@ -6,8 +6,11 @@ import { companies, payrollRuns, payslips, employees } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { Card } from "@/components/ui/Card";
+import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
 import type { PayslipDetailEntry } from "@/lib/hr/payroll";
 
+const STATUS_LABEL: Record<string, string> = { draft: "Draft", diproses: "Diproses", selesai: "Selesai" };
+const RUN_STEPS = ["draft", "diproses", "selesai"] as const;
 const MONTH_LABEL = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
 export default async function PayslipDetailPage({
@@ -51,6 +54,17 @@ export default async function PayslipDetailPage({
 
   const detail = (payslip.payslipDetail as PayslipDetailEntry[]) ?? [];
 
+  const currentStepIndex = RUN_STEPS.indexOf(run.status);
+  // processedAt diset di generatePayslipsForRun (transisi draft->diproses), BUKAN di
+  // finalizePayrollRun (diproses->selesai, tidak menyimpan timestamp sendiri) — jadi
+  // captionnya melekat ke step "diproses", bukan "selesai".
+  const runTrail: TrailStep[] = RUN_STEPS.map((step, i) => ({
+    id: step,
+    label: STATUS_LABEL[step],
+    caption: step === "diproses" && run.processedAt ? new Date(run.processedAt).toLocaleDateString("id-ID") : undefined,
+    status: i < currentStepIndex ? "done" : i === currentStepIndex ? (run.status === "selesai" ? "done" : "pending") : "upcoming",
+  }));
+
   return (
     <div className="max-w-2xl space-y-6">
       <div>
@@ -59,6 +73,10 @@ export default async function PayslipDetailPage({
         </h1>
         <p className="text-sm text-ink-muted mt-1">{employee?.fullName ?? "-"}</p>
       </div>
+
+      <Card title="Status Payroll Run">
+        <TrailStepper orientation="horizontal" steps={runTrail} />
+      </Card>
 
       <Card title="Rincian Komponen">
         <table className="w-full text-sm mb-4">

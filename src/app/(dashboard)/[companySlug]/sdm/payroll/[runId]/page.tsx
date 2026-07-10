@@ -8,10 +8,11 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { generatePayslipsAction, finalizePayrollRunAction } from "../actions";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
 
 const STATUS_LABEL: Record<string, string> = { draft: "Draft", diproses: "Diproses", selesai: "Selesai" };
+const RUN_STEPS = ["draft", "diproses", "selesai"] as const;
 const MONTH_LABEL = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
 export default async function PayrollRunDetailPage({
@@ -50,6 +51,17 @@ export default async function PayrollRunDetailPage({
 
   const canRun = hasPermission(session.user.role, "RUN_PAYROLL");
 
+  const currentStepIndex = RUN_STEPS.indexOf(run.status);
+  // processedAt diset di generatePayslipsForRun (transisi draft->diproses), BUKAN di
+  // finalizePayrollRun (diproses->selesai, tidak menyimpan timestamp sendiri) — jadi
+  // captionnya melekat ke step "diproses", bukan "selesai".
+  const runTrail: TrailStep[] = RUN_STEPS.map((step, i) => ({
+    id: step,
+    label: STATUS_LABEL[step],
+    caption: step === "diproses" && run.processedAt ? new Date(run.processedAt).toLocaleDateString("id-ID") : undefined,
+    status: i < currentStepIndex ? "done" : i === currentStepIndex ? (run.status === "selesai" ? "done" : "pending") : "upcoming",
+  }));
+
   const columns: DataTableColumn<(typeof payslipRows)[number]>[] = [
     {
       key: "employee",
@@ -71,13 +83,14 @@ export default async function PayrollRunDetailPage({
         <h1 className="font-display text-2xl font-bold text-ink">
           Payroll {MONTH_LABEL[run.periodMonth - 1]} {run.periodYear}
         </h1>
-        <p className="text-sm text-ink-muted mt-1">
-          Status: <Badge variant={run.status === "selesai" ? "sage" : run.status === "diproses" ? "dusty-rose" : "powder-blue"}>{STATUS_LABEL[run.status]}</Badge>
-        </p>
       </div>
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+
+      <Card title="Status Payroll Run">
+        <TrailStepper orientation="horizontal" steps={runTrail} />
+      </Card>
 
       {canRun && run.status === "draft" && (
         <Card title="Generate Payslip">
