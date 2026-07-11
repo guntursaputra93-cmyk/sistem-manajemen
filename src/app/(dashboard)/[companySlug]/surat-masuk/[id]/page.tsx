@@ -8,6 +8,7 @@ import { hasPermission, ROLE_LABEL } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { addDisposition } from "../actions";
 import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
+import { Card } from "@/components/ui/Card";
 
 const STATUS_LABEL: Record<string, string> = {
   baru: "Baru",
@@ -76,13 +77,13 @@ export default async function SuratMasukDetailPage({
   });
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
-        <Link href={`/${companySlug}/surat-masuk`} className="text-sm text-sage-deep hover:underline">
+        <Link href={`/${companySlug}/surat-masuk`} className="text-[11px] text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-ink mt-2">{letter.agendaNumber}</h1>
-        <p className="text-ink-muted text-sm mt-1">
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">{letter.agendaNumber}</h1>
+        <p className="text-[11px] text-ink-muted mt-1">
           {letter.sender} — {letter.subject}
         </p>
       </div>
@@ -92,39 +93,39 @@ export default async function SuratMasukDetailPage({
         <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
       )}
 
-      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <span className="text-ink-muted">Tanggal Surat</span>
-          <p className="text-ink">{letter.letterDate}</p>
+      <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+          <div>
+            <span className="text-ink-muted">Tanggal Surat</span>
+            <p className="text-ink">{letter.letterDate}</p>
+          </div>
+          <div>
+            <span className="text-ink-muted">Tanggal Diterima</span>
+            <p className="text-ink">{letter.receivedDate}</p>
+          </div>
+          <div>
+            <span className="text-ink-muted">Status</span>
+            <p className="text-ink">{STATUS_LABEL[letter.status] ?? letter.status}</p>
+          </div>
         </div>
-        <div>
-          <span className="text-ink-muted">Tanggal Diterima</span>
-          <p className="text-ink">{letter.receivedDate}</p>
-        </div>
-        <div>
-          <span className="text-ink-muted">Status</span>
-          <p className="text-ink">{STATUS_LABEL[letter.status] ?? letter.status}</p>
-        </div>
-      </section>
+      </Card>
 
-      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-        <h2 className="font-semibold text-ink mb-4">Riwayat Disposisi</h2>
+      <Card title="Riwayat Disposisi">
         {dispositions.length === 0 ? (
-          <p className="text-sm text-ink-muted italic">Belum ada disposisi.</p>
+          <p className="text-[11px] text-ink-muted italic">Belum ada disposisi.</p>
         ) : (
           <TrailStepper steps={dispositionSteps} orientation="vertical" />
         )}
-      </section>
+      </Card>
 
       {canDispose && (
-        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-          <h2 className="font-semibold text-ink mb-4">Tambah Disposisi</h2>
-          <form action={addDisposition} className="space-y-4">
+        <Card title="Tambah Disposisi">
+          <form action={addDisposition} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="incomingLetterId" value={letter.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ke Departemen (opsional)</label>
-              <select name="targetDepartmentId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="targetDepartmentId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- tidak ada --</option>
                 {deptList.map((d) => (
                   <option key={d.id} value={d.id}>
@@ -135,7 +136,7 @@ export default async function SuratMasukDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ke Orang (opsional)</label>
-              <select name="targetUserId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="targetUserId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>
@@ -144,15 +145,17 @@ export default async function SuratMasukDetailPage({
                 ))}
               </select>
             </div>
-            <div>
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Instruksi (opsional)</label>
-              <textarea name="instruction" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <textarea autoComplete="off" name="instruction" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-              Kirim Disposisi
-            </button>
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+                Kirim Disposisi
+              </button>
+            </div>
           </form>
-        </section>
+        </Card>
       )}
     </div>
   );

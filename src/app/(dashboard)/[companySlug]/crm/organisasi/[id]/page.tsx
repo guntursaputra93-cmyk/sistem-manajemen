@@ -67,7 +67,7 @@ export default async function OrganisasiDetailPage({
   const canLogActivity = hasPermission(session.user.role, "CREATE_ACTIVITY");
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
         <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
@@ -80,55 +80,55 @@ export default async function OrganisasiDetailPage({
 
       <Card title="Detail Organisasi">
         {canManage ? (
-          <form action={updateOrganization} className="grid grid-cols-2 gap-4">
+          <form action={updateOrganization} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
-            <div className="col-span-2">
+            <div className="sm:col-span-2 lg:col-span-2">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Organisasi</label>
-              <input
+              <input autoComplete="new-password"
                 name="name"
                 defaultValue={org.name}
                 required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Industri</label>
-              <input
+              <input autoComplete="off"
                 name="industry"
                 defaultValue={org.industry ?? ""}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ukuran Perusahaan</label>
-              <input
+              <input autoComplete="off"
                 name="companySize"
                 defaultValue={org.companySize ?? ""}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Asal Akuisisi</label>
-              <input
+              <input autoComplete="off"
                 name="source"
                 defaultValue={org.source ?? ""}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan</label>
-              <textarea
+              <textarea autoComplete="off"
                 name="notes"
                 defaultValue={org.notes ?? ""}
                 rows={2}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-                Simpan
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+                Edit
               </button>
             </div>
           </form>
@@ -175,48 +175,48 @@ export default async function OrganisasiDetailPage({
         )}
 
         {canManage && (
-          <form action={createContact} className="grid grid-cols-2 gap-4">
+          <form action={createContact} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Kontak</label>
-              <input
+              <input autoComplete="new-password"
                 name="name"
                 required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jabatan</label>
-              <input
+              <input autoComplete="off"
                 name="position"
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email</label>
-              <input
+              <input autoComplete="new-password"
                 name="email"
                 type="email"
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Telepon</label>
-              <input
+              <input autoComplete="off"
                 name="phone"
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
-            <div className="col-span-2 flex items-center gap-2">
+            <div className="col-span-full flex items-center gap-2">
               <input type="checkbox" name="isPrimary" value="true" id="isPrimary" className="h-4 w-4 accent-sage-deep" />
               <label htmlFor="isPrimary" className="text-sm text-ink-muted">
                 Kontak utama
               </label>
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Tambah Kontak
               </button>
             </div>
@@ -250,7 +250,7 @@ export default async function OrganisasiDetailPage({
         )}
 
         {canLogActivity && (
-          <form action={createActivity} className="grid grid-cols-2 gap-4">
+          <form action={createActivity} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="organizationId" value={org.id} />
@@ -259,7 +259,7 @@ export default async function OrganisasiDetailPage({
               <select
                 name="activityType"
                 required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               >
                 <option value="telepon">Telepon</option>
                 <option value="meeting">Meeting</option>
@@ -272,11 +272,11 @@ export default async function OrganisasiDetailPage({
               <DatePicker name="activityDate" required />
             </div>
             {oppList.length > 0 && (
-              <div className="col-span-2">
+              <div className="sm:col-span-2 lg:col-span-2">
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kaitkan ke Opportunity (opsional)</label>
                 <select
                   name="opportunityId"
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 >
                   <option value="">-- tidak dikaitkan --</option>
                   {oppList.map((o) => (
@@ -287,20 +287,20 @@ export default async function OrganisasiDetailPage({
                 </select>
               </div>
             )}
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan</label>
-              <textarea
+              <textarea autoComplete="off"
                 name="notes"
                 rows={2}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Follow-up Berikutnya (opsional)</label>
               <DatePicker name="nextFollowupDate" />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Catat Aktivitas
               </button>
             </div>

@@ -60,7 +60,7 @@ export default async function ApprovalFlowsPage({
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Jenjang Approval</h1>
         <p className="text-sm text-ink-muted mt-1">Atur urutan approval per jenis. Tiap jenis boleh punya jumlah jenjang berbeda.</p>
@@ -70,13 +70,13 @@ export default async function ApprovalFlowsPage({
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Perubahan berhasil disimpan.</div>}
 
       <Card title="Tambah Jenjang">
-        <form action={addApprovalStep} className="grid grid-cols-2 gap-4">
+        <form action={addApprovalStep} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku untuk</label>
             <select
               name="appliesTo"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               required
             >
               <option value="surat_keluar">Surat Keluar</option>
@@ -86,31 +86,31 @@ export default async function ApprovalFlowsPage({
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis (bebas, mis. internal)</label>
-            <input
+            <input autoComplete="off"
               name="jenisKey"
               required
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             />
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Urutan Jenjang</label>
-            <input
+            <input autoComplete="off"
               name="stepOrder"
               type="number"
               min={1}
               defaultValue={1}
               required
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             />
           </div>
-          <div />
+          <div className="hidden lg:block" />
           <div>
             <label className="flex items-center gap-2 text-xs font-medium text-ink-muted mb-1">
               <input type="radio" name="approverMode" value="role" defaultChecked className="accent-sage-deep" /> Berdasarkan Role
             </label>
             <select
               name="requiredRole"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             >
               <option value="department_head">Kepala Departemen (departemen pengirim)</option>
               <option value="company_admin">Admin Perusahaan</option>
@@ -124,7 +124,7 @@ export default async function ApprovalFlowsPage({
             </label>
             <select
               name="requiredApproverUserId"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             >
               <option value="">-- pilih orang --</option>
               {userRows.map((u) => (
@@ -134,8 +134,8 @@ export default async function ApprovalFlowsPage({
               ))}
             </select>
           </div>
-          <div className="col-span-2">
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <div className="col-span-full">
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
               Tambah Jenjang
             </button>
           </div>

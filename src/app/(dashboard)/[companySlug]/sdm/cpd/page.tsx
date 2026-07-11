@@ -11,8 +11,16 @@ import { createCpdActivity, updateCpdSettings } from "./actions";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { Badge } from "@/components/ui/Badge";
 
 const CATEGORY_LABEL: Record<string, string> = { internal: "Internal", eksternal: "Eksternal" };
+
+function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
 
 export default async function CpdPage({
   params,
@@ -22,7 +30,7 @@ export default async function CpdPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
+  const { error } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -90,28 +98,45 @@ export default async function CpdPage({
   ];
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Logbook CPD</h1>
         <p className="text-sm text-ink-muted mt-1">Continuing Professional Development — {company.name}.</p>
       </div>
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <Card title={`Ringkasan Jam CPD ${currentYear}`} description={currentTarget != null ? `Target tahunan: ${currentTarget} jam.` : "Target tahunan belum diatur admin."}>
         {summaries.length === 0 ? (
-          <p className="text-sm text-ink-muted italic">Belum ada karyawan untuk ditampilkan.</p>
+          <p className="text-[11px] text-ink-muted italic">Belum ada karyawan untuk ditampilkan.</p>
         ) : (
-          <ul className="space-y-1 text-sm">
-            {summaries.map(({ employee, summary }) => (
-              <li key={employee.id} className="flex justify-between">
-                <span>{employee.fullName}</span>
-                <span className={summary.met === false ? "text-destructive font-medium" : "text-ink"}>
-                  {summary.totalHours} jam{currentTarget != null ? ` / ${currentTarget} jam` : ""}
-                </span>
-              </li>
-            ))}
+          <ul className="space-y-2.5">
+            {summaries.map(({ employee, summary }) => {
+              const pct = currentTarget ? Math.max(0, Math.min(100, Math.round((summary.totalHours / Number(currentTarget)) * 100))) : null;
+              return (
+                <li key={employee.id} className="flex items-center gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage/20 text-[10px] font-bold text-sage-deep">
+                    {initials(employee.fullName)}
+                  </span>
+                  <p className="text-[11px] font-bold text-ink truncate flex-1 min-w-0">{employee.fullName}</p>
+                  {pct !== null && (
+                    <div className="h-1.5 w-20 shrink-0 rounded-full bg-sage/20 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-[width] ${summary.met ? "bg-sage-deep" : "bg-dusty-rose-deep"}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  )}
+                  <span className="text-[11px] text-ink-muted whitespace-nowrap shrink-0">
+                    <span className="font-bold text-ink">{summary.totalHours}</span>
+                    {currentTarget != null ? ` / ${currentTarget} jam` : " jam"}
+                  </span>
+                  {summary.met !== null && (
+                    <Badge variant={summary.met ? "sage" : "dusty-rose"}>{summary.met ? "Tercapai" : "Belum Tercapai"}</Badge>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>
@@ -123,17 +148,17 @@ export default async function CpdPage({
             <input type="hidden" name="companyId" value={company.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Target Jam CPD per Tahun</label>
-              <input
+              <input autoComplete="off"
                 name="annualTargetHours"
                 type="number"
                 step="0.5"
                 min={0}
                 defaultValue={currentTarget ?? ""}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-              Simpan
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+              Edit
             </button>
           </form>
         </Card>
@@ -141,36 +166,36 @@ export default async function CpdPage({
 
       {canCreate && (
         <Card title="Catat Aktivitas CPD">
-          <form action={createCpdActivity} className="grid grid-cols-3 gap-4">
+          <form action={createCpdActivity} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
-              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- pilih --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
                 ))}
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2 lg:col-span-2">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Aktivitas</label>
-              <input name="activityName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="activityName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
-              <select name="category" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="category" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="internal">Internal</option>
                 <option value="eksternal">Eksternal</option>
               </select>
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Penyelenggara (opsional)</label>
-              <input name="organizer" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="organizer" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Durasi (jam)</label>
-              <input name="durationHours" type="number" step="0.5" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="durationHours" type="number" step="0.5" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal (opsional)</label>
@@ -178,10 +203,10 @@ export default async function CpdPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahun</label>
-              <input name="year" type="number" defaultValue={currentYear} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="year" type="number" defaultValue={currentYear} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-3">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Catat
               </button>
             </div>

@@ -105,7 +105,7 @@ export default async function ProposalPage({
   ];
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div>
         <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali ke CRM
@@ -122,14 +122,14 @@ export default async function ProposalPage({
           {orgList.length === 0 || deptList.length === 0 ? (
             <p className="text-sm text-ink-muted italic">Belum ada organisasi atau departemen. Buat dulu di CRM &rarr; Organisasi / Pengaturan &rarr; Departemen.</p>
           ) : (
-            <form action={createProposalAction} className="grid grid-cols-2 gap-4">
+            <form action={createProposalAction} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <input type="hidden" name="companySlug" value={companySlug} />
               <div>
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Organisasi</label>
                 <select
                   name="organizationId"
                   required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 >
                   {orgList.map((o) => (
                     <option key={o.id} value={o.id}>
@@ -143,7 +143,7 @@ export default async function ProposalPage({
                 <select
                   name="departmentId"
                   required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 >
                   {deptList.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -152,16 +152,16 @@ export default async function ProposalPage({
                   ))}
                 </select>
               </div>
-              <div className="col-span-2">
+              <div className="col-span-full">
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Perihal</label>
-                <input
+                <input autoComplete="off"
                   name="subject"
                   required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 />
               </div>
-              <div className="col-span-2">
-                <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              <div className="col-span-full">
+                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                   Buat Draft Proposal
                 </button>
                 <p className="text-xs text-ink-muted italic mt-2">Item proposal &amp; kaitan opportunity ditambahkan di halaman detail surat setelah draft dibuat.</p>

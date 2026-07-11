@@ -218,7 +218,7 @@ export default async function DashboardPage({
   ];
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">
           {greeting(now.getHours())}, {session.user.name ?? "Pengguna"}

@@ -89,7 +89,7 @@ export default async function AbsensiPage({
   ];
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Absensi</h1>
         <p className="text-sm text-ink-muted mt-1">
@@ -106,12 +106,12 @@ export default async function AbsensiPage({
 
       {canManage && (
         <Card title="Catat Absensi">
-          <form action={recordAttendance} className="grid grid-cols-4 gap-4 items-end">
+          <form action={recordAttendance} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
-              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- pilih --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
@@ -124,20 +124,20 @@ export default async function AbsensiPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
-              <select name="status" required defaultValue="hadir" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="status" required defaultValue="hadir" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 {Object.entries(STATUS_LABEL).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Simpan
               </button>
             </div>
-            <div className="col-span-4">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan (opsional)</label>
-              <input name="notes" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="notes" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
           </form>
         </Card>

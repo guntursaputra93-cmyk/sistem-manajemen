@@ -93,7 +93,7 @@ export default async function StrukturGajiDetailPage({
   ];
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Struktur Gaji — {employee.fullName}</h1>
         <p className="text-sm text-ink-muted mt-1">{employee.currentPositionTitle ?? "-"}</p>
@@ -103,13 +103,13 @@ export default async function StrukturGajiDetailPage({
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <Card title="Tambah Komponen Gaji">
-        <form action={addSalaryStructure} className="grid grid-cols-3 gap-4">
+        <form action={addSalaryStructure} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <input type="hidden" name="employeeId" value={employee.id} />
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Komponen</label>
-            <select name="salaryComponentId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+            <select name="salaryComponentId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
               <option value="">-- pilih --</option>
               {componentList.map((c) => (
                 <option key={c.id} value={c.id}>{c.name} ({TYPE_LABEL[c.componentType]})</option>
@@ -118,14 +118,14 @@ export default async function StrukturGajiDetailPage({
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nominal (Rp)</label>
-            <input name="salaryAmount" type="number" step="0.01" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+            <input autoComplete="off" name="salaryAmount" type="number" step="0.01" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Efektif Sejak</label>
             <DatePicker name="effectiveDate" required />
           </div>
-          <div className="col-span-3">
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <div className="col-span-full">
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
               Tambah
             </button>
           </div>

@@ -38,7 +38,7 @@ export default async function JenisKompetensiPage({
   );
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Jenis Kompetensi</h1>
         <p className="text-sm text-ink-muted mt-1">Konfigurasi jenis sertifikasi/kompetensi untuk {company.name}.</p>
@@ -48,52 +48,52 @@ export default async function JenisKompetensiPage({
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <Card title="Tambah Jenis Kompetensi">
-        <form action={createCompetencyType} className="grid grid-cols-3 gap-4 items-end">
+        <form action={createCompetencyType} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="companyId" value={company.id} />
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
-            <input name="code" required placeholder="mis. AK3-UMUM" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface uppercase" />
+            <input autoComplete="off" name="code" required placeholder="mis. AK3-UMUM" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base uppercase" />
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
-            <input name="name" required placeholder="mis. AK3 Umum" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+            <input autoComplete="new-password" name="name" required placeholder="mis. AK3 Umum" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori (opsional)</label>
-            <input name="category" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+            <input autoComplete="off" name="category" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
           </div>
-          <div className="col-span-3">
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <div className="col-span-full">
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
               Tambah
             </button>
           </div>
         </form>
       </Card>
 
-      <section className="space-y-3">
+      <section className="space-y-2">
         {typeList.length === 0 && <EmptyState message="Belum ada jenis kompetensi. Jenis kompetensi yang ditambahkan akan muncul di sini." />}
         {typeList.map((ct) => (
-          <div key={ct.id} className="bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-4">
-            <form action={updateCompetencyType} className="grid grid-cols-3 gap-3 items-end">
+          <div key={ct.id} className="max-w-2xl bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3">
+            <form action={updateCompetencyType} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="competencyTypeId" value={ct.id} />
               <div>
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
-                <p className="text-sm text-ink py-2">{ct.code}</p>
+                <p className="text-[11px] text-ink py-[6px]">{ct.code}</p>
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
-                <input name="name" defaultValue={ct.name} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+                <input autoComplete="new-password" name="name" defaultValue={ct.name} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               </div>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
                   <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
-                  <input name="category" defaultValue={ct.category ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+                  <input autoComplete="off" name="category" defaultValue={ct.category ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
                 </div>
-                <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
-                  Simpan
+                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors">
+                  Edit
                 </button>
               </div>
             </form>

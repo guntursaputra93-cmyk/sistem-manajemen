@@ -102,10 +102,10 @@ export default async function ArsipPage({
   const unreadByTab: Record<string, number> = { pp: unreadPP, sk: unreadSK };
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-ink">Arsip & Pencarian</h1>
-        <p className="text-ink-muted text-sm mt-1">
+        <h1 className="font-display text-[17px] font-extrabold text-ink">Arsip & Pencarian</h1>
+        <p className="text-[11px] text-ink-muted mt-1">
           Tiap bagian punya halaman & filter sendiri — tidak digabung jadi 1 daftar panjang.
         </p>
       </div>
@@ -367,12 +367,12 @@ function FilterForm({
   showJenis?: boolean;
 }) {
   return (
-    <form method="get" className="bg-surface border border-ink-muted/10 rounded-xl p-4 flex flex-wrap items-end gap-3 text-sm">
+    <form method="get" className="bg-surface rounded-[14px] shadow-[0_2px_10px_rgba(51,57,59,0.05)] p-4 flex flex-wrap items-end gap-3">
       <input type="hidden" name="tab" value={tabKey} />
       {showDepartment && (
         <div>
           <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen</label>
-          <select name={`${tabKey}_dept`} defaultValue={sp[`${tabKey}_dept`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+          <select name={`${tabKey}_dept`} defaultValue={sp[`${tabKey}_dept`] ?? ""} className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
             <option value="">Semua</option>
             {deptList?.map((d) => (
               <option key={d.id} value={d.id}>
@@ -385,7 +385,7 @@ function FilterForm({
       {showJenis && (
         <div>
           <label className="block text-[10px] font-semibold text-ink-muted mb-1">Arah</label>
-          <select name={`${tabKey}_jenis`} defaultValue={sp[`${tabKey}_jenis`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+          <select name={`${tabKey}_jenis`} defaultValue={sp[`${tabKey}_jenis`] ?? ""} className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
             <option value="">Semua</option>
             <option value="masuk">Masuk</option>
             <option value="keluar">Keluar</option>
@@ -395,7 +395,7 @@ function FilterForm({
       {statusOptions && (
         <div>
           <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
-          <select name={`${tabKey}_status`} defaultValue={sp[`${tabKey}_status`] ?? ""} className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface">
+          <select name={`${tabKey}_status`} defaultValue={sp[`${tabKey}_status`] ?? ""} className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
             <option value="">Semua</option>
             {Object.entries(statusOptions).map(([value, label]) => (
               <option key={value} value={value}>
@@ -413,7 +413,7 @@ function FilterForm({
         <label className="block text-[10px] font-semibold text-ink-muted mb-1">Sampai Tanggal</label>
         <DatePicker name={`${tabKey}_to`} defaultValue={sp[`${tabKey}_to`]} />
       </div>
-      <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+      <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
         Filter
       </button>
     </form>

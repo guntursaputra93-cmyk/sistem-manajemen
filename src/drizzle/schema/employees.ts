@@ -24,6 +24,8 @@ export const employees = pgTable("employees", {
   // sistem). Dipakai untuk prefill form pembuatan akun saat admin klik
   // "Berikan Akses Sistem" di halaman detail karyawan.
   email: text("email"),
+  // Nomor Pokok Wajib Pajak — opsional, tidak semua karyawan sudah punya NPWP.
+  npwp: text("npwp"),
   // Denormalized dari position_history (baris status='active' terkini) — supaya
   // listing tidak perlu join tiap saat. Disinkronkan oleh changeEmployeePosition()
   // di lib/hr/employees.ts, jangan diupdate langsung di luar fungsi itu.

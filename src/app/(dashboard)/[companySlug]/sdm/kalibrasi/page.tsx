@@ -58,7 +58,7 @@ export default async function KalibrasiPage({
   ];
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Rapat Kalibrasi</h1>
         <p className="text-sm text-ink-muted mt-1">Notulen rapat kalibrasi tim {company.name}.</p>
@@ -69,7 +69,7 @@ export default async function KalibrasiPage({
 
       {canManage && (
         <Card title="Buat Notulen Rapat Kalibrasi">
-          <form action={createCalibrationMeeting} className="grid grid-cols-2 gap-4">
+          <form action={createCalibrationMeeting} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
@@ -78,11 +78,11 @@ export default async function KalibrasiPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Lokasi/Media (opsional)</label>
-              <input name="locationOrMedia" placeholder="mis. Ruang Rapat A / Zoom" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="locationOrMedia" placeholder="mis. Ruang Rapat A / Zoom" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Pemimpin Rapat</label>
-              <select name="leaderUserId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="leaderUserId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- pilih --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
@@ -91,19 +91,19 @@ export default async function KalibrasiPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Notulis (opsional)</label>
-              <select name="notetakerUserId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="notetakerUserId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
                 ))}
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Agenda (opsional)</label>
-              <textarea name="agenda" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <textarea autoComplete="off" name="agenda" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Buat Notulen
               </button>
             </div>

@@ -8,6 +8,7 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { expireOverdueDocumentVersions } from "@/lib/documents/versions";
 import { getDashboardSettings, getActiveDocumentCountByCategory, getAttentionItems, getAccessStatistics } from "@/lib/dashboard/monitoring";
 import { updateDashboardSettings } from "./actions";
+import { Card } from "@/components/ui/Card";
 
 const REASON_LABEL: Record<string, string> = {
   in_review_lama: "Sedang direview kelamaan",
@@ -51,13 +52,13 @@ export default async function MonitoringPage({
   ]);
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div>
-        <Link href={`/${companySlug}/dokumen`} className="text-sm text-sage-deep hover:underline">
+        <Link href={`/${companySlug}/dokumen`} className="text-[11px] text-sage-deep hover:underline">
           &larr; Kembali ke Dokumen
         </Link>
-        <h1 className="text-xl font-bold text-ink mt-2">Dashboard Pemantauan</h1>
-        <p className="text-ink-muted text-sm mt-1">Monitoring dokumen &amp; surat untuk {company.name}.</p>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">Dashboard Pemantauan</h1>
+        <p className="text-[11px] text-ink-muted mt-1">Monitoring dokumen &amp; surat untuk {company.name}.</p>
       </div>
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
@@ -65,36 +66,36 @@ export default async function MonitoringPage({
         <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
       )}
 
-      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-        <h2 className="font-semibold text-ink mb-4">Dokumen Aktif per Kategori</h2>
+      <Card title="Dokumen Aktif per Kategori">
         {categoryCounts.length === 0 ? (
-          <p className="text-sm text-ink-muted italic">Belum ada kategori dokumen.</p>
+          <p className="text-[11px] text-ink-muted italic">Belum ada kategori dokumen.</p>
         ) : (
-          <ul className="grid grid-cols-2 gap-3 text-sm">
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {categoryCounts.map((c) => (
-              <li key={c.categoryId} className="flex justify-between border-b border-ink-muted/10 pb-2">
-                <span>{c.categoryName}</span>
-                <span className="font-semibold text-ink">{c.count}</span>
+              <li key={c.categoryId} className="flex justify-between text-[11px] border-b border-ink-muted/10 pb-2">
+                <span className="text-ink">{c.categoryName}</span>
+                <span className="font-bold text-ink">{c.count}</span>
               </li>
             ))}
           </ul>
         )}
-      </section>
+      </Card>
 
-      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-ink">Butuh Perhatian</h2>
-          <span className="text-xs text-ink-muted">
+      <Card
+        title="Butuh Perhatian"
+        action={
+          <span className="text-[10px] text-ink-muted whitespace-nowrap">
             Ambang: {settings.stalledThresholdDays} hari macet, {settings.expiryWarningDays} hari sebelum kedaluwarsa
           </span>
-        </div>
+        }
+      >
         {attentionItems.length === 0 ? (
-          <p className="text-sm text-ink-muted italic">Tidak ada yang butuh perhatian saat ini.</p>
+          <p className="text-[11px] text-ink-muted italic">Tidak ada yang butuh perhatian saat ini.</p>
         ) : (
-          <ul className="space-y-2 text-sm">
+          <ul className="space-y-2">
             {attentionItems.map((item) => (
-              <li key={`${item.kind}-${item.id}-${item.reason}`} className="flex justify-between border-b border-ink-muted/10 pb-2">
-                <span>
+              <li key={`${item.kind}-${item.id}-${item.reason}`} className="flex justify-between text-[11px] border-b border-ink-muted/10 pb-2 last:border-0 last:pb-0">
+                <span className="text-ink">
                   [{item.kind === "dokumen" ? "Dokumen" : "Surat"}] {item.title}
                 </span>
                 <span className="text-ink-muted">{REASON_LABEL[item.reason]}</span>
@@ -102,20 +103,19 @@ export default async function MonitoringPage({
             ))}
           </ul>
         )}
-      </section>
+      </Card>
 
-      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-        <h2 className="font-semibold text-ink mb-4">Statistik Akses Dokumen</h2>
-        <div className="grid grid-cols-2 gap-6 text-sm">
+      <Card title="Statistik Akses Dokumen">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-xs font-medium text-ink-muted mb-2">Paling Sering Dibaca</h3>
+            <h3 className="text-[10px] font-semibold text-ink-muted mb-2 uppercase tracking-wide">Paling Sering Dibaca</h3>
             {accessStats.mostRead.length === 0 ? (
-              <p className="text-ink-muted italic">Belum ada data.</p>
+              <p className="text-[11px] text-ink-muted italic">Belum ada data.</p>
             ) : (
               <ol className="space-y-1">
                 {accessStats.mostRead.map((s) => (
-                  <li key={s.documentVersionId} className="flex justify-between">
-                    <span>{s.title}</span>
+                  <li key={s.documentVersionId} className="flex justify-between text-[11px]">
+                    <span className="text-ink">{s.title}</span>
                     <span className="text-ink-muted">{s.viewCount}x</span>
                   </li>
                 ))}
@@ -123,14 +123,14 @@ export default async function MonitoringPage({
             )}
           </div>
           <div>
-            <h3 className="text-xs font-medium text-ink-muted mb-2">Paling Jarang Dibaca</h3>
+            <h3 className="text-[10px] font-semibold text-ink-muted mb-2 uppercase tracking-wide">Paling Jarang Dibaca</h3>
             {accessStats.leastRead.length === 0 ? (
-              <p className="text-ink-muted italic">Belum ada data.</p>
+              <p className="text-[11px] text-ink-muted italic">Belum ada data.</p>
             ) : (
               <ol className="space-y-1">
                 {accessStats.leastRead.map((s) => (
-                  <li key={s.documentVersionId} className="flex justify-between">
-                    <span>{s.title}</span>
+                  <li key={s.documentVersionId} className="flex justify-between text-[11px]">
+                    <span className="text-ink">{s.title}</span>
                     <span className="text-ink-muted">{s.viewCount}x</span>
                   </li>
                 ))}
@@ -138,41 +138,40 @@ export default async function MonitoringPage({
             )}
           </div>
         </div>
-      </section>
+      </Card>
 
       {canManageSettings && (
-        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-          <h2 className="font-semibold text-ink mb-4">Ambang Waktu Dashboard</h2>
-          <form action={updateDashboardSettings} className="flex items-end gap-4">
+        <Card title="Ambang Waktu Dashboard">
+          <form action={updateDashboardSettings} className="flex flex-wrap items-end gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Macet (hari)</label>
-              <input
+              <input autoComplete="off"
                 name="stalledThresholdDays"
                 type="number"
                 min={1}
                 defaultValue={settings.stalledThresholdDays}
-                className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface w-24"
+                className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base w-20"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Peringatan Kedaluwarsa (hari)</label>
-              <input
+              <input autoComplete="off"
                 name="expiryWarningDays"
                 type="number"
                 min={1}
                 defaultValue={settings.expiryWarningDays}
-                className="border border-ink-muted/20 rounded-lg px-3 py-2 text-sm text-ink bg-surface w-24"
+                className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base w-20"
               />
             </div>
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-              Simpan
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+              Edit
             </button>
           </form>
-        </section>
+        </Card>
       )}
 
-      <p className="text-xs text-ink-muted">
+      <p className="text-[11px] text-ink-muted">
         Lihat detail lengkap surat &amp; dokumen di halaman{" "}
         <Link href={`/${companySlug}/arsip`} className="text-sage-deep hover:underline">
           Arsip

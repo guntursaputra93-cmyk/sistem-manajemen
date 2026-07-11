@@ -83,7 +83,7 @@ export default async function OpportunitiesPage({
   ];
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Opportunity / Pipeline (CRM)</h1>
         <p className="text-sm text-ink-muted mt-1">
@@ -109,15 +109,15 @@ export default async function OpportunitiesPage({
               .
             </p>
           ) : (
-            <form action={createOpportunityAction} className="grid grid-cols-2 gap-4">
+            <form action={createOpportunityAction} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
-              <div className="col-span-2">
+              <div className="sm:col-span-2 lg:col-span-2">
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Judul Deal</label>
-                <input
+                <input autoComplete="off"
                   name="title"
                   required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 />
               </div>
               <div>
@@ -125,7 +125,7 @@ export default async function OpportunitiesPage({
                 <select
                   name="organizationId"
                   required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 >
                   {orgList.map((o) => (
                     <option key={o.id} value={o.id}>
@@ -139,7 +139,7 @@ export default async function OpportunitiesPage({
                 <select
                   name="currentStageId"
                   required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 >
                   {stageList.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -150,11 +150,11 @@ export default async function OpportunitiesPage({
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Estimasi Nilai (Rp)</label>
-                <input
+                <input autoComplete="off"
                   name="estimatedValue"
                   type="number"
                   step="0.01"
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                 />
               </div>
               <div>
@@ -162,11 +162,11 @@ export default async function OpportunitiesPage({
                 <DatePicker name="expectedCloseDate" />
               </div>
               {!restrictAssignee && (
-                <div className="col-span-2">
+                <div className="sm:col-span-2 lg:col-span-2">
                   <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ditugaskan ke</label>
                   <select
                     name="assignedTo"
-                    className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                    className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
                     defaultValue={session.user.id}
                   >
                     {userList.map((u) => (
@@ -177,8 +177,8 @@ export default async function OpportunitiesPage({
                   </select>
                 </div>
               )}
-              <div className="col-span-2">
-                <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              <div className="col-span-full">
+                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                   Buat Opportunity
                 </button>
               </div>

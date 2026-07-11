@@ -35,7 +35,7 @@ export default async function ModulePage({
   );
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Modul Aktif</h1>
         <p className="text-sm text-ink-muted mt-1">Aktif/nonaktifkan modul bisnis untuk {company.name}. Independen antar perusahaan.</p>
@@ -61,8 +61,10 @@ export default async function ModulePage({
                 <input type="hidden" name="enable" value={String(!enabled)} />
                 <button
                   type="submit"
-                  className={`text-sm font-semibold px-4 py-2 rounded-lg transition-colors ${
-                    enabled ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : "bg-powder-blue-deep text-white hover:bg-powder-blue-deep/90"
+                  className={`transition-colors rounded-lg ${
+                    enabled
+                      ? "text-sm font-semibold px-4 py-2 bg-destructive/10 text-destructive hover:bg-destructive/20"
+                      : "text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] bg-sage-deep text-white hover:bg-sage-deep/90 shadow-[0_3px_10px_rgba(74,103,65,0.3)]"
                   }`}
                 >
                   {enabled ? "Nonaktifkan" : "Aktifkan"}

@@ -58,7 +58,7 @@ export function DatePicker({
         disabled={disabled}
         aria-required={required}
         onClick={() => setOpen((o) => !o)}
-        className={`w-full flex items-center justify-between gap-2 border border-ink-muted/20 rounded-lg px-3 py-2 text-sm bg-surface text-left disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`w-full flex items-center justify-between gap-2 border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] bg-bg-base text-left disabled:opacity-50 disabled:cursor-not-allowed ${
           selected ? "text-ink" : "text-ink-muted"
         }`}
       >

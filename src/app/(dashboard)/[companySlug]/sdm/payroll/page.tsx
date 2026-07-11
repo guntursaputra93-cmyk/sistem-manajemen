@@ -65,7 +65,7 @@ export default async function PayrollPage({
   ];
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Payroll</h1>
         <p className="text-sm text-ink-muted mt-1">Riwayat payroll run {company.name}.</p>
@@ -76,12 +76,12 @@ export default async function PayrollPage({
 
       {canRun && (
         <Card title="Buat Payroll Run">
-          <form action={createPayrollRun} className="grid grid-cols-3 gap-4 items-end">
+          <form action={createPayrollRun} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Bulan</label>
-              <select name="periodMonth" defaultValue={currentDate.getMonth() + 1} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="periodMonth" defaultValue={currentDate.getMonth() + 1} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 {MONTH_LABEL.map((label, i) => (
                   <option key={label} value={i + 1}>{label}</option>
                 ))}
@@ -89,10 +89,10 @@ export default async function PayrollPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahun</label>
-              <input name="periodYear" type="number" defaultValue={currentDate.getFullYear()} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="periodYear" type="number" defaultValue={currentDate.getFullYear()} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Buat
               </button>
             </div>

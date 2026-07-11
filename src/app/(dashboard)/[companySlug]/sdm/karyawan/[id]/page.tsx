@@ -100,7 +100,7 @@ export default async function KaryawanDetailPage({
   }));
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">{employee.fullName}</h1>
         <p className="text-sm text-ink-muted mt-1">
@@ -113,21 +113,25 @@ export default async function KaryawanDetailPage({
 
       <Card title="Detail Karyawan">
         {canManage ? (
-          <form action={updateEmployee} className="grid grid-cols-2 gap-4">
+          <form action={updateEmployee} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="employeeId" value={employee.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">NIK</label>
-              <input name="nik" defaultValue={employee.nik} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="nik" defaultValue={employee.nik} required autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Lengkap</label>
-              <input name="fullName" defaultValue={employee.fullName} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="fullName" defaultValue={employee.fullName} required autoComplete="new-password" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email (opsional)</label>
-              <input name="email" type="email" defaultValue={employee.email ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="email" type="email" defaultValue={employee.email ?? ""} autoComplete="new-password" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">NPWP (opsional)</label>
+              <input name="npwp" defaultValue={employee.npwp ?? ""} autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Lahir</label>
@@ -135,23 +139,23 @@ export default async function KaryawanDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Telepon</label>
-              <input name="phone" defaultValue={employee.phone ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="phone" defaultValue={employee.phone ?? ""} autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Alamat</label>
-              <input name="address" defaultValue={employee.address ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="address" defaultValue={employee.address ?? ""} autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontak Darurat — Nama</label>
-              <input name="emergencyContactName" defaultValue={employee.emergencyContactName ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="emergencyContactName" defaultValue={employee.emergencyContactName ?? ""} autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontak Darurat — Telepon</label>
-              <input name="emergencyContactPhone" defaultValue={employee.emergencyContactPhone ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="emergencyContactPhone" defaultValue={employee.emergencyContactPhone ?? ""} autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-                Simpan
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+                Edit
               </button>
             </div>
           </form>
@@ -159,6 +163,7 @@ export default async function KaryawanDetailPage({
           <dl className="text-sm space-y-2">
             <div><dt className="text-ink-muted inline">NIK: </dt><dd className="inline text-ink">{employee.nik}</dd></div>
             <div><dt className="text-ink-muted inline">Email: </dt><dd className="inline text-ink">{employee.email ?? "-"}</dd></div>
+            <div><dt className="text-ink-muted inline">NPWP: </dt><dd className="inline text-ink">{employee.npwp ?? "-"}</dd></div>
             <div><dt className="text-ink-muted inline">Tanggal Bergabung: </dt><dd className="inline text-ink">{employee.joinDate}</dd></div>
             <div><dt className="text-ink-muted inline">Telepon: </dt><dd className="inline text-ink">{employee.phone ?? "-"}</dd></div>
             <div><dt className="text-ink-muted inline">Alamat: </dt><dd className="inline text-ink">{employee.address ?? "-"}</dd></div>
@@ -175,7 +180,7 @@ export default async function KaryawanDetailPage({
             <p className="text-sm text-ink-muted mb-3">Karyawan ini belum terhubung ke akun login manapun.</p>
             <Link
               href={`/${companySlug}/pengaturan/user?linkEmployeeId=${employee.id}&prefillFullName=${encodeURIComponent(employee.fullName)}&prefillEmail=${encodeURIComponent(employee.email ?? "")}`}
-              className="inline-block bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+              className="inline-block bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]"
             >
               Berikan Akses Sistem
             </Link>
@@ -193,17 +198,17 @@ export default async function KaryawanDetailPage({
         )}
 
         {canManagePosition && (
-          <form action={changeEmployeePositionAction} className="mt-6 grid grid-cols-2 gap-4">
+          <form action={changeEmployeePositionAction} className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="employeeId" value={employee.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jabatan Baru</label>
-              <input name="positionTitle" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="positionTitle" required autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Perubahan</label>
-              <select name="changeType" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="changeType" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="promosi">Promosi</option>
                 <option value="demosi">Demosi</option>
                 <option value="mutasi">Mutasi</option>
@@ -211,7 +216,7 @@ export default async function KaryawanDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen</label>
-              <select name="departmentId" defaultValue={employee.departmentId ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="departmentId" defaultValue={employee.departmentId ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- tidak ada --</option>
                 {deptList.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}</option>
@@ -220,18 +225,18 @@ export default async function KaryawanDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenjang (opsional)</label>
-              <input name="jobLevel" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input name="jobLevel" autoComplete="off" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Efektif</label>
               <DatePicker name="effectiveDate" required />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan (opsional)</label>
-              <textarea name="notes" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <textarea autoComplete="off" name="notes" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Catat Perubahan Posisi
               </button>
             </div>
@@ -245,13 +250,13 @@ export default async function KaryawanDetailPage({
 
       {canManage && (
         <Card title="Status Kepegawaian">
-          <form action={updateEmployeeStatusAction} className="grid grid-cols-2 gap-4 items-end">
+          <form action={updateEmployeeStatusAction} className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="employeeId" value={employee.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
-              <select name="employmentStatus" defaultValue={employee.employmentStatus} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="employmentStatus" defaultValue={employee.employmentStatus} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 {Object.entries(STATUS_LABEL).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
                 ))}
@@ -261,9 +266,9 @@ export default async function KaryawanDetailPage({
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Resign/Diberhentikan (kalau relevan)</label>
               <DatePicker name="resignDate" defaultValue={employee.resignDate} />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-                Simpan Status
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+                Edit Status
               </button>
             </div>
           </form>

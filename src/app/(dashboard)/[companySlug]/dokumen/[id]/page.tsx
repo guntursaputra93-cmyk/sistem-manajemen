@@ -22,6 +22,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { addNewVersion, submitVersionForReviewAction, decideVersionApprovalAction } from "../actions";
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
 import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
+import { Card } from "@/components/ui/Card";
 
 // Urutan wajar 1 versi dari draft sampai ke status akhirnya — dipakai utk
 // ringkasan "Riwayat Versi" horizontal (Bagian 3 spesifikasi desain, dipakai
@@ -98,13 +99,13 @@ export default async function DokumenDetailPage({
   const canAddNewVersion = canManage && latestVersion && ["active", "superseded", "expired"].includes(latestVersion.status);
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
-        <Link href={`/${companySlug}/dokumen`} className="text-sm text-sage-deep hover:underline">
+        <Link href={`/${companySlug}/dokumen`} className="text-[11px] text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-ink mt-2">{doc.title}</h1>
-        <p className="text-ink-muted text-sm mt-1">{category?.name}</p>
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">{doc.title}</h1>
+        <p className="text-[11px] text-ink-muted mt-1">{category?.name}</p>
       </div>
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
@@ -113,9 +114,8 @@ export default async function DokumenDetailPage({
       )}
 
       {canAddNewVersion && (
-        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-          <h2 className="font-semibold text-ink mb-4">Tambah Versi Baru</h2>
-          <form action={addNewVersion} className="grid grid-cols-2 gap-4">
+        <Card title="Tambah Versi Baru">
+          <form action={addNewVersion} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="documentId" value={doc.id} />
             <div>
@@ -126,18 +126,17 @@ export default async function DokumenDetailPage({
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
               <DatePicker name="expiresAt" />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Buat Draft Versi {latestVersion.versionNumber + 1}
               </button>
             </div>
           </form>
-        </section>
+        </Card>
       )}
 
       {versionList.length > 1 && (
-        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-          <h2 className="font-semibold text-ink mb-4">Riwayat Versi</h2>
+        <Card title="Riwayat Versi">
           <TrailStepper
             orientation="horizontal"
             steps={[...versionList]
@@ -151,7 +150,7 @@ export default async function DokumenDetailPage({
                 })
               )}
           />
-        </section>
+        </Card>
       )}
 
       {versionList.map((version) => (
@@ -219,13 +218,8 @@ async function VersionCard({
     : null;
 
   return (
-    <section className="bg-surface border border-ink-muted/10 rounded-xl p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-ink">
-          Versi {version.versionNumber} — {STATUS_LABEL[version.status] ?? version.status}
-        </h2>
-      </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
+    <Card title={`Versi ${version.versionNumber} — ${STATUS_LABEL[version.status] ?? version.status}`} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
         <div>
           <span className="text-ink-muted">Tanggal Efektif</span>
           <p className="text-ink">{version.effectiveDate ?? "-"}</p>
@@ -237,7 +231,7 @@ async function VersionCard({
       </div>
 
       <div>
-        <h3 className="text-sm font-medium text-ink-muted mb-2">Lampiran</h3>
+        <h3 className="text-[10px] font-semibold text-ink-muted mb-2 uppercase tracking-wide">Lampiran</h3>
         <AttachmentUploader entityType="dokumen" entityId={version.id} attachments={versionAttachments} />
       </div>
 
@@ -246,18 +240,18 @@ async function VersionCard({
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="documentId" value={documentId} />
           <input type="hidden" name="versionId" value={version.id} />
-          <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
             Ajukan Review
           </button>
         </form>
       )}
       {version.status === "draft" && !version.fileAttachmentId && (
-        <p className="text-xs text-ink-muted italic">Unggah file PDF dulu sebelum bisa diajukan review.</p>
+        <p className="text-[11px] text-ink-muted italic">Unggah file PDF dulu sebelum bisa diajukan review.</p>
       )}
 
       {steps.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-ink-muted mb-2">Jenjang Approval</h3>
+          <h3 className="text-[10px] font-semibold text-ink-muted mb-2 uppercase tracking-wide">Jenjang Approval</h3>
           <TrailStepper steps={approvalStepsToTrail(steps, userList)} orientation="vertical" />
           {firstPendingStep && (
             <form action={decideVersionApprovalAction} className="mt-3 space-y-2">
@@ -265,12 +259,12 @@ async function VersionCard({
               <input type="hidden" name="documentId" value={documentId} />
               <input type="hidden" name="versionId" value={version.id} />
               <input type="hidden" name="stepOrder" value={firstPendingStep.stepOrder} />
-              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <textarea autoComplete="off" name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               <div className="flex gap-3">
                 <button type="submit" name="decision" value="approved" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                   Setujui
                 </button>
-                <button type="submit" name="decision" value="rejected" className="bg-destructive hover:bg-destructive/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                <button type="submit" name="decision" value="rejected" className="bg-destructive hover:bg-destructive/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors">
                   Tolak
                 </button>
               </div>
@@ -281,17 +275,17 @@ async function VersionCard({
 
       {teamReadStatus && (
         <div>
-          <h3 className="text-sm font-medium text-ink-muted mb-2">
+          <h3 className="text-[10px] font-semibold text-ink-muted mb-2 uppercase tracking-wide">
             Status Baca {teamReadAccess?.role === "department_head" ? "Tim" : "Perusahaan"}
           </h3>
           {teamReadStatus.length === 0 ? (
-            <p className="text-xs text-ink-muted italic">Belum ada staf di departemen ini.</p>
+            <p className="text-[11px] text-ink-muted italic">Belum ada staf di departemen ini.</p>
           ) : (
-            <ul className="space-y-1 text-sm">
+            <ul className="space-y-1">
               {teamReadStatus.map((u) => (
-                <li key={u.id} className="flex items-center justify-between">
+                <li key={u.id} className="flex items-center justify-between text-[11px]">
                   <span className={u.hasRead ? "text-ink-muted" : "text-destructive font-medium"}>{u.fullName}</span>
-                  <span className={u.hasRead ? "text-xs text-sage-deep" : "text-xs text-destructive"}>
+                  <span className={u.hasRead ? "text-sage-deep" : "text-destructive"}>
                     {u.hasRead ? "Sudah dibaca" : "Belum dibaca"}
                   </span>
                 </li>
@@ -300,6 +294,6 @@ async function VersionCard({
           )}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

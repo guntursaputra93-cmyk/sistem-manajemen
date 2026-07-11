@@ -80,7 +80,7 @@ export default async function SuratMasukPage({
   ];
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Surat Masuk</h1>
         <p className="text-sm text-ink-muted mt-1">Registrasi surat masuk &amp; riwayat disposisi.</p>
@@ -91,7 +91,7 @@ export default async function SuratMasukPage({
 
       {canCreate && (
         <Card title="Registrasi Surat Masuk">
-          <form action={createIncomingLetter} className="grid grid-cols-2 gap-4">
+          <form action={createIncomingLetter} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Surat</label>
@@ -103,17 +103,17 @@ export default async function SuratMasukPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Pengirim</label>
-              <input
+              <input autoComplete="off"
                 name="sender"
                 required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tujuan Awal (opsional)</label>
               <select
                 name="departmentId"
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               >
                 <option value="">-- belum ditentukan --</option>
                 {deptList.map((d) => (
@@ -123,16 +123,16 @@ export default async function SuratMasukPage({
                 ))}
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Perihal</label>
-              <input
+              <input autoComplete="off"
                 name="subject"
                 required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Simpan
               </button>
             </div>

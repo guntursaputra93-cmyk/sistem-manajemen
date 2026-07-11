@@ -80,7 +80,7 @@ export default async function DocumentAccessRulesPage({
   ];
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Jenjang Akses Dokumen</h1>
         <p className="text-sm text-ink-muted mt-1">
@@ -92,7 +92,7 @@ export default async function DocumentAccessRulesPage({
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <Card title="Tambah Rule">
-        <form action={addDocumentAccessRule} className="grid grid-cols-2 gap-4">
+        <form action={addDocumentAccessRule} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <input type="hidden" name="companySlug" value={companySlug} />
           <div>
             <label className="flex items-center gap-2 text-xs font-medium text-ink-muted mb-1">
@@ -100,7 +100,7 @@ export default async function DocumentAccessRulesPage({
             </label>
             <select
               name="documentCategoryId"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -115,7 +115,7 @@ export default async function DocumentAccessRulesPage({
             </label>
             <select
               name="documentId"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             >
               <option value="">-- pilih dokumen --</option>
               {docList.map((d) => (
@@ -129,7 +129,7 @@ export default async function DocumentAccessRulesPage({
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Scope</label>
             <select
               name="scope"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               required
             >
               <option value="semua_staf">Semua Staf</option>
@@ -141,7 +141,7 @@ export default async function DocumentAccessRulesPage({
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (kalau scope departemen)</label>
             <select
               name="departmentId"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             >
               <option value="">-- tidak ada --</option>
               {deptList.map((d) => (
@@ -155,7 +155,7 @@ export default async function DocumentAccessRulesPage({
             <label className="block text-[10px] font-semibold text-ink-muted mb-1">Role (kalau scope role)</label>
             <select
               name="role"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             >
               <option value="">-- tidak ada --</option>
               <option value="company_admin">Admin Perusahaan</option>
@@ -163,8 +163,8 @@ export default async function DocumentAccessRulesPage({
               <option value="staff">Staff</option>
             </select>
           </div>
-          <div className="col-span-2">
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <div className="col-span-full">
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
               Tambah Rule
             </button>
           </div>

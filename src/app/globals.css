@@ -22,6 +22,8 @@
 
   --color-destructive: #B84A3E;
 
+  --color-focus-ring: #F2994A;
+
   --font-display: var(--font-plus-jakarta-sans), sans-serif;
   --font-body: var(--font-inter), sans-serif;
   --font-mono: var(--font-ibm-plex-mono), monospace;
@@ -33,11 +35,12 @@ body {
   font-family: var(--font-body);
 }
 
-/* Focus ring global (Bagian 6 aksesibilitas): reset outline browser default
-   (oranye/kuning) jadi ring pastel powder-blue-deep, 2px, di :focus-visible
-   saja (bukan :focus) supaya tidak muncul saat klik mouse. @layer base
-   supaya utility Tailwind lebih spesifik (mis. focus-visible:ring-sage-deep
-   di Sidebar) tetap bisa override tanpa !important. */
+/* Focus ring global (Bagian 6 aksesibilitas): outline oranye/kuning (--color-focus-ring)
+   di :focus-visible saja (bukan :focus) supaya tidak muncul saat klik mouse.
+   Sempat diganti ke powder-blue-deep, tapi acuan desain yang disetujui memakai
+   ring oranye — dikembalikan sesuai acuan. @layer base supaya utility Tailwind
+   lebih spesifik (mis. focus-visible:ring-sage-deep di Sidebar) tetap bisa
+   override tanpa !important. */
 @layer base {
   input,
   select,
@@ -54,7 +57,7 @@ body {
   button:focus-visible,
   a:focus-visible,
   [tabindex]:focus-visible {
-    outline: 2px solid var(--color-powder-blue-deep);
+    outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
   }
 }

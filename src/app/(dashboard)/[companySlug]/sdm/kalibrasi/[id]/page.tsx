@@ -49,7 +49,7 @@ export default async function KalibrasiDetailPage({
   const canManage = hasPermission(session.user.role, "MANAGE_CALIBRATION_MEETINGS");
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">Rapat Kalibrasi — {meeting.meetingDate}</h1>
         <p className="text-sm text-ink-muted mt-1">Pemimpin: {userList.find((u) => u.id === meeting.leaderUserId)?.fullName ?? "-"}</p>
@@ -60,7 +60,7 @@ export default async function KalibrasiDetailPage({
 
       <Card title="Detail Notulen">
         {canManage ? (
-          <form action={updateCalibrationMeeting} className="grid grid-cols-2 gap-4">
+          <form action={updateCalibrationMeeting} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="meetingId" value={meeting.id} />
@@ -70,11 +70,11 @@ export default async function KalibrasiDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Lokasi/Media</label>
-              <input name="locationOrMedia" defaultValue={meeting.locationOrMedia ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="locationOrMedia" defaultValue={meeting.locationOrMedia ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Pemimpin Rapat</label>
-              <select name="leaderUserId" defaultValue={meeting.leaderUserId} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="leaderUserId" defaultValue={meeting.leaderUserId} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
                 ))}
@@ -82,24 +82,24 @@ export default async function KalibrasiDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Notulis</label>
-              <select name="notetakerUserId" defaultValue={meeting.notetakerUserId ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="notetakerUserId" defaultValue={meeting.notetakerUserId ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- tidak ada --</option>
                 {userList.map((u) => (
                   <option key={u.id} value={u.id}>{u.fullName}</option>
                 ))}
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Agenda</label>
-              <textarea name="agenda" defaultValue={meeting.agenda ?? ""} rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <textarea autoComplete="off" name="agenda" defaultValue={meeting.agenda ?? ""} rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full">
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan Diskusi</label>
-              <textarea name="discussionNotes" defaultValue={meeting.discussionNotes ?? ""} rows={4} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <textarea autoComplete="off" name="discussionNotes" defaultValue={meeting.discussionNotes ?? ""} rows={4} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-                Simpan
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+                Edit
               </button>
             </div>
           </form>
@@ -148,13 +148,13 @@ export default async function KalibrasiDetailPage({
         )}
 
         {canManage && (
-          <form action={addAttendee} className="grid grid-cols-3 gap-3">
+          <form action={addAttendee} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="meetingId" value={meeting.id} />
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan (opsional)</label>
-              <select name="employeeId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+              <select name="employeeId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                 <option value="">-- tidak ada --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
@@ -163,14 +163,14 @@ export default async function KalibrasiDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama (kalau bukan karyawan)</label>
-              <input name="attendeeName" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="attendeeName" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Peran (opsional)</label>
-              <input name="attendeeRole" placeholder="mis. Asesor" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <input autoComplete="off" name="attendeeRole" placeholder="mis. Asesor" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
-            <div className="col-span-3">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Tambah Peserta
               </button>
             </div>

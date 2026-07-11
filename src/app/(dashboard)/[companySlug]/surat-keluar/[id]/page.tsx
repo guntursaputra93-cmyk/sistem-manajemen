@@ -21,6 +21,7 @@ import { submitForApprovalAction, decideApprovalAction, markSentAction } from ".
 import { createProposalItemAction, updateProposalItemAction, deleteProposalItemAction } from "../../crm/proposal/actions";
 import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
 import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
+import { Card } from "@/components/ui/Card";
 
 const CATEGORY_LABEL: Record<string, string> = {
   surat_keluar: "Surat Keluar",
@@ -104,13 +105,13 @@ export default async function SuratKeluarDetailPage({
   const proposalTotal = itemRows.reduce((sum, i) => sum + Number(i.subtotal), 0);
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
-        <Link href={`/${companySlug}/surat-keluar`} className="text-sm text-sage-deep hover:underline">
+        <Link href={`/${companySlug}/surat-keluar`} className="text-[11px] text-sage-deep hover:underline">
           &larr; Kembali
         </Link>
-        <h1 className="text-xl font-bold text-ink mt-2">{letter.letterNumber ?? "(Draft — belum ada nomor)"}</h1>
-        <p className="text-ink-muted text-sm mt-1">
+        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">{letter.letterNumber ?? "(Draft — belum ada nomor)"}</h1>
+        <p className="text-[11px] text-ink-muted mt-1">
           {CATEGORY_LABEL[letter.letterCategory]} — {letter.subject}
         </p>
       </div>
@@ -120,52 +121,53 @@ export default async function SuratKeluarDetailPage({
         <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>
       )}
 
-      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6 grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <span className="text-ink-muted">Status</span>
-          <p className="text-ink">{STATUS_LABEL[letter.status] ?? letter.status}</p>
-        </div>
-        <div>
-          <span className="text-ink-muted">Departemen</span>
-          <p className="text-ink">{department?.name ?? "-"}</p>
-        </div>
-        <div>
-          <span className="text-ink-muted">Jenis</span>
-          <p className="text-ink">{letter.jenisKey}</p>
-        </div>
-        <div>
-          <span className="text-ink-muted">Tujuan</span>
-          <p className="text-ink">
-            {letter.letterCategory === "surat_keluar" ? letter.recipient : [recipientDept?.name, recipientUser?.fullName].filter(Boolean).join(" — ")}
-          </p>
-        </div>
-        {org && (
+      <Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
           <div>
-            <span className="text-ink-muted">Organisasi (CRM)</span>
-            <p className="text-ink">{org.name}</p>
+            <span className="text-ink-muted">Status</span>
+            <p className="text-ink">{STATUS_LABEL[letter.status] ?? letter.status}</p>
           </div>
-        )}
-        {letter.bodyContent && (
-          <div className="col-span-2">
-            <span className="text-ink-muted">Isi</span>
-            <p className="text-ink whitespace-pre-wrap">{letter.bodyContent}</p>
+          <div>
+            <span className="text-ink-muted">Departemen</span>
+            <p className="text-ink">{department?.name ?? "-"}</p>
           </div>
-        )}
-      </section>
+          <div>
+            <span className="text-ink-muted">Jenis</span>
+            <p className="text-ink">{letter.jenisKey}</p>
+          </div>
+          <div>
+            <span className="text-ink-muted">Tujuan</span>
+            <p className="text-ink">
+              {letter.letterCategory === "surat_keluar" ? letter.recipient : [recipientDept?.name, recipientUser?.fullName].filter(Boolean).join(" — ")}
+            </p>
+          </div>
+          {org && (
+            <div>
+              <span className="text-ink-muted">Organisasi (CRM)</span>
+              <p className="text-ink">{org.name}</p>
+            </div>
+          )}
+          {letter.bodyContent && (
+            <div className="col-span-full">
+              <span className="text-ink-muted">Isi</span>
+              <p className="text-ink whitespace-pre-wrap">{letter.bodyContent}</p>
+            </div>
+          )}
+        </div>
+      </Card>
 
       {letter.status === "draft" && canAct && (
         <form action={submitForApprovalAction}>
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="letterId" value={letter.id} />
-          <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
             Ajukan Approval
           </button>
         </form>
       )}
 
       {steps.length > 0 && (
-        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-          <h2 className="font-semibold text-ink mb-4">Jenjang Approval</h2>
+        <Card title="Jenjang Approval">
           <TrailStepper steps={approvalStepsToTrail(steps, userList)} orientation="vertical" />
 
           {firstPendingStep && (
@@ -173,7 +175,7 @@ export default async function SuratKeluarDetailPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="letterId" value={letter.id} />
               <input type="hidden" name="stepOrder" value={firstPendingStep.stepOrder} />
-              <textarea name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+              <textarea autoComplete="off" name="catatan" placeholder="Catatan (opsional)" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               <div className="flex gap-3">
                 <button
                   type="submit"
@@ -187,142 +189,141 @@ export default async function SuratKeluarDetailPage({
                   type="submit"
                   name="decision"
                   value="rejected"
-                  className="bg-destructive hover:bg-destructive/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                  className="bg-destructive hover:bg-destructive/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors"
                 >
                   Tolak
                 </button>
               </div>
             </form>
           )}
-        </section>
+        </Card>
       )}
 
       {letter.status === "disetujui" && canMarkSent && (
         <form action={markSentAction}>
           <input type="hidden" name="companySlug" value={companySlug} />
           <input type="hidden" name="letterId" value={letter.id} />
-          <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
             Tandai Terkirim
           </button>
         </form>
       )}
 
       {showProposalItems && (
-        <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-          <h2 className="font-semibold text-ink mb-4">Item Proposal</h2>
-
-          <table className="w-full text-sm mb-4">
-            <thead className="text-ink-muted text-xs uppercase">
-              <tr>
-                <th className="text-left py-1">Item</th>
-                <th className="text-left py-1">Kuantitas</th>
-                <th className="text-left py-1">Satuan</th>
-                <th className="text-left py-1">Harga Satuan</th>
-                <th className="text-left py-1">Subtotal</th>
-                <th className="text-left py-1">Opportunity</th>
-                {canAct && <th className="text-left py-1">Aksi</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {itemRows.length === 0 && (
-                <tr><td colSpan={canAct ? 7 : 6} className="py-3 text-center text-ink-muted italic">Belum ada item.</td></tr>
-              )}
-              {itemRows.map((item) => {
-                const opp = oppList.find((o) => o.id === item.opportunityId);
-                return (
-                  <tr key={item.id} className="border-t border-ink-muted/10 align-top">
-                    <td className="py-2">{item.itemName}</td>
-                    <td className="py-2">{item.quantity}</td>
-                    <td className="py-2">{item.unit}</td>
-                    <td className="py-2">Rp {Number(item.unitPrice).toLocaleString("id-ID")}</td>
-                    <td className="py-2">Rp {Number(item.subtotal).toLocaleString("id-ID")}</td>
-                    <td className="py-2">{opp?.title ?? "-"}</td>
-                    {canAct && (
-                      <td className="py-2">
-                        <details className="inline-block mr-2">
-                          <summary className="text-sage-deep hover:underline text-xs cursor-pointer inline">Ubah</summary>
-                          <form action={updateProposalItemAction} className="mt-2 space-y-2 w-64">
+        <Card title="Item Proposal">
+          <div className="overflow-x-auto -mx-[18px]">
+            <table className="w-full text-[11px] mb-4">
+              <thead className="text-ink-muted text-[10px] uppercase tracking-wide">
+                <tr>
+                  <th className="text-left px-[18px] py-[7px] font-bold">Item</th>
+                  <th className="text-left px-[7px] py-[7px] font-bold">Kuantitas</th>
+                  <th className="text-left px-[7px] py-[7px] font-bold">Satuan</th>
+                  <th className="text-left px-[7px] py-[7px] font-bold">Harga Satuan</th>
+                  <th className="text-left px-[7px] py-[7px] font-bold">Subtotal</th>
+                  <th className="text-left px-[7px] py-[7px] font-bold">Opportunity</th>
+                  {canAct && <th className="text-left px-[7px] py-[7px] font-bold">Aksi</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {itemRows.length === 0 && (
+                  <tr><td colSpan={canAct ? 7 : 6} className="px-[18px] py-6 text-center text-ink-muted italic">Belum ada item.</td></tr>
+                )}
+                {itemRows.map((item) => {
+                  const opp = oppList.find((o) => o.id === item.opportunityId);
+                  return (
+                    <tr key={item.id} className="border-t border-ink-muted/10 align-top">
+                      <td className="px-[18px] py-[7px] text-ink">{item.itemName}</td>
+                      <td className="px-[7px] py-[7px] text-ink">{item.quantity}</td>
+                      <td className="px-[7px] py-[7px] text-ink">{item.unit}</td>
+                      <td className="px-[7px] py-[7px] text-ink">Rp {Number(item.unitPrice).toLocaleString("id-ID")}</td>
+                      <td className="px-[7px] py-[7px] text-ink">Rp {Number(item.subtotal).toLocaleString("id-ID")}</td>
+                      <td className="px-[7px] py-[7px] text-ink">{opp?.title ?? "-"}</td>
+                      {canAct && (
+                        <td className="px-[7px] py-[7px]">
+                          <details className="inline-block mr-2">
+                            <summary className="text-sage-deep hover:underline text-[11px] cursor-pointer inline">Ubah</summary>
+                            <form action={updateProposalItemAction} className="mt-2 space-y-2 w-64">
+                              <input type="hidden" name="companySlug" value={companySlug} />
+                              <input type="hidden" name="outgoingLetterId" value={letter.id} />
+                              <input type="hidden" name="itemId" value={item.id} />
+                              <input autoComplete="off" name="itemName" defaultValue={item.itemName} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-[11px] text-ink bg-bg-base" />
+                              <div className="flex gap-2">
+                                <input autoComplete="off" name="quantity" type="number" step="0.01" defaultValue={item.quantity} required className="w-1/2 border border-ink-muted/20 rounded-lg px-2 py-1 text-[11px] text-ink bg-bg-base" />
+                                <input autoComplete="off" name="unit" defaultValue={item.unit} required className="w-1/2 border border-ink-muted/20 rounded-lg px-2 py-1 text-[11px] text-ink bg-bg-base" />
+                              </div>
+                              <input autoComplete="off" name="unitPrice" type="number" step="0.01" defaultValue={item.unitPrice} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-[11px] text-ink bg-bg-base" />
+                              <input autoComplete="off" name="notes" defaultValue={item.notes ?? ""} placeholder="Catatan" className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-[11px] text-ink bg-bg-base" />
+                              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors">Edit</button>
+                            </form>
+                          </details>
+                          <form action={deleteProposalItemAction} className="inline">
                             <input type="hidden" name="companySlug" value={companySlug} />
                             <input type="hidden" name="outgoingLetterId" value={letter.id} />
                             <input type="hidden" name="itemId" value={item.id} />
-                            <input name="itemName" defaultValue={item.itemName} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
-                            <div className="flex gap-2">
-                              <input name="quantity" type="number" step="0.01" defaultValue={item.quantity} required className="w-1/2 border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
-                              <input name="unit" defaultValue={item.unit} required className="w-1/2 border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
-                            </div>
-                            <input name="unitPrice" type="number" step="0.01" defaultValue={item.unitPrice} required className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
-                            <input name="notes" defaultValue={item.notes ?? ""} placeholder="Catatan" className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-surface" />
-                            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-xs font-semibold px-3 py-1 rounded-lg transition-colors">Simpan</button>
+                            <button type="submit" className="text-destructive hover:underline text-[11px]">Hapus</button>
                           </form>
-                        </details>
-                        <form action={deleteProposalItemAction} className="inline">
-                          <input type="hidden" name="companySlug" value={companySlug} />
-                          <input type="hidden" name="outgoingLetterId" value={letter.id} />
-                          <input type="hidden" name="itemId" value={item.id} />
-                          <button type="submit" className="text-destructive hover:underline text-xs">Hapus</button>
-                        </form>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-ink-muted/20 font-semibold">
-                <td className="py-2" colSpan={4}>Total Nilai Proposal</td>
-                <td className="py-2">Rp {proposalTotal.toLocaleString("id-ID")}</td>
-                <td colSpan={canAct ? 2 : 1} />
-              </tr>
-            </tfoot>
-          </table>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t border-ink-muted/20 font-bold">
+                  <td className="px-[18px] py-[7px] text-ink" colSpan={4}>Total Nilai Proposal</td>
+                  <td className="px-[7px] py-[7px] text-ink">Rp {proposalTotal.toLocaleString("id-ID")}</td>
+                  <td colSpan={canAct ? 2 : 1} />
+                </tr>
+              </tfoot>
+            </table>
+          </div>
 
           {canAct && (
-            <form action={createProposalItemAction} className="grid grid-cols-3 gap-3">
+            <form action={createProposalItemAction} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="outgoingLetterId" value={letter.id} />
-              <div className="col-span-3">
+              <div className="col-span-full">
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Item</label>
-                <input name="itemName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+                <input autoComplete="off" name="itemName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kuantitas</label>
-                <input name="quantity" type="number" step="0.01" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+                <input autoComplete="off" name="quantity" type="number" step="0.01" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Satuan</label>
-                <input name="unit" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+                <input autoComplete="off" name="unit" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Harga Satuan (Rp)</label>
-                <input name="unitPrice" type="number" step="0.01" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+                <input autoComplete="off" name="unitPrice" type="number" step="0.01" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               </div>
               {oppList.length > 0 && (
-                <div className="col-span-3">
+                <div className="col-span-full">
                   <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kaitkan ke Opportunity (opsional — estimasi nilai opportunity akan otomatis diperbarui)</label>
-                  <select name="opportunityId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface">
+                  <select name="opportunityId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
                     <option value="">-- tidak dikaitkan --</option>
                     {oppList.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
                   </select>
                 </div>
               )}
-              <div className="col-span-3">
+              <div className="col-span-full">
                 <label className="block text-[10px] font-semibold text-ink-muted mb-1">Catatan (opsional)</label>
-                <input name="notes" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface" />
+                <input autoComplete="off" name="notes" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
               </div>
-              <div className="col-span-3">
-                <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+              <div className="col-span-full">
+                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                   Tambah Item
                 </button>
               </div>
             </form>
           )}
-        </section>
+        </Card>
       )}
 
-      <section className="bg-surface border border-ink-muted/10 rounded-xl p-6">
-        <h2 className="font-semibold text-ink mb-4">Lampiran</h2>
+      <Card title="Lampiran">
         <AttachmentUploader entityType={letter.letterCategory} entityId={letter.id} attachments={attachmentRows} />
-      </section>
+      </Card>
     </div>
   );
 }

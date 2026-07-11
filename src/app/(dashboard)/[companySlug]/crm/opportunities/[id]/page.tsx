@@ -69,7 +69,7 @@ export default async function OpportunityDetailPage({
   });
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
         <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali
@@ -122,7 +122,7 @@ export default async function OpportunityDetailPage({
 
       {canAct && (
         <Card title="Pindah Tahap">
-          <form action={changeStageAction} className="grid grid-cols-2 gap-4">
+          <form action={changeStageAction} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input type="hidden" name="companySlug" value={companySlug} />
             <input type="hidden" name="companyId" value={company.id} />
             <input type="hidden" name="opportunityId" value={opp.id} />
@@ -131,7 +131,7 @@ export default async function OpportunityDetailPage({
               <select
                 name="newStageId"
                 defaultValue={opp.currentStageId}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               >
                 {stageList.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -143,13 +143,13 @@ export default async function OpportunityDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Alasan (kalau pindah ke tahap hilang)</label>
-              <input
+              <input autoComplete="off"
                 name="lostReason"
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-surface"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
             </div>
-            <div className="col-span-2">
-              <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <div className="col-span-full">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Pindahkan
               </button>
             </div>
@@ -174,7 +174,7 @@ export default async function OpportunityDetailPage({
                 </option>
               ))}
             </select>
-            <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
               Pindahkan
             </button>
           </form>

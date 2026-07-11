@@ -81,7 +81,7 @@ export default async function ContractsPage({
   ];
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="space-y-6">
       <div>
         <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
           &larr; Kembali ke CRM

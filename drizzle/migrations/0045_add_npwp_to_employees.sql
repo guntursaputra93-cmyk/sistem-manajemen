@@ -1,0 +1,1 @@
+ALTER TABLE "employees" ADD COLUMN "npwp" text;

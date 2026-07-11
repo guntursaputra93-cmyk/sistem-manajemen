@@ -316,6 +316,13 @@
       "when": 1783650479397,
       "tag": "0044_add_email_to_employees",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1783722803596,
+      "tag": "0045_add_npwp_to_employees",
+      "breakpoints": true
     }
   ]
 }

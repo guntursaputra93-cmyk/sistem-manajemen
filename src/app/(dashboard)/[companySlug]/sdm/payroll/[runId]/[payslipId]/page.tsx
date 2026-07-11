@@ -66,12 +66,12 @@ export default async function PayslipDetailPage({
   }));
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="space-y-6">
       <div>
         <h1 className="font-display text-[17px] font-extrabold text-ink">
           Slip Gaji — {MONTH_LABEL[run.periodMonth - 1]} {run.periodYear}
         </h1>
-        <p className="text-sm text-ink-muted mt-1">{employee?.fullName ?? "-"}</p>
+        <p className="text-[11px] text-ink-muted mt-1">{employee?.fullName ?? "-"}</p>
       </div>
 
       <Card title="Status Payroll Run">
@@ -79,26 +79,26 @@ export default async function PayslipDetailPage({
       </Card>
 
       <Card title="Rincian Komponen">
-        <table className="w-full text-sm mb-4">
-          <thead className="text-ink-muted text-xs uppercase">
+        <table className="w-full text-[11px] mb-4">
+          <thead className="text-ink-muted text-[10px] uppercase tracking-wide">
             <tr>
-              <th className="text-left py-1">Komponen</th>
-              <th className="text-left py-1">Tipe</th>
-              <th className="text-right py-1">Nominal</th>
+              <th className="text-left py-[7px] font-bold">Komponen</th>
+              <th className="text-left py-[7px] font-bold">Tipe</th>
+              <th className="text-right py-[7px] font-bold">Nominal</th>
             </tr>
           </thead>
           <tbody>
             {detail.map((d, i) => (
               <tr key={i} className="border-t border-ink-muted/10">
-                <td className="py-2">{d.componentName}</td>
-                <td className="py-2">{d.componentType === "pendapatan" ? "Pendapatan" : "Potongan"}</td>
-                <td className="py-2 text-right">Rp {Number(d.amount).toLocaleString("id-ID")}</td>
+                <td className="py-[7px] text-ink">{d.componentName}</td>
+                <td className="py-[7px] text-ink">{d.componentType === "pendapatan" ? "Pendapatan" : "Potongan"}</td>
+                <td className="py-[7px] text-right text-ink">Rp {Number(d.amount).toLocaleString("id-ID")}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        <dl className="text-sm space-y-2 border-t border-ink-muted/10 pt-4">
+        <dl className="text-[11px] space-y-2 border-t border-ink-muted/10 pt-4">
           <div className="flex justify-between">
             <dt className="text-ink-muted">Total Pendapatan</dt>
             <dd className="text-ink">Rp {Number(payslip.grossSalaryAmount).toLocaleString("id-ID")}</dd>
@@ -107,7 +107,7 @@ export default async function PayslipDetailPage({
             <dt className="text-ink-muted">Total Potongan</dt>
             <dd className="text-ink">Rp {Number(payslip.salaryDeductions).toLocaleString("id-ID")}</dd>
           </div>
-          <div className="flex justify-between font-semibold">
+          <div className="flex justify-between font-bold">
             <dt className="text-ink">Gaji Bersih</dt>
             <dd className="text-ink">Rp {Number(payslip.netSalaryAmount).toLocaleString("id-ID")}</dd>
           </div>
