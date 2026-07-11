@@ -17,4 +17,9 @@ export const documentAccessLogs = pgTable("document_access_logs", {
 }, (table) => [
   // Wajib (spesifikasi Bagian 2.4) — dipakai tiap kali dashboard/notifikasi belum-dibaca dihitung.
   index("document_access_logs_user_version_idx").on(table.userId, table.documentVersionId),
+  // Backlog performa — index composite di atas TIDAK dipakai kalau query cuma
+  // filter documentVersionId sendiri tanpa userId (mis. hitung total akses per versi
+  // dokumen) — leading column composite itu userId, bukan documentVersionId.
+  index("document_access_logs_document_version_id_idx").on(table.documentVersionId),
+  index("document_access_logs_company_id_idx").on(table.companyId),
 ]);

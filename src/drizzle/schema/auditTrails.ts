@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, jsonb, timestamp, index } from "drizzle-orm/pg-core";
 import { companies } from "./companies";
 import { users } from "./users";
 
@@ -16,4 +16,12 @@ export const auditTrails = pgTable("audit_trails", {
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  // Backlog performa — companyId difilter tiap kali halaman audit trail per-company
+  // dibuka (VIEW_AUDIT_TRAIL), createdAt dipakai utk query rentang waktu/urutan
+  // terbaru (termasuk oleh super_admin lintas company, jadi index terpisah, bukan
+  // digabung 1 composite dengan companyId).
+  index("audit_trails_company_id_idx").on(table.companyId),
+  index("audit_trails_created_at_idx").on(table.createdAt),
+  index("audit_trails_user_id_idx").on(table.userId),
+]);

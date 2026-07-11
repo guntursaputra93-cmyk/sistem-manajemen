@@ -1,4 +1,4 @@
-import { pgTable, uuid, date, text, jsonb, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, date, text, jsonb, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { companies } from "./companies";
 import { serviceAssignments } from "./serviceAssignments";
 import { employees } from "./employees";
@@ -20,4 +20,9 @@ export const witnessedAuditEvaluations = pgTable("witnessed_audit_evaluations", 
   observerSigned: boolean("observer_signed").notNull().default(false),
   auditeeSigned: boolean("auditee_signed").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  // Backlog performa — assignmentId difilter di halaman detail penugasan (daftar evaluasi).
+  index("witnessed_audit_evaluations_company_id_idx").on(table.companyId),
+  index("witnessed_audit_evaluations_assignment_id_idx").on(table.assignmentId),
+  index("witnessed_audit_evaluations_observer_employee_id_idx").on(table.observerEmployeeId),
+]);

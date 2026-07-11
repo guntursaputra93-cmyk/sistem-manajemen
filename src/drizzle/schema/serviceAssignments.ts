@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, uuid, text, date, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, text, date, boolean, timestamp, index } from "drizzle-orm/pg-core";
 import { companies } from "./companies";
 import { contracts } from "./contracts";
 import { employees } from "./employees";
@@ -33,4 +33,12 @@ export const serviceAssignments = pgTable("service_assignments", {
   createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  // Backlog performa (audit index pasca Fase 4) — company_id difilter RLS di
+  // SEMUA query, contract_id/employee_id difilter langsung di banyak query
+  // penjadwalan/kalender/rekap (lihat lib/scheduling/*).
+  index("service_assignments_company_id_idx").on(table.companyId),
+  index("service_assignments_contract_id_idx").on(table.contractId),
+  index("service_assignments_employee_id_idx").on(table.employeeId),
+  index("service_assignments_created_by_idx").on(table.createdBy),
+]);
