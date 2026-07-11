@@ -14,6 +14,8 @@ export const proxy = auth((req) => {
 
   if (
     pathname.startsWith("/login") ||
+    pathname.startsWith("/lupa-password") ||
+    pathname.startsWith("/reset-password") ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon")

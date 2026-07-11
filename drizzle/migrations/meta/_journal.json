@@ -372,6 +372,27 @@
       "when": 1783761237487,
       "tag": "0052_add_performance_indexes_fase4_and_audit_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1783774993663,
+      "tag": "0053_create_password_reset_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1783775008347,
+      "tag": "0054_rls_password_reset_tokens_deny_all",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1783780156183,
+      "tag": "0055_make_cpd_attachment_required",
+      "breakpoints": true
     }
   ]
 }

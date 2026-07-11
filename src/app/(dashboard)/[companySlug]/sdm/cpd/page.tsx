@@ -206,6 +206,19 @@ export default async function CpdPage({
               <input autoComplete="off" name="year" type="number" defaultValue={currentYear} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
             </div>
             <div className="col-span-full">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Bukti Aktivitas (PDF)</label>
+              <input
+                name="attachmentFile"
+                type="file"
+                accept="application/pdf"
+                required
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base file:mr-3 file:rounded-md file:border-0 file:bg-sage/20 file:px-2 file:py-1 file:text-[10px] file:font-semibold file:text-sage-deep"
+              />
+              <p className="text-[10px] text-ink-muted mt-1">
+                Bukti wajib diunggah (PDF) — aktivitas tanpa bukti tidak dapat dicatat (persyaratan Kemnaker).
+              </p>
+            </div>
+            <div className="col-span-full">
               <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
                 Catat
               </button>

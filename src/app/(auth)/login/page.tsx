@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -18,6 +19,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const resetSuccess = searchParams.get("success");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,7 +62,12 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Password</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-[10px] font-semibold text-ink-muted">Password</label>
+              <Link href="/lupa-password" className="text-[10px] font-semibold text-powder-blue-deep hover:underline">
+                Lupa password?
+              </Link>
+            </div>
             <input
               type="password"
               required
@@ -70,6 +77,7 @@ function LoginForm() {
             />
           </div>
 
+          {resetSuccess && <p className="text-sm text-sage-deep">{resetSuccess}</p>}
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <button

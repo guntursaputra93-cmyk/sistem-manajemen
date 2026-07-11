@@ -45,3 +45,4 @@ export * from "./serviceAssignments";
 export * from "./serviceAssignmentTeam";
 export * from "./witnessedAuditEvaluations";
 export * from "./performanceEvaluations";
+export * from "./passwordResetTokens";
