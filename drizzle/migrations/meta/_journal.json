@@ -323,6 +323,48 @@
       "when": 1783722803596,
       "tag": "0045_add_npwp_to_employees",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1783741260369,
+      "tag": "0046_create_service_assignments_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1783741272434,
+      "tag": "0047_rls_service_assignments_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1783742069282,
+      "tag": "0048_create_witnessed_audit_evaluations",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1783742079672,
+      "tag": "0049_rls_witnessed_audit_evaluations",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1783742398415,
+      "tag": "0050_create_performance_evaluations",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1783742410943,
+      "tag": "0051_rls_performance_evaluations",
+      "breakpoints": true
     }
   ]
 }

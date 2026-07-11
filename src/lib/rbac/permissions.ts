@@ -92,6 +92,28 @@ export const PERMISSIONS = {
   // department_head HANYA lihat payslip miliknya sendiri (RLS payslips tidak punya
   // cabang department_head sama sekali, beda dari RLS employees — lihat migrasi 0044).
   VIEW_PAYSLIPS: ["super_admin", "company_admin", "department_head", "staff"],
+
+  // --- Fase 4 / Penjadwalan Layanan (module_key terpisah dari sdm_*) ---
+  // staff: hanya penugasan miliknya sendiri (getVisibleEmployeeIds, pola sama dgn
+  // VIEW_EMPLOYEES/VIEW_CPD_ACTIVITIES). department_head boleh menjadwalkan tim-nya
+  // sendiri (pola sama dgn APPROVE_LEAVE_REQUEST/MANAGE_ATTENDANCE) — staff TIDAK
+  // menjadwalkan diri sendiri, penugasan selalu dibuat admin/kepala departemen.
+  VIEW_SERVICE_ASSIGNMENTS: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_SERVICE_ASSIGNMENTS: ["super_admin", "company_admin", "department_head"],
+
+  // --- Fase 4 / Witnessed Audit Evaluation (FR-03) ---
+  // Sengaja TIDAK termasuk staff, pola persis VIEW/MANAGE_CALIBRATION_MEETINGS —
+  // penilaian kinerja personil, bukan self-service. staff tetap bisa LIHAT
+  // evaluasi tentang dirinya lewat scoping getVisibleEmployeeIds di halaman
+  // (assignment miliknya sendiri), tapi tidak bisa membuat/menandatangani sendiri.
+  VIEW_WITNESSED_AUDIT_EVALUATIONS: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_WITNESSED_AUDIT_EVALUATIONS: ["super_admin", "company_admin", "department_head"],
+
+  // --- Fase 4 / Performance Evaluation (FR-04) ---
+  // Pola sama persis dgn WITNESSED_AUDIT_EVALUATIONS (lihat komentar di atas) —
+  // evaluasi kinerja top-down oleh Ketua Tim/Technical Manager, staff cuma lihat.
+  VIEW_PERFORMANCE_EVALUATIONS: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_PERFORMANCE_EVALUATIONS: ["super_admin", "company_admin", "department_head"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSIONS;

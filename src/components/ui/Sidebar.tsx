@@ -69,6 +69,26 @@ const ACTIVE_ACCENT = "#3D7A6B";
 // beda dari token `ink` netral yang dipakai di konten utama.
 const SIDEBAR_INK = "#33422D";
 
+// Pilih SATU item paling spesifik yang aktif: exact match menang atas prefix
+// match manapun. Tanpa ini, item sibling yang hrefnya jadi prefix dari href
+// sibling lain (mis. /penjadwalan vs /penjadwalan/rekap) akan sama-sama
+// ke-highlight saat berada di halaman yang lebih spesifik — exact match di
+// /penjadwalan/rekap seharusnya menang, bukan berbagi highlight dgn /penjadwalan.
+// Longest-prefix fallback tetap dipertahankan utk halaman detail yang bukan item
+// nav sendiri (mis. /sdm/karyawan/[id] tetap meng-highlight "Karyawan").
+function findActiveHref(pathname: string | null, groups: SidebarGroup[]): string | null {
+  const allHrefs = groups.flatMap((g) => g.items.map((item) => item.href));
+  if (pathname && allHrefs.includes(pathname)) return pathname;
+
+  let best: string | null = null;
+  for (const href of allHrefs) {
+    if (pathname?.startsWith(`${href}/`) && (!best || href.length > best.length)) {
+      best = href;
+    }
+  }
+  return best;
+}
+
 function companyInitials(code: string | null, name: string): string {
   if (code) return code.slice(0, 3).toUpperCase();
   const words = name.trim().split(/\s+/).filter(Boolean);
@@ -94,6 +114,7 @@ export function Sidebar({
   onLogout: () => Promise<void>;
 }) {
   const pathname = usePathname();
+  const activeHref = findActiveHref(pathname, groups);
   const [collapsed, setCollapsed] = useState(false);
   // Default: grup yang berisi item aktif otomatis terbuka, sisanya tertutup —
   // grup tanpa label (Pengaturan) selalu dianggap "terbuka" karena tidak punya
@@ -178,7 +199,7 @@ export function Sidebar({
                   style={group.label && !collapsed ? { borderColor: "rgba(51,66,45,0.18)" } : undefined}
                 >
                   {group.items.map((item) => {
-                    const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                    const active = item.href === activeHref;
                     const Icon = ICON_MAP[item.icon];
                     return (
                       <Link

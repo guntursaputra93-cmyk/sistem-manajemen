@@ -5,14 +5,24 @@ import type { SidebarGroup } from "@/components/ui/Sidebar";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import type { NotificationSummary } from "@/lib/notifications/getNotificationSummary";
 
+// Exact match menang atas prefix match — tanpa ini, item nav yang hrefnya jadi
+// prefix dari item sibling lain (mis. /penjadwalan vs /penjadwalan/rekap) akan
+// "mencuri" judul halaman duluan cuma karena urutan array (lihat bug serupa
+// yang sudah diperbaiki di Sidebar.tsx findActiveHref).
 function resolvePageTitle(pathname: string | null, groups: SidebarGroup[]): string {
   if (!pathname) return "Dashboard";
-  for (const group of groups) {
-    for (const item of group.items) {
-      if (pathname === item.href || pathname.startsWith(`${item.href}/`)) return item.label;
+  const allItems = groups.flatMap((g) => g.items);
+
+  const exact = allItems.find((item) => item.href === pathname);
+  if (exact) return exact.label;
+
+  let best: (typeof allItems)[number] | null = null;
+  for (const item of allItems) {
+    if (pathname.startsWith(`${item.href}/`) && (!best || item.href.length > best.href.length)) {
+      best = item;
     }
   }
-  return "Dashboard";
+  return best?.label ?? "Dashboard";
 }
 
 // Tipis, bg-base, tanpa warna dominan (Bagian 2 spesifikasi desain) — supaya

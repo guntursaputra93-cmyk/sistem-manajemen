@@ -41,3 +41,7 @@ export * from "./salaryComponents";
 export * from "./employeeSalaryStructures";
 export * from "./payrollRuns";
 export * from "./payslips";
+export * from "./serviceAssignments";
+export * from "./serviceAssignmentTeam";
+export * from "./witnessedAuditEvaluations";
+export * from "./performanceEvaluations";

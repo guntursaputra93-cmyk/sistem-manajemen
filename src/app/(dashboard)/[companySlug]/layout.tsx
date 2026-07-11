@@ -47,6 +47,7 @@ export default async function CompanyDashboardLayout({
   const sdmCutiAbsensiOn = enabledModules.has("sdm_cuti_absensi");
   const sdmKompetensiOn = enabledModules.has("sdm_kompetensi");
   const sdmPayrollOn = enabledModules.has("sdm_payroll");
+  const penjadwalanLayananOn = enabledModules.has("penjadwalan_layanan");
 
   const groups: SidebarGroup[] = [];
 
@@ -138,6 +139,15 @@ export default async function CompanyDashboardLayout({
     sdmItems.push({ href: `/${companySlug}/sdm/gaji-saya`, label: "Gaji Saya", icon: "wallet" });
   }
   if (sdmItems.length) groups.push({ label: "SDM", icon: "contact", items: sdmItems });
+
+  // Fase 4 — grup sendiri, terpisah dari SDM (keputusan spesifikasi Bagian 1).
+  const penjadwalanItems: SidebarGroup["items"] = [];
+  if (penjadwalanLayananOn && hasPermission(session.user.role, "VIEW_SERVICE_ASSIGNMENTS")) {
+    penjadwalanItems.push({ href: `/${companySlug}/penjadwalan`, label: "Penjadwalan", icon: "users" });
+    penjadwalanItems.push({ href: `/${companySlug}/penjadwalan/kalender`, label: "Kalender", icon: "calendar-days" });
+    penjadwalanItems.push({ href: `/${companySlug}/penjadwalan/rekap`, label: "Rekap Tahunan", icon: "bar-chart-3" });
+  }
+  if (penjadwalanItems.length) groups.push({ label: "Penjadwalan", icon: "calendar-days", items: penjadwalanItems });
 
   const settingsItems: SidebarGroup["items"] = [];
   if (hasPermission(session.user.role, "MANAGE_DEPARTMENTS")) {
