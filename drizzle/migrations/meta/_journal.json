@@ -400,6 +400,13 @@
       "when": 1783812498172,
       "tag": "0056_add_kalibrasi_attachment_entity_type",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1783821842009,
+      "tag": "0057_add_logo_url_to_companies",
+      "breakpoints": true
     }
   ]
 }

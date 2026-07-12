@@ -62,9 +62,15 @@ export default async function PilihPerusahaanPage({
             allCompanies.map((company) => (
               <div key={company.id} className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <Link href={`/${company.slug}/dashboard`} className="font-medium text-ink hover:text-sage-deep">
-                    {company.name}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    {company.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- URL Storage dinamis per company, bukan aset statis.
+                      <img src={company.logoUrl} alt={`Logo ${company.name}`} className="h-6 w-6 rounded-md object-contain bg-white border border-ink-muted/10" />
+                    ) : null}
+                    <Link href={`/${company.slug}/dashboard`} className="font-medium text-ink hover:text-sage-deep">
+                      {company.name}
+                    </Link>
+                  </div>
                   <div className="flex items-center gap-3">
                     <Link href={`/${company.slug}/pengaturan/modul`} className="text-xs text-sage-deep hover:underline">
                       Modul
@@ -96,6 +102,10 @@ export default async function PilihPerusahaanPage({
                     <button type="submit" className="bg-powder-blue-deep hover:bg-powder-blue-deep/90 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
                       Simpan
                     </button>
+                  </div>
+                  <div className="col-span-4">
+                    <label className="block text-[10px] font-semibold text-ink-muted mb-1">Logo (opsional, PNG/JPG, maks 2MB)</label>
+                    <input name="logoFile" type="file" accept="image/png,image/jpeg" className="text-sm text-ink" />
                   </div>
                 </form>
               </div>

@@ -8,6 +8,7 @@ import { withTenantContext } from "@/lib/db";
 import { companies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
+import { uploadCompanyLogo, CompanyLogoValidationError } from "@/lib/storage/companyLogo";
 
 const CODE_PATTERN = /^[A-Z0-9]{2,10}$/;
 const REDIRECT_BASE = "/pilih-perusahaan";
@@ -81,6 +82,7 @@ export async function updateCompany(formData: FormData): Promise<void> {
   const code = normalizeCode(formData.get("code"));
   const businessType = formData.get("businessType")?.toString().trim() ?? "";
   const isActive = formData.get("isActive")?.toString() === "true";
+  const logoFile = formData.get("logoFile");
 
   if (!name || !businessType) {
     redirect(`${REDIRECT_BASE}?error=${encodeURIComponent("Nama dan jenis bisnis wajib diisi.")}`);
@@ -89,9 +91,27 @@ export async function updateCompany(formData: FormData): Promise<void> {
     redirect(`${REDIRECT_BASE}?error=${encodeURIComponent("Kode harus 2-10 huruf/angka kapital.")}`);
   }
 
+  // Logo opsional per submit — kalau tidak ada file dipilih, jangan sentuh
+  // logo_url yang sudah tersimpan (form ini juga dipakai buat edit nama/kode/dst
+  // biasa, bukan cuma ganti logo).
+  let logoUrl: string | undefined;
+  if (logoFile instanceof File && logoFile.size > 0) {
+    try {
+      logoUrl = await uploadCompanyLogo({ file: logoFile, companyId });
+    } catch (err) {
+      if (err instanceof CompanyLogoValidationError) {
+        redirect(`${REDIRECT_BASE}?error=${encodeURIComponent(err.message)}`);
+      }
+      throw err;
+    }
+  }
+
   try {
     await withTenantContext({ role: session.user.role, companyId: null }, (tx) =>
-      tx.update(companies).set({ name, code, businessType, isActive, updatedAt: new Date() }).where(eq(companies.id, companyId))
+      tx
+        .update(companies)
+        .set({ name, code, businessType, isActive, ...(logoUrl ? { logoUrl } : {}), updatedAt: new Date() })
+        .where(eq(companies.id, companyId))
     );
   } catch {
     redirect(`${REDIRECT_BASE}?error=${encodeURIComponent("Kode ini sudah dipakai perusahaan lain.")}`);
@@ -103,7 +123,7 @@ export async function updateCompany(formData: FormData): Promise<void> {
     action: "update_company",
     entityType: "company",
     entityId: companyId,
-    metadata: { name, code, businessType, isActive },
+    metadata: { name, code, businessType, isActive, logoUpdated: Boolean(logoUrl) },
   });
 
   revalidatePath(REDIRECT_BASE);

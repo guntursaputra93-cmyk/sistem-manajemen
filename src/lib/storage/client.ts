@@ -17,28 +17,45 @@ export const supabaseAdmin = createClient(supabaseUrl, secretKey, {
 });
 
 export const ATTACHMENTS_BUCKET = "attachments";
+// Logo perusahaan BUKAN data sensitif (beda dari lampiran surat/CPD/dst di
+// bucket ATTACHMENTS_BUCKET) — bucket public supaya URL-nya bisa langsung
+// dipakai di <img src> sidebar tanpa signed URL/expiry.
+export const COMPANY_LOGOS_BUCKET = "company-logos";
 
-let bucketEnsured = false;
+let attachmentsBucketEnsured = false;
+let companyLogosBucketEnsured = false;
+
+async function ensureBucket(
+  bucket: string,
+  options: { public: boolean; fileSizeLimit: number; allowedMimeTypes: string[] }
+): Promise<void> {
+  const { data: existing } = await supabaseAdmin.storage.getBucket(bucket);
+  if (existing) return;
+
+  const { error } = await supabaseAdmin.storage.createBucket(bucket, options);
+  if (error && !/already exists/i.test(error.message)) {
+    throw new Error(`Gagal membuat bucket Storage: ${error.message}`);
+  }
+}
 
 // Dipanggil sekali per lifecycle proses (idempotent) — bukan di setiap upload,
 // supaya tidak nambah 1 API call ekstra ke Storage tiap kali ada yang upload.
 export async function ensureAttachmentsBucket(): Promise<void> {
-  if (bucketEnsured) return;
-
-  const { data: existing } = await supabaseAdmin.storage.getBucket(ATTACHMENTS_BUCKET);
-  if (existing) {
-    bucketEnsured = true;
-    return;
-  }
-
-  const { error } = await supabaseAdmin.storage.createBucket(ATTACHMENTS_BUCKET, {
+  if (attachmentsBucketEnsured) return;
+  await ensureBucket(ATTACHMENTS_BUCKET, {
     public: false,
     fileSizeLimit: 5 * 1024 * 1024,
     allowedMimeTypes: ["application/pdf"],
   });
+  attachmentsBucketEnsured = true;
+}
 
-  if (error && !/already exists/i.test(error.message)) {
-    throw new Error(`Gagal membuat bucket Storage: ${error.message}`);
-  }
-  bucketEnsured = true;
+export async function ensureCompanyLogosBucket(): Promise<void> {
+  if (companyLogosBucketEnsured) return;
+  await ensureBucket(COMPANY_LOGOS_BUCKET, {
+    public: true,
+    fileSizeLimit: 2 * 1024 * 1024,
+    allowedMimeTypes: ["image/png", "image/jpeg"],
+  });
+  companyLogosBucketEnsured = true;
 }

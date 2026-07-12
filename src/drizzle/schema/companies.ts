@@ -10,6 +10,9 @@ export const companies = pgTable("companies", {
   code: text("code").unique(),
   // Text, bukan Postgres enum — jenis bisnis baru bisa ditambah tanpa migrasi skema.
   businessType: text("business_type").notNull(),
+  // URL publik logo di bucket Storage "company-logos" (public, beda dari bucket
+  // attachments yang private) — nullable, sidebar fallback ke badge inisial.
+  logoUrl: text("logo_url"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

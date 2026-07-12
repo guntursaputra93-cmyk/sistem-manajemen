@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -105,12 +106,14 @@ export function Sidebar({
   companyName,
   companyCode,
   companyTagline,
+  companyLogoUrl,
   onLogout,
 }: {
   groups: SidebarGroup[];
   companyName: string;
   companyCode: string | null;
   companyTagline: string;
+  companyLogoUrl: string | null;
   onLogout: () => Promise<void>;
 }) {
   const pathname = usePathname();
@@ -144,9 +147,20 @@ export function Sidebar({
       }`}
       style={{ background: "linear-gradient(to bottom, #C3DBBB 0%, #A8C3A0 100%)" }}
     >
-      <div className={`flex items-center gap-2 px-1.5 py-2.5 mb-1 ${collapsed ? "justify-center" : ""}`}>
-        <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg bg-white text-[10px] font-display font-bold text-sage-deep shadow-[0_3px_8px_rgba(51,57,59,0.1)]">
-          {companyInitials(companyCode, companyName)}
+      {/* Sticky di dalam <aside> yang overflow-y-auto — tetap terlihat saat daftar
+          menu di bawahnya (SDM/CRM/dst) panjang dan discroll. Background+shadow
+          sendiri (bukan cuma transparan) supaya item menu yang lewat di baliknya
+          tidak "tembus" pandang. */}
+      <div
+        className={`sticky top-0 z-30 flex items-center gap-2 px-1.5 py-2.5 mb-1 ${collapsed ? "justify-center" : ""}`}
+        style={{ background: "#C3DBBB", boxShadow: "0 4px 10px rgba(51,57,59,0.08)", borderBottom: "1px solid rgba(51,66,45,0.12)" }}
+      >
+        <span className="relative flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg bg-white text-[10px] font-display font-bold text-sage-deep shadow-[0_3px_8px_rgba(51,57,59,0.1)] overflow-hidden">
+          {companyLogoUrl ? (
+            <Image src={companyLogoUrl} alt={`Logo ${companyName}`} fill sizes="26px" className="object-contain p-0.5" />
+          ) : (
+            companyInitials(companyCode, companyName)
+          )}
         </span>
         {!collapsed && (
           <div className="min-w-0">

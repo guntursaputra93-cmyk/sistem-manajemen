@@ -182,6 +182,7 @@ export default async function CompanyDashboardLayout({
         companyName={company.name}
         companyCode={company.code}
         companyTagline={company.businessType}
+        companyLogoUrl={company.logoUrl}
         onLogout={async () => {
           "use server";
           await signOut({ redirectTo: "/login" });
