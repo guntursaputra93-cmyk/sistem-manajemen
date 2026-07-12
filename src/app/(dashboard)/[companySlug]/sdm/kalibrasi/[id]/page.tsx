@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { companies, calibrationMeetings, calibrationAttendees, users, employees } from "@/drizzle/schema";
+import { companies, calibrationMeetings, calibrationAttendees, users, employees, attachments } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { updateCalibrationMeeting, addAttendee, toggleAttendeeSigned } from "../actions";
@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
 
 export default async function KalibrasiDetailPage({
   params,
@@ -40,10 +41,13 @@ export default async function KalibrasiDetailPage({
   );
   if (!meeting) notFound();
 
-  const [attendeeRows, userList, empList] = await Promise.all([
+  const [attendeeRows, userList, empList, meetingAttachments] = await Promise.all([
     withTenantContext(tenantContext, (tx) => tx.select().from(calibrationAttendees).where(eq(calibrationAttendees.meetingId, meeting.id)).orderBy(asc(calibrationAttendees.attendeeName))),
     withTenantContext(tenantContext, (tx) => tx.select().from(users).where(eq(users.companyId, company.id))),
     withTenantContext(tenantContext, (tx) => tx.select().from(employees).where(eq(employees.companyId, company.id))),
+    withTenantContext(tenantContext, (tx) =>
+      tx.select().from(attachments).where(and(eq(attachments.entityType, "kalibrasi"), eq(attachments.entityId, meeting.id)))
+    ),
   ]);
 
   const canManage = hasPermission(session.user.role, "MANAGE_CALIBRATION_MEETINGS");
@@ -176,6 +180,16 @@ export default async function KalibrasiDetailPage({
             </div>
           </form>
         )}
+      </Card>
+
+      <Card title="Lampiran">
+        <AttachmentUploader
+          entityType="kalibrasi"
+          entityId={meeting.id}
+          attachments={meetingAttachments}
+          acceptedFileTypes="application/pdf,image/jpeg,image/png"
+          acceptLabel="PDF/JPG/PNG"
+        />
       </Card>
     </div>
   );

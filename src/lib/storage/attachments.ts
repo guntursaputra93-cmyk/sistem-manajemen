@@ -2,12 +2,32 @@ import { randomUUID } from "crypto";
 import type { db as Db } from "@/lib/db";
 import { attachments, attachmentEntityTypeEnum } from "@/drizzle/schema";
 import { supabaseAdmin, ATTACHMENTS_BUCKET, ensureAttachmentsBucket } from "./client";
-import { isValidPdfMagicBytes, MAX_ATTACHMENT_SIZE_BYTES } from "./pdf";
+import { isValidPdfMagicBytes, isValidJpgMagicBytes, isValidPngMagicBytes, MAX_ATTACHMENT_SIZE_BYTES } from "./pdf";
 
 export type AttachmentEntityType = (typeof attachmentEntityTypeEnum.enumValues)[number];
 export const ATTACHMENT_ENTITY_TYPES = attachmentEntityTypeEnum.enumValues;
 
 export class AttachmentValidationError extends Error {}
+
+type FileKind = "pdf" | "jpg" | "png";
+
+const CONTENT_TYPE_BY_KIND: Record<FileKind, string> = {
+  pdf: "application/pdf",
+  jpg: "image/jpeg",
+  png: "image/png",
+};
+
+function detectFileKind(buffer: Buffer): FileKind | null {
+  if (isValidPdfMagicBytes(buffer)) return "pdf";
+  if (isValidJpgMagicBytes(buffer)) return "jpg";
+  if (isValidPngMagicBytes(buffer)) return "png";
+  return null;
+}
+
+// Satu-satunya entity_type yang boleh JPG/PNG selain PDF — bukti foto rapat
+// kalibrasi sering berupa hasil scan/foto, bukan PDF. Entity type lain
+// (surat_masuk, dokumen, dst.) TETAP PDF-only, jangan longgarkan validasinya.
+const IMAGE_ALLOWED_ENTITY_TYPES: ReadonlySet<AttachmentEntityType> = new Set(["kalibrasi"]);
 
 export type UploadAttachmentParams = {
   file: File;
@@ -25,9 +45,15 @@ export async function uploadAttachment(tx: typeof Db, params: UploadAttachmentPa
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  const allowImages = IMAGE_ALLOWED_ENTITY_TYPES.has(entityType);
+  const kind = detectFileKind(buffer);
 
-  if (!isValidPdfMagicBytes(buffer)) {
-    throw new AttachmentValidationError("File bukan PDF yang valid (magic bytes tidak cocok).");
+  if (!kind || (kind !== "pdf" && !allowImages)) {
+    throw new AttachmentValidationError(
+      allowImages
+        ? "File harus PDF, JPG, atau PNG yang valid (magic bytes tidak cocok)."
+        : "File bukan PDF yang valid (magic bytes tidak cocok)."
+    );
   }
 
   await ensureAttachmentsBucket();
@@ -37,7 +63,7 @@ export async function uploadAttachment(tx: typeof Db, params: UploadAttachmentPa
 
   const { error: uploadError } = await supabaseAdmin.storage
     .from(ATTACHMENTS_BUCKET)
-    .upload(objectPath, buffer, { contentType: "application/pdf", upsert: false });
+    .upload(objectPath, buffer, { contentType: CONTENT_TYPE_BY_KIND[kind], upsert: false });
 
   if (uploadError) {
     throw new Error(`Gagal upload ke Storage: ${uploadError.message}`);

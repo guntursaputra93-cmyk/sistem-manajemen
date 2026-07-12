@@ -1,0 +1,1 @@
+ALTER TYPE "public"."attachment_entity_type" ADD VALUE 'kalibrasi';

@@ -393,6 +393,13 @@
       "when": 1783780156183,
       "tag": "0055_make_cpd_attachment_required",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1783812498172,
+      "tag": "0056_add_kalibrasi_attachment_entity_type",
+      "breakpoints": true
     }
   ]
 }

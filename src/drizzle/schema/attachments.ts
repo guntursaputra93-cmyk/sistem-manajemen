@@ -13,6 +13,9 @@ export const attachmentEntityTypeEnum = pgEnum("attachment_entity_type", [
   "employee",
   "employee_competency",
   "cpd_activity",
+  // Lampiran rapat kalibrasi — satu-satunya entity_type yang boleh JPG/PNG selain
+  // PDF (lihat lib/storage/attachments.ts), sisanya tetap PDF-only.
+  "kalibrasi",
 ]);
 
 export const attachments = pgTable("attachments", {

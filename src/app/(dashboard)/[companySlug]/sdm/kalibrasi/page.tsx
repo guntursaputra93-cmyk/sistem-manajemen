@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { companies, calibrationMeetings, users } from "@/drizzle/schema";
+import { companies, calibrationMeetings, users, attachments } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createCalibrationMeeting } from "./actions";
@@ -16,10 +16,10 @@ export default async function KalibrasiPage({
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; from?: string; to?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
+  const { error, success, from, to } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -35,10 +35,29 @@ export default async function KalibrasiPage({
   if (!company) notFound();
   await withTenantContext(tenantContext, (tx) => requireModuleEnabled(tx, { companyId: company.id, moduleKey: "sdm_kompetensi", companySlug }));
 
+  const meetingConditions = [eq(calibrationMeetings.companyId, company.id)];
+  if (from) meetingConditions.push(gte(calibrationMeetings.meetingDate, from));
+  if (to) meetingConditions.push(lte(calibrationMeetings.meetingDate, to));
+
   const [meetingRows, userList] = await Promise.all([
-    withTenantContext(tenantContext, (tx) => tx.select().from(calibrationMeetings).where(eq(calibrationMeetings.companyId, company.id)).orderBy(desc(calibrationMeetings.meetingDate))),
+    withTenantContext(tenantContext, (tx) => tx.select().from(calibrationMeetings).where(and(...meetingConditions)).orderBy(desc(calibrationMeetings.meetingDate))),
     withTenantContext(tenantContext, (tx) => tx.select().from(users).where(eq(users.companyId, company.id))),
   ]);
+
+  // 1 query ter-agregasi (GROUP BY entity_id) untuk hitung lampiran semua rapat
+  // yang sedang tampil, BUKAN query per baris — meetingIds baru ada setelah
+  // meetingRows di atas selesai, jadi ini query lanjutan, bukan loop N+1.
+  const meetingIds = meetingRows.map((m) => m.id);
+  const attachmentCountRows = meetingIds.length
+    ? await withTenantContext(tenantContext, (tx) =>
+        tx
+          .select({ entityId: attachments.entityId, count: sql<string>`count(*)` })
+          .from(attachments)
+          .where(and(eq(attachments.entityType, "kalibrasi"), inArray(attachments.entityId, meetingIds)))
+          .groupBy(attachments.entityId)
+      )
+    : [];
+  const attachmentCountByMeeting = new Map(attachmentCountRows.map((r) => [r.entityId, Number(r.count)]));
 
   const canManage = hasPermission(session.user.role, "MANAGE_CALIBRATION_MEETINGS");
 
@@ -55,6 +74,14 @@ export default async function KalibrasiPage({
     { key: "leader", header: "Pemimpin Rapat", render: (m) => userList.find((u) => u.id === m.leaderUserId)?.fullName ?? "-" },
     { key: "location", header: "Lokasi/Media", render: (m) => m.locationOrMedia ?? "-" },
     { key: "agenda", header: "Agenda", render: (m) => m.agenda ?? "-" },
+    {
+      key: "attachments",
+      header: "Bukti",
+      render: (m) => {
+        const count = attachmentCountByMeeting.get(m.id) ?? 0;
+        return count > 0 ? <span>📎 {count}</span> : <span className="text-ink-muted">—</span>;
+      },
+    },
   ];
 
   return (
@@ -110,6 +137,27 @@ export default async function KalibrasiPage({
           </form>
         </Card>
       )}
+
+      <Card title="Rekap Kalibrasi">
+        <form method="get" className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Dari Tanggal</label>
+            <DatePicker name="from" defaultValue={from} />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Sampai Tanggal</label>
+            <DatePicker name="to" defaultValue={to} />
+          </div>
+          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+            Filter
+          </button>
+          {(from || to) && (
+            <Link href={`/${companySlug}/sdm/kalibrasi`} className="text-[11px] text-ink-muted hover:underline">
+              Reset
+            </Link>
+          )}
+        </form>
+      </Card>
 
       <DataTable columns={columns} rows={meetingRows} rowKey={(m) => m.id} emptyMessage="Belum ada rapat kalibrasi tercatat." />
     </div>

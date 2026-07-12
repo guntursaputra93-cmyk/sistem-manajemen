@@ -20,10 +20,15 @@ export function AttachmentUploader({
   entityType,
   entityId,
   attachments,
+  acceptedFileTypes = "application/pdf",
+  acceptLabel = "PDF",
 }: {
   entityType: AttachmentEntityType;
   entityId: string;
   attachments: AttachmentSummary[];
+  /** MIME types diteruskan ke atribut `accept` input file — hanya sebagai bantuan UI, validasi sesungguhnya lewat magic bytes di server. */
+  acceptedFileTypes?: string;
+  acceptLabel?: string;
 }) {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
@@ -85,13 +90,13 @@ export function AttachmentUploader({
       )}
 
       <form onSubmit={handleUpload} className="flex items-center gap-3">
-        <input name="file" type="file" accept="application/pdf" required className="text-sm" />
+        <input name="file" type="file" accept={acceptedFileTypes} required className="text-sm" />
         <button
           type="submit"
           disabled={uploading}
           className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition disabled:opacity-50"
         >
-          {uploading ? "Mengunggah..." : "Unggah PDF"}
+          {uploading ? "Mengunggah..." : `Unggah ${acceptLabel}`}
         </button>
       </form>
       {error && <p className="text-xs text-red-600">{error}</p>}

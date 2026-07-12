@@ -1,12 +1,12 @@
 import { notFound, redirect } from "next/navigation";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, cpdActivities, cpdSettings, employees } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getVisibleEmployeeIds, resolveViewer } from "@/lib/hr/employees";
-import { getCpdHoursSummary } from "@/lib/hr/cpd";
+import { getCpdHoursSummaryBatch } from "@/lib/hr/cpd";
 import { createCpdActivity, updateCpdSettings } from "./actions";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
@@ -27,10 +27,10 @@ export default async function CpdPage({
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; employeeId?: string; yearFrom?: string; yearTo?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error } = await searchParams;
+  const { error, employeeId: employeeIdParam, yearFrom: yearFromParam, yearTo: yearToParam } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -50,17 +50,30 @@ export default async function CpdPage({
   const visibleEmployeeIds = await withTenantContext(tenantContext, (tx) => getVisibleEmployeeIds(tx, { companyId: company.id, viewer }));
 
   const currentYear = new Date().getFullYear();
+  const parsedYearFrom = Number(yearFromParam);
+  const parsedYearTo = Number(yearToParam);
+  const yearFrom = Number.isFinite(parsedYearFrom) && yearFromParam ? parsedYearFrom : currentYear;
+  const yearTo = Number.isFinite(parsedYearTo) && yearToParam ? parsedYearTo : currentYear;
+  const rangeFrom = Math.min(yearFrom, yearTo);
+  const rangeTo = Math.max(yearFrom, yearTo);
+  const yearSpan = rangeTo - rangeFrom + 1;
 
-  const [activityRows, empList, settingsRow] = await Promise.all([
+  // "Semua" kalau kosong ATAU bukan salah satu karyawan yang boleh dilihat viewer ini.
+  const selectedEmployeeId = employeeIdParam && (visibleEmployeeIds === null || visibleEmployeeIds.includes(employeeIdParam)) ? employeeIdParam : null;
+
+  // Filter tabel rekap (karyawan + rentang tahun) langsung di WHERE — sama
+  // seperti ringkasan jam di atas, supaya keduanya dikendalikan 1 filter yang
+  // sama dan tidak ada 2 filter berbeda yang membingungkan di halaman ini.
+  const activityConditions = [eq(cpdActivities.companyId, company.id), gte(cpdActivities.year, rangeFrom), lte(cpdActivities.year, rangeTo)];
+  if (visibleEmployeeIds) activityConditions.push(inArray(cpdActivities.employeeId, visibleEmployeeIds));
+  if (selectedEmployeeId) activityConditions.push(eq(cpdActivities.employeeId, selectedEmployeeId));
+
+  const [activityRows, empList, settingsRow, hoursByEmployee] = await Promise.all([
     withTenantContext(tenantContext, (tx) =>
       tx
         .select()
         .from(cpdActivities)
-        .where(
-          visibleEmployeeIds
-            ? and(eq(cpdActivities.companyId, company.id), inArray(cpdActivities.employeeId, visibleEmployeeIds))
-            : eq(cpdActivities.companyId, company.id)
-        )
+        .where(and(...activityConditions))
         .orderBy(desc(cpdActivities.year), desc(cpdActivities.activityDate))
     ),
     withTenantContext(tenantContext, (tx) =>
@@ -74,18 +87,32 @@ export default async function CpdPage({
         )
     ),
     withTenantContext(tenantContext, (tx) => tx.select().from(cpdSettings).where(eq(cpdSettings.companyId, company.id))),
+    withTenantContext(tenantContext, (tx) =>
+      getCpdHoursSummaryBatch(tx, {
+        companyId: company.id,
+        employeeIds: selectedEmployeeId ? [selectedEmployeeId] : visibleEmployeeIds,
+        yearFrom: rangeFrom,
+        yearTo: rangeTo,
+      })
+    ),
   ]);
 
   const canCreate = hasPermission(session.user.role, "CREATE_CPD_ACTIVITY");
   const canManageSettings = hasPermission(session.user.role, "MANAGE_CPD_SETTINGS");
   const currentTarget = settingsRow[0]?.annualTargetHours ?? null;
+  // Target tahunan dikali jumlah tahun dalam rentang — supaya perbandingan tetap
+  // masuk akal saat admin memfilter lebih dari 1 tahun sekaligus.
+  const rangeTarget = currentTarget != null ? Number(currentTarget) * yearSpan : null;
 
-  const summaries = await Promise.all(
-    empList.map(async (e) => ({
-      employee: e,
-      summary: await withTenantContext(tenantContext, (tx) => getCpdHoursSummary(tx, { companyId: company.id, employeeId: e.id, year: currentYear })),
-    }))
-  );
+  const filteredEmpList = selectedEmployeeId ? empList.filter((e) => e.id === selectedEmployeeId) : empList;
+  const summaries = filteredEmpList.map((e) => ({
+    employee: e,
+    summary: {
+      totalHours: hoursByEmployee.get(e.id) ?? 0,
+      targetHours: rangeTarget,
+      met: rangeTarget != null ? (hoursByEmployee.get(e.id) ?? 0) >= rangeTarget : null,
+    },
+  }));
 
   const columns: DataTableColumn<(typeof activityRows)[number]>[] = [
     { key: "employee", header: "Karyawan", render: (r) => empList.find((e) => e.id === r.employeeId)?.fullName ?? "-" },
@@ -106,13 +133,16 @@ export default async function CpdPage({
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
 
-      <Card title={`Ringkasan Jam CPD ${currentYear}`} description={currentTarget != null ? `Target tahunan: ${currentTarget} jam.` : "Target tahunan belum diatur admin."}>
+      <Card
+        title={`Ringkasan Jam CPD ${rangeFrom === rangeTo ? rangeFrom : `${rangeFrom}–${rangeTo}`}`}
+        description={rangeTarget != null ? `Target periode: ${rangeTarget} jam${yearSpan > 1 ? ` (${currentTarget} jam/tahun × ${yearSpan} tahun)` : ""}.` : "Target tahunan belum diatur admin."}
+      >
         {summaries.length === 0 ? (
           <p className="text-[11px] text-ink-muted italic">Belum ada karyawan untuk ditampilkan.</p>
         ) : (
           <ul className="space-y-2.5">
             {summaries.map(({ employee, summary }) => {
-              const pct = currentTarget ? Math.max(0, Math.min(100, Math.round((summary.totalHours / Number(currentTarget)) * 100))) : null;
+              const pct = rangeTarget ? Math.max(0, Math.min(100, Math.round((summary.totalHours / rangeTarget) * 100))) : null;
               return (
                 <li key={employee.id} className="flex items-center gap-3">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage/20 text-[10px] font-bold text-sage-deep">
@@ -129,7 +159,7 @@ export default async function CpdPage({
                   )}
                   <span className="text-[11px] text-ink-muted whitespace-nowrap shrink-0">
                     <span className="font-bold text-ink">{summary.totalHours}</span>
-                    {currentTarget != null ? ` / ${currentTarget} jam` : " jam"}
+                    {rangeTarget != null ? ` / ${rangeTarget} jam` : " jam"}
                   </span>
                   {summary.met !== null && (
                     <Badge variant={summary.met ? "sage" : "dusty-rose"}>{summary.met ? "Tercapai" : "Belum Tercapai"}</Badge>
@@ -226,6 +256,31 @@ export default async function CpdPage({
           </form>
         </Card>
       )}
+
+      <Card title="Rekap Aktivitas CPD">
+        <form method="get" className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
+            <select name="employeeId" defaultValue={selectedEmployeeId ?? ""} className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
+              <option value="">-- Semua Karyawan --</option>
+              {empList.map((e) => (
+                <option key={e.id} value={e.id}>{e.fullName}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Dari Tahun</label>
+            <input autoComplete="off" name="yearFrom" type="number" defaultValue={rangeFrom} className="w-24 border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Sampai Tahun</label>
+            <input autoComplete="off" name="yearTo" type="number" defaultValue={rangeTo} className="w-24 border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+          </div>
+          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+            Filter
+          </button>
+        </form>
+      </Card>
 
       <DataTable columns={columns} rows={activityRows} rowKey={(r) => r.id} emptyMessage="Belum ada aktivitas CPD tercatat." />
     </div>
