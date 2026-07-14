@@ -92,9 +92,10 @@ export async function finalizePayrollRunAction(formData: FormData): Promise<void
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menyelesaikan payroll.")}`);
   }
 
+  let result;
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      finalizePayrollRun(tx, { companyId, payrollRunId })
+    result = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+      finalizePayrollRun(tx, { companyId, payrollRunId, finalizedBy: session.user.id })
     );
   } catch (err) {
     if (err instanceof PayrollError) {
@@ -109,7 +110,7 @@ export async function finalizePayrollRunAction(formData: FormData): Promise<void
     action: "finalize_payroll_run",
     entityType: "payroll_run",
     entityId: payrollRunId,
-    metadata: {},
+    metadata: { journalEntryId: result.journalEntryId, entryNumber: result.entryNumber },
   });
 
   revalidatePath(redirectBase);

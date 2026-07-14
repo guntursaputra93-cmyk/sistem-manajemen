@@ -2,6 +2,7 @@ import { pgTable, uuid, numeric, jsonb, timestamp, unique } from "drizzle-orm/pg
 import { companies } from "./companies";
 import { payrollRuns } from "./payrollRuns";
 import { employees } from "./employees";
+import { journalEntries } from "./journalEntries";
 
 export const payslips = pgTable("payslips", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -19,10 +20,13 @@ export const payslips = pgTable("payslips", {
   // Sengaja "payslipDetail" (bukan "detail" polos) — token "payslip" ikut tertangkap
   // redaksi Sentry tanpa perlu token generik "detail" yang akan over-match modul lain.
   payslipDetail: jsonb("payslip_detail").notNull(),
-  // Reserved utk integrasi jurnal Fase 3 (Keuangan) — TANPA .references() karena
-  // tabel jurnal belum ada, dan logika pengisiannya BELUM diimplementasikan di
-  // fase ini (lihat lib/hr/payroll.ts — generatePayslipsForRun selalu set null).
-  journalEntryId: uuid("journal_entry_id"),
+  // journal_entries sudah ada (Fase 3 Langkah 2) — FK ditambahkan sesuai instruksi
+  // Bagian 0 ("tambahkan FK constraint saat tabel journal_entries sudah ada"), TAPI
+  // logika pengisiannya MASIH belum diimplementasikan (generatePayslipsForRun tetap
+  // selalu set null, lib/hr/payroll.ts TIDAK disentuh sama sekali di langkah ini —
+  // itu di luar scope "penambahan baris potongan kasbon" Langkah 8). set null: kalau
+  // jurnal yang direferensikan di-void, payslip tidak boleh ikut hilang/gagal delete.
+  journalEntryId: uuid("journal_entry_id").references(() => journalEntries.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   unique("payslips_run_employee_unique").on(table.payrollRunId, table.employeeId),

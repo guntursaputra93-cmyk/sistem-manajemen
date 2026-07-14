@@ -25,6 +25,8 @@ import {
   Folder,
   Handshake,
   Contact,
+  Landmark,
+  Calculator,
   ChevronDown,
   ChevronRight,
   PanelLeftClose,
@@ -57,6 +59,8 @@ const ICON_MAP = {
   folder: Folder,
   handshake: Handshake,
   contact: Contact,
+  landmark: Landmark,
+  calculator: Calculator,
 } satisfies Record<string, LucideIcon>;
 
 export type SidebarIconName = keyof typeof ICON_MAP;

@@ -48,6 +48,7 @@ export default async function CompanyDashboardLayout({
   const sdmKompetensiOn = enabledModules.has("sdm_kompetensi");
   const sdmPayrollOn = enabledModules.has("sdm_payroll");
   const penjadwalanLayananOn = enabledModules.has("penjadwalan_layanan");
+  const keuanganModuleOn = enabledModules.has("keuangan");
 
   const groups: SidebarGroup[] = [];
 
@@ -138,6 +139,13 @@ export default async function CompanyDashboardLayout({
   if (sdmPayrollOn && hasPermission(session.user.role, "VIEW_PAYSLIPS")) {
     sdmItems.push({ href: `/${companySlug}/sdm/gaji-saya`, label: "Gaji Saya", icon: "wallet" });
   }
+  // Kasbon (Fase 3 Langkah 8) SENGAJA TIDAK di-gate module_key apa pun (beda dari
+  // seluruh halaman Keuangan lain di bawah) — ini fitur self-service karyawan, bukan
+  // laporan keuangan, jadi harus tetap bisa diakses staff terlepas modul Keuangan
+  // aktif atau tidak (lihat komentar requireModuleEnabled absen di keuangan/kasbon/page.tsx).
+  if (hasPermission(session.user.role, "VIEW_KASBON_REQUESTS")) {
+    sdmItems.push({ href: `/${companySlug}/keuangan/kasbon`, label: "Kasbon", icon: "wallet" });
+  }
   if (sdmItems.length) groups.push({ label: "SDM", icon: "contact", items: sdmItems });
 
   // Fase 4 — grup sendiri, terpisah dari SDM (keputusan spesifikasi Bagian 1).
@@ -148,6 +156,42 @@ export default async function CompanyDashboardLayout({
     penjadwalanItems.push({ href: `/${companySlug}/penjadwalan/rekap`, label: "Rekap Tahunan", icon: "bar-chart-3" });
   }
   if (penjadwalanItems.length) groups.push({ label: "Penjadwalan", icon: "calendar-days", items: penjadwalanItems });
+
+  // Fase 3 — grup sendiri (Langkah 10). Semua item di sini admin-only (super_admin/
+  // company_admin, lihat rbac/permissions.ts) — staff/department_head tidak akan
+  // pernah melihat grup ini sama sekali (Kasbon, satu-satunya halaman Keuangan yang
+  // staff akses, sengaja ditaruh di grup SDM di atas, bukan di sini).
+  const keuanganItems: SidebarGroup["items"] = [];
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_CHART_OF_ACCOUNTS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/akun`, label: "Chart of Accounts", icon: "file-text" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_JOURNAL_ENTRIES")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/jurnal`, label: "Jurnal Umum", icon: "file-text" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_FINANCIAL_REPORTS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/buku-besar`, label: "Buku Besar", icon: "bar-chart-3" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/neraca`, label: "Neraca", icon: "bar-chart-3" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/laba-rugi`, label: "Laba Rugi", icon: "bar-chart-3" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_AR_INVOICES")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/piutang`, label: "Piutang (AR)", icon: "wallet" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_HPP_PROJECT_COSTS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/hpp`, label: "Biaya Proyek (HPP)", icon: "wallet" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/margin-proyek`, label: "Margin Proyek", icon: "bar-chart-3" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_RKAP_BUDGETS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/rkap`, label: "RKAP", icon: "calculator" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/rkap/realisasi`, label: "Realisasi Anggaran", icon: "calculator" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_FIXED_ASSETS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/aset-tetap`, label: "Aset Tetap", icon: "landmark" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/aset-tetap/penyusutan`, label: "Penyusutan", icon: "landmark" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_BANK_RECONCILIATIONS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/rekonsiliasi-bank`, label: "Rekonsiliasi Bank", icon: "landmark" });
+  }
+  if (keuanganItems.length) groups.push({ label: "Keuangan", icon: "landmark", items: keuanganItems });
 
   const settingsItems: SidebarGroup["items"] = [];
   if (hasPermission(session.user.role, "MANAGE_DEPARTMENTS")) {

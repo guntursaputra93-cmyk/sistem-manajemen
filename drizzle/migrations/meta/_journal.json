@@ -407,6 +407,139 @@
       "when": 1783821842009,
       "tag": "0057_add_logo_url_to_companies",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1783831884777,
+      "tag": "0058_create_chart_of_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1783831884778,
+      "tag": "0059_rls_chart_of_accounts",
+      "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1783836765449,
+      "tag": "0060_create_journal_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1783836765450,
+      "tag": "0061_rls_journal_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1783916605106,
+      "tag": "0062_create_ar_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1783916605107,
+      "tag": "0063_rls_ar_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1783948634027,
+      "tag": "0064_create_hpp_project_costs",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1783948634028,
+      "tag": "0065_rls_hpp_project_costs",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1783971582108,
+      "tag": "0066_create_rkap_budgets",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1783971582109,
+      "tag": "0067_rls_rkap_budgets",
+      "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1783972941410,
+      "tag": "0068_create_fixed_assets_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1783972941411,
+      "tag": "0069_rls_fixed_assets_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 70,
+      "version": "7",
+      "when": 1783972941412,
+      "tag": "0070_backfill_beban_penyusutan_account",
+      "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1783991881083,
+      "tag": "0071_create_kasbon_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1783991881084,
+      "tag": "0072_rls_kasbon_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1783994244993,
+      "tag": "0073_add_source_tracking_to_journal_entries",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1783995338538,
+      "tag": "0074_create_bank_reconciliations",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1783995338539,
+      "tag": "0075_rls_bank_reconciliations",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1784050000000,
+      "tag": "0076_rls_row_level_sensitive_finance",
+      "breakpoints": true
     }
   ]
 }

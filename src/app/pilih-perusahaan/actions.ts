@@ -9,6 +9,7 @@ import { companies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { logAudit } from "@/lib/audit/log";
 import { uploadCompanyLogo, CompanyLogoValidationError } from "@/lib/storage/companyLogo";
+import { seedChartOfAccountsForCompany } from "@/lib/finance/chartOfAccounts";
 
 const CODE_PATTERN = /^[A-Z0-9]{2,10}$/;
 const REDIRECT_BASE = "/pilih-perusahaan";
@@ -50,9 +51,19 @@ export async function createCompany(formData: FormData): Promise<void> {
 
   let newCompanyId: string;
   try {
-    const [company] = await withTenantContext({ role: session.user.role, companyId: null }, (tx) =>
-      tx.insert(companies).values({ name, slug, code, businessType }).returning()
-    );
+    const company = await withTenantContext({ role: session.user.role, companyId: null }, async (tx) => {
+      const [c] = await tx.insert(companies).values({ name, slug, code, businessType }).returning();
+      // Chart of Accounts adalah data referensi dasar (Fase 3 spesifikasi Bagian 1,
+      // template universal — sama untuk semua company terlepas jenis bisnis atau
+      // status module_key='keuangan'), BUKAN sesuatu yang menunggu modul diaktifkan
+      // dulu — sama seperti company tidak menunggu modul apa pun sebelum baris
+      // company-nya sendiri ada. Reuse fungsi yang sama dipakai buat seed 4 company
+      // existing (lib/finance/chartOfAccounts.ts), 1 transaksi dengan insert company
+      // supaya atomik: kalau seeding gagal, pembuatan company ikut batal juga,
+      // tidak pernah ada company tanpa COA.
+      await seedChartOfAccountsForCompany(tx, c.id);
+      return c;
+    });
     newCompanyId = company.id;
   } catch {
     redirect(`${REDIRECT_BASE}?error=${encodeURIComponent("Nama/kode ini menghasilkan slug atau kode yang sudah dipakai — coba nama sedikit berbeda.")}`);

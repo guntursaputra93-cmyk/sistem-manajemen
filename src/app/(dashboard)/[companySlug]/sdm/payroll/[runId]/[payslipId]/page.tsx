@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { companies, payrollRuns, payslips, employees } from "@/drizzle/schema";
+import { companies, payrollRuns, payslips, employees, journalEntries } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { Card } from "@/components/ui/Card";
@@ -53,6 +54,14 @@ export default async function PayslipDetailPage({
   );
 
   const detail = (payslip.payslipDetail as PayslipDetailEntry[]) ?? [];
+
+  // journalEntryId diisi Fase 3 Langkah 8b (finalizePayrollRun) — nullable, tetap null
+  // utk payslip yang dibuat sebelum Langkah 8b atau run yang belum difinalisasi.
+  const canViewJournal = hasPermission(session.user.role, "VIEW_JOURNAL_ENTRIES");
+  const journalEntry =
+    payslip.journalEntryId && canViewJournal
+      ? await withTenantContext(tenantContext, (tx) => tx.select().from(journalEntries).where(eq(journalEntries.id, payslip.journalEntryId!))).then((r) => r[0])
+      : null;
 
   const currentStepIndex = RUN_STEPS.indexOf(run.status);
   // processedAt diset di generatePayslipsForRun (transisi draft->diproses), BUKAN di
@@ -111,6 +120,16 @@ export default async function PayslipDetailPage({
             <dt className="text-ink">Gaji Bersih</dt>
             <dd className="text-ink">Rp {Number(payslip.netSalaryAmount).toLocaleString("id-ID")}</dd>
           </div>
+          {journalEntry && (
+            <div className="flex justify-between">
+              <dt className="text-ink-muted">Jurnal Payroll</dt>
+              <dd>
+                <Link href={`/${companySlug}/keuangan/jurnal/${journalEntry.id}`} className="text-sage-deep hover:underline">
+                  {journalEntry.entryNumber ?? "-"}
+                </Link>
+              </dd>
+            </div>
+          )}
         </dl>
       </Card>
     </div>
