@@ -5,12 +5,13 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { contracts, organizations, serviceAssignments, serviceAssignmentTeam, witnessedAuditEvaluations, performanceEvaluations } from "@/drizzle/schema";
+import { contracts, organizations, serviceAssignments, serviceAssignmentTeam, witnessedAuditEvaluations, performanceEvaluations, caseServiceAssignments } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { computeCompetencyWarnings } from "@/lib/scheduling/assignments";
 import { DEFAULT_WITNESSED_AUDIT_ASPECTS, DEFAULT_PERFORMANCE_EVALUATION_ASPECTS, type EvaluationScore } from "@/lib/scheduling/evaluations";
+import { advanceCaseStage } from "@/lib/cases/autoAdvanceStage";
 
 const VALID_STATUSES = ["dijadwalkan", "berlangsung", "selesai", "dibatalkan"] as const;
 
@@ -146,12 +147,23 @@ export async function updateServiceAssignmentStatus(formData: FormData): Promise
     redirect(`${redirectBase}?error=${encodeURIComponent("Status tidak valid.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx
+  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, async (tx) => {
+    await tx
       .update(serviceAssignments)
       .set({ status: status as (typeof VALID_STATUSES)[number], updatedAt: new Date() })
-      .where(and(eq(serviceAssignments.id, assignmentId), eq(serviceAssignments.companyId, companyId)))
-  );
+      .where(and(eq(serviceAssignments.id, assignmentId), eq(serviceAssignments.companyId, companyId)));
+
+    // Auto-advance stage (langkah 1.6) — assignment 'berlangsung' => tiap case terhubung maju ke 'pelaksanaan'.
+    if (status === "berlangsung") {
+      const links = await tx
+        .select({ caseId: caseServiceAssignments.caseId })
+        .from(caseServiceAssignments)
+        .where(and(eq(caseServiceAssignments.assignmentId, assignmentId), eq(caseServiceAssignments.companyId, companyId)));
+      for (const link of links) {
+        await advanceCaseStage(tx, link.caseId, "pelaksanaan", "assignment_started");
+      }
+    }
+  });
 
   await logAudit({
     companyId,
@@ -286,12 +298,23 @@ export async function createWitnessedAuditEvaluation(formData: FormData): Promis
     scores.push({ aspect: DEFAULT_WITNESSED_AUDIT_ASPECTS[i], score });
   }
 
-  const [evaluation] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx
+  const [evaluation] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, async (tx) => {
+    const inserted = await tx
       .insert(witnessedAuditEvaluations)
       .values({ companyId, assignmentId, observerEmployeeId, evaluationDate, scores, feedbackNotes })
-      .returning()
-  );
+      .returning();
+
+    // Auto-advance stage (langkah 1.6) — evaluasi dibuat => tiap case terhubung ke assignment ini maju ke 'review'.
+    const links = await tx
+      .select({ caseId: caseServiceAssignments.caseId })
+      .from(caseServiceAssignments)
+      .where(and(eq(caseServiceAssignments.assignmentId, assignmentId), eq(caseServiceAssignments.companyId, companyId)));
+    for (const link of links) {
+      await advanceCaseStage(tx, link.caseId, "review", "evaluation_created");
+    }
+
+    return inserted;
+  });
 
   await logAudit({
     companyId,
@@ -368,12 +391,23 @@ export async function createPerformanceEvaluation(formData: FormData): Promise<v
     scores.push({ aspect: DEFAULT_PERFORMANCE_EVALUATION_ASPECTS[i], score });
   }
 
-  const [evaluation] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx
+  const [evaluation] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, async (tx) => {
+    const inserted = await tx
       .insert(performanceEvaluations)
       .values({ companyId, assignmentId, evaluatorEmployeeId, evaluationDate, scores, conclusionNotes })
-      .returning()
-  );
+      .returning();
+
+    // Auto-advance stage (langkah 1.6) — evaluasi dibuat => tiap case terhubung ke assignment ini maju ke 'review'.
+    const links = await tx
+      .select({ caseId: caseServiceAssignments.caseId })
+      .from(caseServiceAssignments)
+      .where(and(eq(caseServiceAssignments.assignmentId, assignmentId), eq(caseServiceAssignments.companyId, companyId)));
+    for (const link of links) {
+      await advanceCaseStage(tx, link.caseId, "review", "evaluation_created");
+    }
+
+    return inserted;
+  });
 
   await logAudit({
     companyId,

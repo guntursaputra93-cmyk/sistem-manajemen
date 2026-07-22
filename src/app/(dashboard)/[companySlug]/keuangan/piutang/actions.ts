@@ -5,11 +5,12 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { arInvoices, contracts } from "@/drizzle/schema";
+import { arInvoices, contracts, cases } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { postInvoice, recordPayment, ArError } from "@/lib/finance/ar";
+import { advanceCaseStage } from "@/lib/cases/autoAdvanceStage";
 
 export async function createInvoice(formData: FormData): Promise<void> {
   const companySlug = formData.get("companySlug")?.toString() ?? "";
@@ -44,12 +45,23 @@ export async function createInvoice(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kontrak tidak ditemukan.")}`);
   }
 
-  const [invoice] = await withTenantContext(tenantContext, (tx) =>
-    tx
+  const [invoice] = await withTenantContext(tenantContext, async (tx) => {
+    const inserted = await tx
       .insert(arInvoices)
       .values({ companyId, contractId, revenueAccountId, invoiceDate, dueDate, amount: amountNum.toFixed(2), description, createdBy: session.user.id })
-      .returning()
-  );
+      .returning();
+
+    // Auto-advance stage (langkah 1.6) — invoice dibuat untuk contract yang ter-link ke case => maju ke 'delivery'.
+    const linkedCases = await tx
+      .select({ id: cases.id })
+      .from(cases)
+      .where(and(eq(cases.contractId, contractId), eq(cases.companyId, companyId)));
+    for (const linked of linkedCases) {
+      await advanceCaseStage(tx, linked.id, "delivery", "invoice_created");
+    }
+
+    return inserted;
+  });
 
   await logAudit({
     companyId,
