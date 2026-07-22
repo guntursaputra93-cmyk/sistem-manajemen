@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -10,6 +9,7 @@ import { changeStageAction, reassignOpportunityAction } from "../actions";
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const STATUS_LABEL: Record<string, string> = { open: "Berjalan", won: "Menang", lost: "Hilang" };
 const STATUS_VARIANT: Record<string, BadgeVariant> = { open: "powder-blue", won: "sage", lost: "destructive" };
@@ -70,13 +70,15 @@ export default async function OpportunityDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
-          &larr; Kembali
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{opp.title}</h1>
-        <p className="text-sm text-ink-muted mt-1">{org?.name}</p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "CRM" },
+          { label: "Opportunity", href: `/${companySlug}/crm/opportunities` },
+          { label: opp.title },
+        ]}
+        title={opp.title}
+        description={org?.name}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

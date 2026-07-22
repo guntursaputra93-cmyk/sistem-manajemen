@@ -12,6 +12,7 @@ import { getTerminology } from "@/lib/modules/terminology";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { AssignmentForm } from "./AssignmentForm";
 
 const TERMINOLOGY_DEFAULTS = { personLabel: "Auditor", assignmentLabel: "Penugasan" };
@@ -122,20 +123,21 @@ export default async function PenjadwalanPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[17px] font-extrabold text-ink">{terminology.assignmentLabel}</h1>
-          <p className="text-sm text-ink-muted mt-1">Penjadwalan {terminology.personLabel.toLowerCase()} ke contract aktif {company.name}.</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href={`/${companySlug}/penjadwalan/kalender`} className="text-[11px] font-semibold text-sage-deep hover:underline">
-            Lihat Kalender →
-          </Link>
-          <Link href={`/${companySlug}/penjadwalan/rekap`} className="text-[11px] font-semibold text-sage-deep hover:underline">
-            Rekap Tahunan →
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Penjadwalan" }, { label: terminology.assignmentLabel }]}
+        title={terminology.assignmentLabel}
+        description={`Penjadwalan ${terminology.personLabel.toLowerCase()} ke contract aktif ${company.name}.`}
+        actions={
+          <div className="flex items-center gap-4">
+            <Link href={`/${companySlug}/penjadwalan/kalender`} className="text-xs font-semibold text-sage-deep hover:underline">
+              Lihat Kalender →
+            </Link>
+            <Link href={`/${companySlug}/penjadwalan/rekap`} className="text-xs font-semibold text-sage-deep hover:underline">
+              Rekap Tahunan →
+            </Link>
+          </div>
+        }
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

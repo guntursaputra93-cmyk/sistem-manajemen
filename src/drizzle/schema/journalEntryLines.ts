@@ -3,6 +3,7 @@ import { sql } from "drizzle-orm";
 import { companies } from "./companies";
 import { journalEntries } from "./journalEntries";
 import { chartOfAccounts } from "./chartOfAccounts";
+import { organizations } from "./organizations";
 
 // companyId didupliksi di sini (bisa di-join lewat journalEntryId) — pola sama
 // seperti payslips.companyId/payrollRunId: tiap tabel punya company_id sendiri
@@ -21,10 +22,19 @@ export const journalEntryLines = pgTable(
     debitAmount: numeric("debit_amount", { precision: 15, scale: 2 }).notNull().default("0"),
     creditAmount: numeric("credit_amount", { precision: 15, scale: 2 }).notNull().default("0"),
     description: text("description"),
+    // Dimensi REKANAN/klien per baris (Item 5b) — inilah yang membuat penelusuran
+    // "biaya / hutang / piutang per rekanan" bisa dilakukan langsung dari baris jurnal,
+    // tanpa join berantai lewat open_items. Diisi manual di form jurnal, atau otomatis
+    // diwarisi dari transaksi terbuka saat penyelesaian (lib/finance/openItems.ts).
+    // restrict — konvensi FK finansial: rekanan yang sudah dipakai jurnal tidak
+    // boleh terhapus.
+    organizationId: uuid("organization_id").references(() => organizations.id, { onDelete: "restrict" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("journal_entry_lines_entry_idx").on(table.journalEntryId),
+    // Penelusuran per rekanan: "semua baris jurnal milik rekanan X".
+    index("journal_entry_lines_company_organization_idx").on(table.companyId, table.organizationId),
     check("journal_entry_lines_amounts_nonneg", sql`${table.debitAmount} >= 0 AND ${table.creditAmount} >= 0`),
     // Satu baris = satu sisi (debit ATAU kredit, tidak dua-duanya, tidak nol dua-duanya)
     // — konvensi double-entry standar, defense-in-depth di bawah validasi balance app-level.

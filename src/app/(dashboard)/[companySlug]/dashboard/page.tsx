@@ -14,15 +14,23 @@ import {
   pipelineStages,
   approvalSteps,
   users,
+  companyModules,
+  arInvoices,
+  employees,
+  competencyTypes,
 } from "@/drizzle/schema";
-import type { Role } from "@/lib/rbac/permissions";
+import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { getVisibleAssigneeIds } from "@/lib/crm/opportunities";
+import { getExpiringCompetencies } from "@/lib/hr/competencies";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { TrailStepper } from "@/components/ui/TrailStepper";
+import { StatCard } from "@/components/ui/StatCard";
 import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
-import { Inbox, Send, FileText, Target } from "lucide-react";
+import { Inbox, Send, FileText, Target, AlertTriangle } from "lucide-react";
+
+const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
 const INCOMING_STATUS_LABEL: Record<string, string> = {
   baru: "Baru",
@@ -100,6 +108,9 @@ export default async function DashboardPage({
     recentIncoming,
     openOpportunities,
     pipelineStageList,
+    financeTrend,
+    dueInvoices,
+    expiringCerts,
   } = await withTenantContext(tenantContext, async (tx) => {
     // department_head butuh tahu departemen sendiri dulu untuk visibility CRM;
     // staff/company_admin/super_admin tidak perlu query tambahan sama sekali.
@@ -194,6 +205,62 @@ export default async function DashboardPage({
         : [];
     }
 
+    // ===== Modul aktif → gate grafik keuangan & pengingat =====
+    const moduleRows = await tx.select().from(companyModules).where(eq(companyModules.companyId, company.id));
+    const enabledModules = new Set(moduleRows.filter((m) => m.isEnabled).map((m) => m.moduleKey));
+
+    // Grafik tren: pendapatan vs biaya(+HPP) per bulan tahun berjalan, jurnal posted.
+    const currentYear = new Date().getFullYear();
+    let financeTrend: { month: number; pendapatan: number; biaya: number }[] = [];
+    if (enabledModules.has("keuangan") && hasPermission(viewerRole, "VIEW_FINANCIAL_REPORTS")) {
+      const trendResult = await tx.execute(sql`
+        select extract(month from je.entry_date)::int as "month",
+          coalesce(sum(case when coa.account_type = 'pendapatan' then jel.credit_amount - jel.debit_amount else 0 end), 0)::float as "pendapatan",
+          coalesce(sum(case when coa.account_type in ('hpp', 'biaya') then jel.debit_amount - jel.credit_amount else 0 end), 0)::float as "biaya"
+        from journal_entry_lines jel
+        join journal_entries je on je.id = jel.journal_entry_id
+        join chart_of_accounts coa on coa.id = jel.account_id
+        where jel.company_id = ${company.id} and je.status = 'posted'
+          and extract(year from je.entry_date) = ${currentYear}
+        group by 1 order by 1
+      `);
+      financeTrend = trendResult as unknown as { month: number; pendapatan: number; biaya: number }[];
+    }
+
+    // Pengingat: invoice belum lunas yang jatuh tempo ≤7 hari / sudah lewat.
+    let dueInvoices: { id: string; invoiceNumber: string | null; dueDate: string; amount: string; status: string }[] = [];
+    if (enabledModules.has("keuangan") && hasPermission(viewerRole, "VIEW_AR_INVOICES")) {
+      const soon = new Date();
+      soon.setDate(soon.getDate() + 7);
+      dueInvoices = await tx
+        .select({ id: arInvoices.id, invoiceNumber: arInvoices.invoiceNumber, dueDate: arInvoices.dueDate, amount: arInvoices.amount, status: arInvoices.status })
+        .from(arInvoices)
+        .where(and(eq(arInvoices.companyId, company.id), inArray(arInvoices.status, ["belum_dibayar", "sebagian", "jatuh_tempo"])))
+        .orderBy(asc(arInvoices.dueDate))
+        .then((rows) => rows.filter((r) => r.dueDate <= soon.toISOString().slice(0, 10)).slice(0, 5));
+    }
+
+    // Pengingat: sertifikat kompetensi kedaluwarsa ≤3 bulan.
+    let expiringCerts: { id: string; employeeName: string; typeName: string; expiresAt: string | null }[] = [];
+    if (enabledModules.has("sdm_kompetensi") && hasPermission(viewerRole, "VIEW_EMPLOYEE_COMPETENCIES")) {
+      const expRows = await getExpiringCompetencies(tx, { companyId: company.id, withinMonths: 3 });
+      const top = expRows.slice(0, 5);
+      const empIds = [...new Set(top.map((r) => r.employeeId))];
+      const typeIds = [...new Set(top.map((r) => r.competencyTypeId))];
+      const [empRows, typeRows] = await Promise.all([
+        empIds.length ? tx.select({ id: employees.id, fullName: employees.fullName }).from(employees).where(inArray(employees.id, empIds)) : [],
+        typeIds.length ? tx.select({ id: competencyTypes.id, name: competencyTypes.name }).from(competencyTypes).where(inArray(competencyTypes.id, typeIds)) : [],
+      ]);
+      const empName = new Map(empRows.map((e) => [e.id, e.fullName]));
+      const typeName = new Map(typeRows.map((t) => [t.id, t.name]));
+      expiringCerts = top.map((r) => ({
+        id: r.id,
+        employeeName: empName.get(r.employeeId) ?? "-",
+        typeName: typeName.get(r.competencyTypeId) ?? "-",
+        expiresAt: r.expiresAt,
+      }));
+    }
+
     return {
       monthlyCounts: { suratMasuk: counts.suratMasukCount, suratKeluar: counts.suratKeluarCount },
       activeDocumentCount: counts.dokumenAktifCount,
@@ -204,6 +271,9 @@ export default async function DashboardPage({
       recentIncoming: incomingRows,
       openOpportunities: oppRows,
       pipelineStageList: stageList,
+      financeTrend,
+      dueInvoices,
+      expiringCerts,
     };
   });
 
@@ -217,34 +287,106 @@ export default async function DashboardPage({
     { label: "Opportunity Terbuka", value: opportunityOpenCount, icon: Target, href: `/${companySlug}/crm/opportunities` },
   ];
 
+  // Grafik tren: lengkapi 12 bulan (bulan tanpa transaksi = 0), skala relatif thd nilai terbesar.
+  const trendByMonth = new Map(financeTrend.map((t) => [t.month, t]));
+  const trendMonths = Array.from({ length: 12 }, (_, i) => {
+    const t = trendByMonth.get(i + 1);
+    return { month: i + 1, pendapatan: t?.pendapatan ?? 0, biaya: t?.biaya ?? 0 };
+  });
+  const trendMax = Math.max(1, ...trendMonths.flatMap((t) => [t.pendapatan, t.biaya]));
+  const showTrend = financeTrend.length > 0;
+  const attentionCount = dueInvoices.length + expiringCerts.length;
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">
+        <h1 className="font-display text-xl font-extrabold text-ink">
           {greeting(now.getHours())}, {session.user.name ?? "Pengguna"}
         </h1>
-        <p className="text-[11px] text-ink-muted mt-1">
+        <p className="text-[13px] text-ink-muted mt-1">
           Berikut ringkasan aktivitas {company.name} hari ini, {tanggalHariIni}.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {summaryCards.map(({ label, value, icon: Icon, href }) => (
-          <Link key={label} href={href}>
-            <Card className="border border-transparent hover:border-sage-deep/20 hover:shadow-[0_2px_16px_rgba(0,0,0,0.08)] transition-all">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[10px] font-semibold text-ink-muted">{label}</p>
-                  <p className="font-display text-4xl font-extrabold text-ink mt-2">{value}</p>
-                </div>
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sage/20">
-                  <Icon size={14} className="text-sage-deep" aria-hidden="true" />
-                </span>
-              </div>
-            </Card>
+          <Link key={label} href={href} className="block rounded-[14px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
+            <StatCard label={label} value={value} icon={<Icon size={15} aria-hidden="true" />} />
           </Link>
         ))}
       </div>
+
+      {(showTrend || attentionCount > 0) && (
+        <div className={`grid grid-cols-1 gap-6 ${showTrend && attentionCount > 0 ? "lg:grid-cols-[3fr_2fr]" : ""}`}>
+          {showTrend && (
+            <Card
+              title={`Tren Keuangan ${now.getFullYear()}`}
+              description="Pendapatan vs Biaya+HPP per bulan — dari jurnal berstatus posted."
+            >
+              <div className="flex items-end gap-1.5 pt-2" style={{ height: "150px" }}>
+                {trendMonths.map((t) => (
+                  <div key={t.month} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                    <div className="flex h-full w-full items-end justify-center gap-[3px]">
+                      <div
+                        className="w-[9px] rounded-t bg-success/80 transition-[height] duration-500"
+                        style={{ height: `${Math.round((t.pendapatan / trendMax) * 100)}%` }}
+                        title={`Pendapatan ${MONTH_SHORT[t.month - 1]}: ${formatRupiah(String(t.pendapatan))}`}
+                      />
+                      <div
+                        className="w-[9px] rounded-t bg-coral transition-[height] duration-500"
+                        style={{ height: `${Math.round((t.biaya / trendMax) * 100)}%` }}
+                        title={`Biaya+HPP ${MONTH_SHORT[t.month - 1]}: ${formatRupiah(String(t.biaya))}`}
+                      />
+                    </div>
+                    <span className="text-[10px] text-ink-muted">{MONTH_SHORT[t.month - 1]}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center gap-4 text-xs text-ink-muted">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-success/80" /> Pendapatan
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-sm bg-coral" /> Biaya + HPP
+                </span>
+              </div>
+            </Card>
+          )}
+
+          {attentionCount > 0 && (
+            <Card
+              title="Perlu Perhatian"
+              description="Pengingat otomatis — invoice hampir/lewat jatuh tempo & sertifikat hampir kedaluwarsa."
+              action={
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive/10">
+                  <AlertTriangle size={14} className="text-destructive" aria-hidden="true" />
+                </span>
+              }
+            >
+              <ul className="space-y-2 text-[13px]">
+                {dueInvoices.map((inv) => (
+                  <li key={inv.id} className="flex items-center justify-between gap-3 border-b border-ink-muted/10 pb-2">
+                    <Link href={`/${companySlug}/keuangan/piutang/${inv.id}`} className="min-w-0 truncate text-ink hover:underline">
+                      Invoice {inv.invoiceNumber ?? "(draft)"} — {formatRupiah(inv.amount)}
+                    </Link>
+                    <span className="shrink-0 text-xs font-semibold text-destructive">
+                      tempo {new Date(inv.dueDate).toLocaleDateString("id-ID")}
+                    </span>
+                  </li>
+                ))}
+                {expiringCerts.map((cert) => (
+                  <li key={cert.id} className="flex items-center justify-between gap-3 border-b border-ink-muted/10 pb-2">
+                    <Link href={`/${companySlug}/sdm/kompetensi`} className="min-w-0 truncate text-ink hover:underline">
+                      {cert.employeeName} — {cert.typeName}
+                    </Link>
+                    <span className="shrink-0 text-xs font-semibold text-destructive">exp {cert.expiresAt ?? "-"}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+        </div>
+      )}
 
       <Card
         title="Proses Terkini"

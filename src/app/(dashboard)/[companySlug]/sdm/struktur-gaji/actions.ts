@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { employeeSalaryStructures } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 export async function addSalaryStructure(formData: FormData): Promise<void> {
@@ -19,6 +20,8 @@ export async function addSalaryStructure(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_EMPLOYEE_SALARY_STRUCTURE")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur struktur gaji.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_payroll" });
 
   const salaryComponentId = formData.get("salaryComponentId")?.toString() ?? "";
   const salaryAmount = formData.get("salaryAmount")?.toString() ?? "";
@@ -60,6 +63,8 @@ export async function endSalaryStructure(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_EMPLOYEE_SALARY_STRUCTURE")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur struktur gaji.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_payroll" });
 
   const endDate = formData.get("endDate")?.toString() || "";
   if (!endDate) {

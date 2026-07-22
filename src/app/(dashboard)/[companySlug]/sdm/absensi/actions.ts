@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { attendanceRecords } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 const ATTENDANCE_STATUSES = ["hadir", "izin", "sakit", "alpha", "cuti"] as const;
@@ -19,6 +20,8 @@ export async function recordAttendance(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_ATTENDANCE")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mencatat absensi.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_cuti_absensi" });
 
   const employeeId = formData.get("employeeId")?.toString() ?? "";
   const attendanceDate = formData.get("attendanceDate")?.toString() || "";

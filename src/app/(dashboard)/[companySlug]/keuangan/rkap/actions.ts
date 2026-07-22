@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { upsertBudget, setMonthlyBreakdown, RkapError } from "@/lib/finance/rkap";
 
@@ -18,6 +19,8 @@ export async function createOrUpdateBudget(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_RKAP_BUDGETS")) {
     redirect(`${redirectBase}&error=${encodeURIComponent("Tidak punya izin mengatur RKAP.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const accountId = formData.get("accountId")?.toString() ?? "";
   const budgetedAmount = (formData.get("budgetedAmount")?.toString().trim() || "").replace(",", ".");
@@ -63,6 +66,8 @@ export async function saveMonthlyBreakdown(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_RKAP_BUDGETS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur RKAP.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const monthlyAmounts = Array.from({ length: 12 }, (_, idx) => (formData.get(`month_${idx + 1}`)?.toString().trim() || "0").replace(",", "."));
 

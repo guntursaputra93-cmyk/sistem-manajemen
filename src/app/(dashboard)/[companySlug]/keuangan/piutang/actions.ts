@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { arInvoices, contracts } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { postInvoice, recordPayment, ArError } from "@/lib/finance/ar";
 
@@ -19,6 +20,8 @@ export async function createInvoice(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_AR_INVOICES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat invoice.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const contractId = formData.get("contractId")?.toString() ?? "";
   const revenueAccountId = formData.get("revenueAccountId")?.toString() ?? "";
@@ -72,6 +75,8 @@ export async function postInvoiceAction(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin memposting invoice.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
+
   let result;
   try {
     result = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
@@ -107,6 +112,8 @@ export async function recordPaymentAction(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_AR_INVOICES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mencatat pembayaran.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const paymentDate = formData.get("paymentDate")?.toString() ?? "";
   const amount = (formData.get("amount")?.toString().trim() || "").replace(",", ".");

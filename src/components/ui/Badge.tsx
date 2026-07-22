@@ -2,20 +2,21 @@ import { ReactNode } from "react";
 
 export type BadgeVariant = "sage" | "powder-blue" | "dusty-rose" | "destructive";
 
-// Tint 20% + teks ink (BUKAN warna "-deep" masing-masing varian) — diaudit lewat
-// skrip kontras WCAG (Bagian 6 spesifikasi desain): kombinasi tint+"-deep" text
-// gagal utk powder-blue (maks ~4.53:1 bahkan di tint 0%) dan destructive
-// (~4.48:1 di tint 10%). text-ink di atas tint manapun konsisten >7.5:1.
+// Tema Sunset Peach: varian "sage" dipakai halaman-halaman sebagai makna
+// SUKSES/aktif (mis. status "Aktif", "Disetujui") — supaya tetap terbaca
+// sebagai hijau-oke (bukan peach), varian ini dipetakan ke hijau zaitun redup
+// (--color-success), bukan alias sage→peach. Varian lain mengikuti palet baru.
+// Teks tetap ink di atas tint supaya kontras aman (>7:1).
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  sage: "bg-sage/20 text-ink",
-  "powder-blue": "bg-powder-blue/20 text-ink",
-  "dusty-rose": "bg-dusty-rose/20 text-ink",
+  sage: "bg-success/20 text-ink",
+  "powder-blue": "bg-butter/30 text-ink",
+  "dusty-rose": "bg-coral/25 text-ink",
   destructive: "bg-destructive/20 text-ink",
 };
 
 export function Badge({ variant, children }: { variant: BadgeVariant; children: ReactNode }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${VARIANT_STYLES[variant]}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold ${VARIANT_STYLES[variant]}`}>
       {children}
     </span>
   );

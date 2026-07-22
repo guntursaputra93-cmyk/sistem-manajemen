@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { payrollRuns } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { generatePayslipsForRun, finalizePayrollRun, PayrollError } from "@/lib/hr/payroll";
 
@@ -18,6 +19,8 @@ export async function createPayrollRun(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "RUN_PAYROLL")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat payroll run.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_payroll" });
 
   const periodMonth = Number(formData.get("periodMonth"));
   const periodYear = Number(formData.get("periodYear"));
@@ -56,6 +59,8 @@ export async function generatePayslipsAction(formData: FormData): Promise<void> 
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin memproses payroll.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_payroll" });
+
   let result;
   try {
     result = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
@@ -91,6 +96,8 @@ export async function finalizePayrollRunAction(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "RUN_PAYROLL")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menyelesaikan payroll.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_payroll" });
 
   let result;
   try {

@@ -185,32 +185,53 @@ export async function finalizePayrollRun(
 
   const runPayslips = await tx.select().from(payslips).where(eq(payslips.payrollRunId, params.payrollRunId));
 
+  // Peta komponen gaji → akun kewajiban (TODO #1). Komponen potongan yang punya
+  // liability_account_id akan dikredit ke akunnya sendiri, bukan menumpuk ke Utang Gaji.
+  const components = await tx.select().from(salaryComponents).where(eq(salaryComponents.companyId, params.companyId));
+  const liabilityAccountByComponentId = new Map(components.map((c) => [c.id, c.liabilityAccountId]));
+
   let totalGross = 0;
   let totalKasbonOffset = 0;
+  // accountId → total potongan non-kasbon yang dipetakan ke akun tsb.
+  const deductionByAccount = new Map<string, number>();
 
   for (const p of runPayslips) {
     totalGross += Number(p.grossSalaryAmount);
     const detail = (p.payslipDetail as PayslipDetailEntry[]) ?? [];
     for (const entry of detail) {
-      if (entry.componentName !== "Cicilan Kasbon") continue;
-      totalKasbonOffset += Number(entry.amount);
+      if (entry.componentName === "Cicilan Kasbon") {
+        totalKasbonOffset += Number(entry.amount);
 
-      const [kasbon] = await tx.select().from(kasbonRequests).where(and(eq(kasbonRequests.id, entry.componentId), eq(kasbonRequests.companyId, params.companyId)));
-      if (!kasbon) continue; // defensif — seharusnya selalu ada, entry dibuat dari baris kasbon yang sama
+        const [kasbon] = await tx.select().from(kasbonRequests).where(and(eq(kasbonRequests.id, entry.componentId), eq(kasbonRequests.companyId, params.companyId)));
+        if (!kasbon) continue; // defensif — seharusnya selalu ada, entry dibuat dari baris kasbon yang sama
 
-      const newRemaining = Math.max(0, Number(kasbon.remainingBalance) - Number(entry.amount));
-      await tx
-        .update(kasbonRequests)
-        .set({ remainingBalance: newRemaining.toFixed(2), status: newRemaining <= 0.005 ? "lunas" : kasbon.status, updatedAt: new Date() })
-        .where(eq(kasbonRequests.id, kasbon.id));
+        const newRemaining = Math.max(0, Number(kasbon.remainingBalance) - Number(entry.amount));
+        await tx
+          .update(kasbonRequests)
+          .set({ remainingBalance: newRemaining.toFixed(2), status: newRemaining <= 0.005 ? "lunas" : kasbon.status, updatedAt: new Date() })
+          .where(eq(kasbonRequests.id, kasbon.id));
+        continue;
+      }
+
+      // Potongan NON-kasbon (mis. BPJS, PPh 21): kalau komponennya dipetakan ke akun
+      // kewajiban, akumulasikan ke akun itu. Kalau tidak (liabilityAccountId null),
+      // dibiarkan — nanti ikut ke Utang Gaji seperti perilaku lama.
+      if (entry.componentType !== "potongan") continue;
+      const accId = liabilityAccountByComponentId.get(entry.componentId);
+      if (!accId) continue;
+      deductionByAccount.set(accId, (deductionByAccount.get(accId) ?? 0) + Number(entry.amount));
     }
   }
+
+  const totalMappedDeductions = [...deductionByAccount.values()].reduce((s, v) => s + v, 0);
 
   if (runPayslips.length === 0 || totalGross <= 0) {
     return { journalEntryId: null, entryNumber: null };
   }
 
-  const totalUtangGaji = totalGross - totalKasbonOffset;
+  // Utang Gaji = gross − kasbon − potongan bermap-akun. Yang tersisa = gaji bersih
+  // (yang dibayarkan ke karyawan) + potongan non-kasbon yang TIDAK dipetakan akunnya.
+  const totalUtangGaji = totalGross - totalKasbonOffset - totalMappedDeductions;
 
   const bebanGajiAccount = await getAccountByCode(tx, params.companyId, BEBAN_GAJI_CODE);
 
@@ -236,6 +257,17 @@ export async function finalizePayrollRun(
   if (totalKasbonOffset > 0) {
     const piutangKaryawanAccount = await getAccountByCode(tx, params.companyId, PIUTANG_KARYAWAN_CODE);
     lines.push({ companyId: params.companyId, journalEntryId: entry.id, accountId: piutangKaryawanAccount.id, lineOrder: lineOrder++, debitAmount: "0", creditAmount: totalKasbonOffset.toFixed(2) });
+  }
+  // Satu baris kredit per akun kewajiban potongan (mis. Utang BPJS, Utang PPh 21).
+  // Validasi akun posting non-header app-level (defense-in-depth) — sama pola dgn
+  // validasi is_header di jurnal lain.
+  for (const [accId, amount] of deductionByAccount) {
+    if (!(amount > 0)) continue;
+    const [acc] = await tx.select().from(chartOfAccounts).where(and(eq(chartOfAccounts.id, accId), eq(chartOfAccounts.companyId, params.companyId)));
+    if (!acc || acc.isHeader) {
+      throw new PayrollError("Akun kewajiban potongan gaji tidak valid (akun header/grup) — perbaiki di Komponen Gaji.");
+    }
+    lines.push({ companyId: params.companyId, journalEntryId: entry.id, accountId: accId, lineOrder: lineOrder++, debitAmount: "0", creditAmount: amount.toFixed(2) });
   }
   await tx.insert(journalEntryLines).values(lines);
 

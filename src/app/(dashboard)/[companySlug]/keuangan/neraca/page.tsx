@@ -8,26 +8,28 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { getBalanceSheet, type AccountBalanceRow } from "@/lib/finance/reports";
 import { formatRupiah } from "@/lib/finance/format";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { inputClass } from "@/components/ui/FormField";
+import { PrintButton } from "@/components/ui/PrintButton";
+import { Download } from "lucide-react";
+import { ReportSection } from "@/components/finance/ReportSection";
 
-function AccountRow({ row }: { row: AccountBalanceRow }) {
-  const { account, balance } = row;
-  return (
-    <div
-      style={{ marginLeft: `${(account.level - 1) * 20}px` }}
-      className={`flex items-center justify-between gap-3 px-3 py-1.5 ${account.isHeader ? "font-bold text-ink" : "text-ink"}`}
-    >
-      <span className="text-[11px]">{account.code} · {account.name}</span>
-      <span className="text-[11px] tabular-nums">{formatRupiah(balance)}</span>
-    </div>
-  );
-}
+// Pilihan tingkat detail COA (permintaan user): tampilkan hanya sampai level
+// tertentu. Saldo header sudah agregat seluruh keturunannya (rollUpAccountBalances),
+// jadi cukup menyaring baris — angka total tetap benar.
+const LEVEL_OPTIONS = [
+  { value: "", label: "Semua akun (detail)" },
+  { value: "1", label: "Level 1 — Kelompok utama" },
+  { value: "2", label: "Level 2 — Golongan" },
+  { value: "3", label: "Level 3 — Sub-golongan" },
+];
 
 export default async function BalanceSheetPage({
   params,
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ per?: string }>;
+  searchParams: Promise<{ per?: string; level?: string }>;
 }) {
   const { companySlug } = await params;
   const session = await auth();
@@ -46,81 +48,111 @@ export default async function BalanceSheetPage({
   await withTenantContext(tenantContext, (tx) => requireModuleEnabled(tx, { companyId: company.id, moduleKey: "keuangan", companySlug }));
 
   const today = new Date().toISOString().slice(0, 10);
-  const { per = today } = await searchParams;
+  const { per = today, level } = await searchParams;
+  const maxLevel = level && ["1", "2", "3"].includes(level) ? Number(level) : null;
 
   const balanceSheet = await withTenantContext(tenantContext, (tx) => getBalanceSheet(tx, { companyId: company.id, asOfDate: per }));
 
-  const asetRows = balanceSheet.rows.filter((r) => r.account.accountType === "aset");
-  const kewajibanRows = balanceSheet.rows.filter((r) => r.account.accountType === "kewajiban");
-  const modalRows = balanceSheet.rows.filter((r) => r.account.accountType === "modal");
+  const byTypeAndLevel = (type: string) => (r: AccountBalanceRow) =>
+    r.account.accountType === type && (maxLevel === null || r.account.level <= maxLevel);
+  const asetRows = balanceSheet.rows.filter(byTypeAndLevel("aset"));
+  const kewajibanRows = balanceSheet.rows.filter(byTypeAndLevel("kewajiban"));
+  const modalRows = balanceSheet.rows.filter(byTypeAndLevel("modal"));
   const isBalanced = Math.abs(balanceSheet.selisih) < 0.005;
+
+  // CSV utk Excel (delimiter ; sesuai locale ID, BOM supaya UTF-8 terbaca) —
+  // di-embed sebagai data URI, tanpa route/dependensi tambahan.
+  const csvSections: { title: string; rows: AccountBalanceRow[]; total: number }[] = [
+    { title: "ASET", rows: asetRows, total: balanceSheet.asetTotal },
+    { title: "KEWAJIBAN", rows: kewajibanRows, total: balanceSheet.kewajibanTotal },
+    { title: "MODAL", rows: modalRows, total: balanceSheet.modalTotal },
+  ];
+  const csvLines: string[] = [`Neraca ${company.name};;`, `Per tanggal;${per};`, "Kode;Nama Akun;Saldo"];
+  for (const s of csvSections) {
+    csvLines.push(`${s.title};;`);
+    for (const r of s.rows) csvLines.push(`${r.account.code};"${r.account.name.replaceAll('"', '""')}";${r.balance}`);
+    csvLines.push(`;TOTAL ${s.title};${s.total}`);
+  }
+  const csvHref = `data:text/csv;charset=utf-8,${encodeURIComponent("﻿" + csvLines.join("\r\n"))}`;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Neraca</h1>
-        <p className="text-sm text-ink-muted mt-1">Posisi keuangan {company.name} per tanggal terpilih — hanya jurnal berstatus posted.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Keuangan" }, { label: "Neraca" }]}
+        title="Neraca"
+        description={`Posisi keuangan ${company.name} per tanggal terpilih — hanya jurnal berstatus posted.`}
+        actions={
+          <>
+            <a
+              href={csvHref}
+              download={`neraca-${company.slug}-${per}.csv`}
+              className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-muted/20 px-3 py-2 text-[13px] font-semibold text-ink transition-colors hover:bg-ink-muted/5 print:hidden"
+            >
+              <Download size={14} aria-hidden="true" />
+              Unduh Excel (CSV)
+            </a>
+            <PrintButton />
+          </>
+        }
+      />
 
-      <Card title="Filter">
-        <form method="get" className="flex items-end gap-4">
+      <Card className="print:hidden" title="Filter">
+        <form method="get" className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Per Tanggal</label>
-            <input autoComplete="off" name="per" type="date" defaultValue={per} className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+            <label className="block text-xs font-semibold text-ink-muted mb-1">Per Tanggal</label>
+            <input autoComplete="off" name="per" type="date" defaultValue={per} className={inputClass} />
           </div>
-          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+          <div>
+            <label className="block text-xs font-semibold text-ink-muted mb-1">Tingkat Detail COA</label>
+            <select name="level" defaultValue={level ?? ""} className={inputClass}>
+              {LEVEL_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <button type="submit" className="bg-peach-deep hover:bg-peach-deep/90 text-white text-[13px] font-bold px-4 py-2 rounded-[10px] transition-colors cursor-pointer">
             Tampilkan
           </button>
         </form>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Aset" description={`Total: ${formatRupiah(balanceSheet.asetTotal)}`}>
-          {asetRows.map((r) => (
-            <AccountRow key={r.account.id} row={r} />
-          ))}
-        </Card>
-
-        <div className="space-y-6">
-          <Card title="Kewajiban" description={`Total: ${formatRupiah(balanceSheet.kewajibanTotal)}`}>
-            {kewajibanRows.map((r) => (
-              <AccountRow key={r.account.id} row={r} />
-            ))}
-          </Card>
-
-          <Card title="Modal" description={`Total (termasuk laba/rugi tahun berjalan): ${formatRupiah(balanceSheet.modalTotal)}`}>
-            {modalRows.map((r) => (
-              <AccountRow key={r.account.id} row={r} />
-            ))}
-            <div className="flex items-center justify-between gap-3 px-3 py-1.5 font-bold text-ink border-t border-ink-muted/10 mt-1 pt-2">
-              <span className="text-[11px]">Laba (Rugi) Tahun Berjalan</span>
-              <span className="text-[11px] tabular-nums">{formatRupiah(balanceSheet.netIncomeYtd)}</span>
-            </div>
-            {Math.abs(balanceSheet.unclosedPriorYearsEarnings) >= 0.005 && (
+      {/* 1 card utuh — subtotal per golongan, jumlah kelompok utama di bawah tiap bagian. */}
+      <Card title="Neraca" description={`Per ${new Date(per).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}>
+        <ReportSection label="Aset" rows={asetRows} total={balanceSheet.asetTotal} maxLevel={maxLevel} />
+        <ReportSection label="Kewajiban" rows={kewajibanRows} total={balanceSheet.kewajibanTotal} maxLevel={maxLevel} />
+        <ReportSection
+          label="Modal"
+          rows={modalRows}
+          total={balanceSheet.modalTotal}
+          maxLevel={maxLevel}
+          beforeTotal={
+            <>
               <div className="flex items-center justify-between gap-3 px-3 py-1.5 font-bold text-ink">
-                <span className="text-[11px]">Laba (Rugi) Tahun Sebelumnya (belum ditutup)</span>
-                <span className="text-[11px] tabular-nums">{formatRupiah(balanceSheet.unclosedPriorYearsEarnings)}</span>
+                <span className="text-[13px]">Laba (Rugi) Tahun Berjalan</span>
+                <span className="text-[13px] tabular-nums">{formatRupiah(balanceSheet.netIncomeYtd)}</span>
               </div>
-            )}
-          </Card>
-        </div>
-      </div>
+              {Math.abs(balanceSheet.unclosedPriorYearsEarnings) >= 0.005 && (
+                <div className="flex items-center justify-between gap-3 px-3 py-1.5 font-bold text-ink">
+                  <span className="text-[13px]">Laba (Rugi) Tahun Sebelumnya (belum ditutup)</span>
+                  <span className="text-[13px] tabular-nums">{formatRupiah(balanceSheet.unclosedPriorYearsEarnings)}</span>
+                </div>
+              )}
+            </>
+          }
+        />
 
-      <Card title="Ringkasan">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
-          <div>
-            <p className="text-ink-muted">Total Aset</p>
-            <p className="font-bold text-ink">{formatRupiah(balanceSheet.asetTotal)}</p>
+        <div className="mt-4 space-y-1 border-t-2 border-ink-muted/15 pt-3">
+          <div className="flex items-center justify-between px-3 text-[13px] font-bold text-ink">
+            <span>Total Aset</span>
+            <span className="tabular-nums">{formatRupiah(balanceSheet.asetTotal)}</span>
           </div>
-          <div>
-            <p className="text-ink-muted">Total Kewajiban + Modal</p>
-            <p className="font-bold text-ink">{formatRupiah(balanceSheet.kewajibanTotal + balanceSheet.modalTotal)}</p>
+          <div className="flex items-center justify-between px-3 text-[13px] font-bold text-ink">
+            <span>Total Kewajiban + Modal</span>
+            <span className="tabular-nums">{formatRupiah(balanceSheet.kewajibanTotal + balanceSheet.modalTotal)}</span>
           </div>
-          <div>
-            <p className="text-ink-muted">Selisih</p>
-            <p className={`font-bold ${isBalanced ? "text-sage-deep" : "text-destructive"}`}>
-              {formatRupiah(balanceSheet.selisih)} {isBalanced ? "(balance)" : "(TIDAK BALANCE — periksa jurnal)"}
-            </p>
+          <div className={`flex items-center justify-between px-3 text-[13px] font-bold ${isBalanced ? "text-success" : "text-destructive"}`}>
+            <span>Selisih {isBalanced ? "(balance)" : "(TIDAK BALANCE — periksa jurnal)"}</span>
+            <span className="tabular-nums">{formatRupiah(balanceSheet.selisih)}</span>
           </div>
         </div>
       </Card>

@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { calibrationMeetings, calibrationAttendees } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 export async function createCalibrationMeeting(formData: FormData): Promise<void> {
@@ -18,6 +19,8 @@ export async function createCalibrationMeeting(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_CALIBRATION_MEETINGS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat notulen kalibrasi.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const meetingDate = formData.get("meetingDate")?.toString() || "";
   const locationOrMedia = formData.get("locationOrMedia")?.toString().trim() || null;
@@ -56,6 +59,8 @@ export async function updateCalibrationMeeting(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_CALIBRATION_MEETINGS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah notulen kalibrasi.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const meetingDate = formData.get("meetingDate")?.toString() || "";
   const locationOrMedia = formData.get("locationOrMedia")?.toString().trim() || null;
@@ -99,6 +104,8 @@ export async function addAttendee(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menambah peserta.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
+
   const employeeId = formData.get("employeeId")?.toString() || null;
   const attendeeName = formData.get("attendeeName")?.toString().trim() || null;
   const attendeeRole = formData.get("attendeeRole")?.toString().trim() || null;
@@ -127,6 +134,8 @@ export async function toggleAttendeeSigned(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_CALIBRATION_MEETINGS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah status tanda tangan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
     tx

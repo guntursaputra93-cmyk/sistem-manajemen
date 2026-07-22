@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, outgoingLetters, users } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import {
   submitForApproval,
@@ -25,6 +26,8 @@ export async function createOutgoingLetter(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_OUTGOING_LETTER")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat surat.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "surat_masuk_keluar" });
 
   const letterCategory = formData.get("letterCategory")?.toString() ?? "";
   const departmentId = formData.get("departmentId")?.toString() ?? "";
@@ -99,6 +102,8 @@ export async function submitForApprovalAction(formData: FormData): Promise<void>
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengajukan approval.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "surat_masuk_keluar" });
+
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
   if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
@@ -138,6 +143,8 @@ export async function decideApprovalAction(formData: FormData): Promise<void> {
   if (!session?.user) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Sesi tidak valid.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "surat_masuk_keluar" });
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
@@ -184,6 +191,8 @@ export async function markSentAction(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MARK_OUTGOING_LETTER_SENT")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menandai terkirim.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "surat_masuk_keluar" });
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));

@@ -7,6 +7,9 @@ import { hasPermission, ROLE_LABEL } from "@/lib/rbac/permissions";
 import { addApprovalStep, deleteApprovalStep } from "./actions";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const APPLIES_TO_LABEL: Record<string, string> = {
   surat_keluar: "Surat Keluar",
@@ -61,86 +64,70 @@ export default async function ApprovalFlowsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Jenjang Approval</h1>
-        <p className="text-sm text-ink-muted mt-1">Atur urutan approval per jenis. Tiap jenis boleh punya jumlah jenjang berbeda.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Pengaturan" }, { label: "Jenjang Approval" }]}
+        title="Jenjang Approval"
+        description="Atur urutan approval per jenis. Tiap jenis boleh punya jumlah jenjang berbeda."
+        actions={
+          <FormDrawer buttonLabel="Tambah Jenjang" title="Tambah Jenjang Approval" defaultOpen={Boolean(error)}>
+            {error && (
+              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                {error}
+              </div>
+            )}
+            <form action={addApprovalStep}>
+              <input type="hidden" name="companySlug" value={companySlug} />
+              <FormSection title="① Berlaku Untuk">
+                <FormField label="Berlaku untuk *">
+                  <select name="appliesTo" className={inputClass} required>
+                    <option value="surat_keluar">Surat Keluar</option>
+                    <option value="nota_dinas">Nota Dinas</option>
+                    <option value="dokumen">Dokumen</option>
+                  </select>
+                </FormField>
+                <FormField label="Jenis" hint="bebas, mis. internal">
+                  <input autoComplete="off" name="jenisKey" required className={inputClass} />
+                </FormField>
+                <FormField label="Urutan Jenjang *">
+                  <input autoComplete="off" name="stepOrder" type="number" min={1} defaultValue={1} required className={inputClass} />
+                </FormField>
+              </FormSection>
+              <FormSection title="② Siapa yang Menyetujui">
+                <FormField
+                  label=""
+                  full
+                >
+                  <label className="flex items-center gap-2 text-[13px] font-semibold text-ink mb-1.5">
+                    <input type="radio" name="approverMode" value="role" defaultChecked className="accent-peach-deep" /> Berdasarkan Role
+                  </label>
+                  <select name="requiredRole" className={inputClass}>
+                    <option value="department_head">Kepala Departemen (departemen pengirim)</option>
+                    <option value="company_admin">Admin Perusahaan</option>
+                    <option value="staff">Staff</option>
+                    <option value="super_admin">Super Admin</option>
+                  </select>
+                </FormField>
+                <FormField label="" full>
+                  <label className="flex items-center gap-2 text-[13px] font-semibold text-ink mb-1.5">
+                    <input type="radio" name="approverMode" value="user" className="accent-peach-deep" /> Orang Spesifik
+                  </label>
+                  <select name="requiredApproverUserId" className={inputClass}>
+                    <option value="">-- pilih orang --</option>
+                    {userRows.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.fullName} ({ROLE_LABEL[u.role as keyof typeof ROLE_LABEL] ?? u.role})
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </FormSection>
+              <DrawerFooter submitLabel="Tambah Jenjang" />
+            </form>
+          </FormDrawer>
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Perubahan berhasil disimpan.</div>}
-
-      <Card title="Tambah Jenjang">
-        <form action={addApprovalStep} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <input type="hidden" name="companySlug" value={companySlug} />
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku untuk</label>
-            <select
-              name="appliesTo"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-              required
-            >
-              <option value="surat_keluar">Surat Keluar</option>
-              <option value="nota_dinas">Nota Dinas</option>
-              <option value="dokumen">Dokumen</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis (bebas, mis. internal)</label>
-            <input autoComplete="off"
-              name="jenisKey"
-              required
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Urutan Jenjang</label>
-            <input autoComplete="off"
-              name="stepOrder"
-              type="number"
-              min={1}
-              defaultValue={1}
-              required
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            />
-          </div>
-          <div className="hidden lg:block" />
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-ink-muted mb-1">
-              <input type="radio" name="approverMode" value="role" defaultChecked className="accent-sage-deep" /> Berdasarkan Role
-            </label>
-            <select
-              name="requiredRole"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            >
-              <option value="department_head">Kepala Departemen (departemen pengirim)</option>
-              <option value="company_admin">Admin Perusahaan</option>
-              <option value="staff">Staff</option>
-              <option value="super_admin">Super Admin</option>
-            </select>
-          </div>
-          <div>
-            <label className="flex items-center gap-2 text-xs font-medium text-ink-muted mb-1">
-              <input type="radio" name="approverMode" value="user" className="accent-sage-deep" /> Orang Spesifik
-            </label>
-            <select
-              name="requiredApproverUserId"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            >
-              <option value="">-- pilih orang --</option>
-              {userRows.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.fullName} ({ROLE_LABEL[u.role as keyof typeof ROLE_LABEL] ?? u.role})
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-full">
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-              Tambah Jenjang
-            </button>
-          </div>
-        </form>
-      </Card>
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Perubahan berhasil disimpan.</div>}
 
       <section className="space-y-4">
         {grouped.size === 0 && <EmptyState message="Belum ada konfigurasi approval sama sekali." />}

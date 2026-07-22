@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { employeeCompetencies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 const STATUSES = ["aktif", "kedaluwarsa", "proses_perpanjangan"] as const;
@@ -20,6 +21,8 @@ export async function createEmployeeCompetency(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_EMPLOYEE_COMPETENCIES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menambah kompetensi karyawan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const employeeId = formData.get("employeeId")?.toString() ?? "";
   const competencyTypeId = formData.get("competencyTypeId")?.toString() ?? "";
@@ -59,6 +62,8 @@ export async function updateEmployeeCompetency(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_EMPLOYEE_COMPETENCIES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah kompetensi karyawan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const certificateNumber = formData.get("certificateNumber")?.toString().trim() || null;
   const sectorScheme = formData.get("sectorScheme")?.toString().trim() || null;

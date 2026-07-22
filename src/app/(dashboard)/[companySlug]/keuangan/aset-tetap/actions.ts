@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { createFixedAsset, updateFixedAssetStatus, runDepreciation, FixedAssetError } from "@/lib/finance/fixedAssets";
 
@@ -17,6 +18,8 @@ export async function createAsset(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_FIXED_ASSETS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menambah aset tetap.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const accountId = formData.get("accountId")?.toString() ?? "";
   const accumulatedDepreciationAccountId = formData.get("accumulatedDepreciationAccountId")?.toString() ?? "";
@@ -77,6 +80,8 @@ export async function changeAssetStatus(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_FIXED_ASSETS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah status aset.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
   if (status !== "aktif" && status !== "dijual" && status !== "dihapuskan") {
     redirect(`${redirectBase}?error=${encodeURIComponent("Status tidak valid.")}`);
   }
@@ -116,6 +121,8 @@ export async function runDepreciationAction(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_FIXED_ASSETS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menjalankan penyusutan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
   if (!Number.isInteger(periodMonth) || periodMonth < 1 || periodMonth > 12 || !Number.isInteger(periodYear)) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Bulan/tahun periode tidak valid.")}`);
   }

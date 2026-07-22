@@ -63,6 +63,82 @@ export async function postJournalEntry(
   return { entryNumber };
 }
 
+export type NewJournalLine = {
+  accountId: string;
+  debit: number;
+  credit: number;
+  description?: string | null;
+  /** Dimensi rekanan/klien per baris (Item 5b) — untuk penelusuran per rekanan. */
+  organizationId?: string | null;
+};
+
+/**
+ * Buat header + baris jurnal + LANGSUNG posting dalam satu aksi atomik (dipanggil di
+ * dalam withTenantContext). Ini pengganti alur draft lama (buat draft → tambah baris →
+ * posting terpisah): tidak ada lagi jurnal setengah jadi yang mengendap. Gagal di titik
+ * mana pun ⇒ seluruh transaksi rollback. Gate validasi TETAP satu: postJournalEntry
+ * (balance, minimal 2 baris, hanya akun posting) — tidak ada jalur validasi kedua.
+ *
+ * Dipakai oleh jurnal manual, jurnal koreksi (correctsEntryId), pembuka transaksi
+ * terbuka, dan penyelesaiannya (sourceType/sourceId).
+ */
+export async function createAndPostJournal(
+  tx: typeof Db,
+  params: {
+    companyId: string;
+    entryDate: string;
+    description: string;
+    userId: string;
+    lines: NewJournalLine[];
+    correctsEntryId?: string | null;
+    sourceType?: string | null;
+    sourceId?: string | null;
+  }
+): Promise<{ journalEntryId: string; entryNumber: string }> {
+  // Buang baris kosong (dua sisi nol); tiap baris berisi hanya boleh satu sisi.
+  const clean = params.lines.filter((l) => l.debit > 0 || l.credit > 0);
+  for (const l of clean) {
+    if (l.debit > 0 && l.credit > 0) {
+      throw new JournalError("Tiap baris hanya boleh diisi debit ATAU kredit, tidak dua-duanya.");
+    }
+  }
+  if (clean.length < 2) throw new JournalError("Jurnal butuh minimal 2 baris (sisi debit dan sisi kredit).");
+
+  const [entry] = await tx
+    .insert(journalEntries)
+    .values({
+      companyId: params.companyId,
+      entryDate: params.entryDate,
+      description: params.description,
+      createdBy: params.userId,
+      correctsEntryId: params.correctsEntryId ?? null,
+      sourceType: params.sourceType ?? null,
+      sourceId: params.sourceId ?? null,
+    })
+    .returning();
+
+  const rows: (typeof journalEntryLines.$inferInsert)[] = clean.map((l, i) => ({
+    companyId: params.companyId,
+    journalEntryId: entry.id,
+    accountId: l.accountId,
+    lineOrder: i + 1,
+    debitAmount: (l.debit > 0 ? l.debit : 0).toFixed(2),
+    creditAmount: (l.credit > 0 ? l.credit : 0).toFixed(2),
+    description: l.description ?? null,
+    organizationId: l.organizationId ?? null,
+  }));
+  await tx.insert(journalEntryLines).values(rows);
+
+  // postJournalEntry me-revalidasi balance + is_header + status draft (jurnal baru
+  // selalu draft by default) sebelum memberi nomor & set posted.
+  const { entryNumber } = await postJournalEntry(tx, {
+    companyId: params.companyId,
+    journalEntryId: entry.id,
+    postedBy: params.userId,
+  });
+  return { journalEntryId: entry.id, entryNumber };
+}
+
 /** Satu-satunya cara "membatalkan" jurnal posted — tidak pernah edit in place. */
 export async function voidJournalEntry(
   tx: typeof Db,

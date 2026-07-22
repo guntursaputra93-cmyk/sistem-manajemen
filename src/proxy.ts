@@ -32,7 +32,7 @@ export const proxy = auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  const { role, companySlug } = session.user;
+  const { companySlug } = session.user;
 
   // Halaman pemilihan company: khusus super_admin.
   if (pathname === "/pilih-perusahaan") {

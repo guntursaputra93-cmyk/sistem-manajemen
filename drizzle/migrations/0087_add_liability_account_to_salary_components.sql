@@ -1,0 +1,2 @@
+ALTER TABLE "salary_components" ADD COLUMN "liability_account_id" uuid;--> statement-breakpoint
+ALTER TABLE "salary_components" ADD CONSTRAINT "salary_components_liability_account_id_chart_of_accounts_id_fk" FOREIGN KEY ("liability_account_id") REFERENCES "public"."chart_of_accounts"("id") ON DELETE restrict ON UPDATE no action;

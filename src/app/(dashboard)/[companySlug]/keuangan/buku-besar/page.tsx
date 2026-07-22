@@ -9,6 +9,8 @@ import { getGeneralLedgerForAccount } from "@/lib/finance/reports";
 import { formatRupiah } from "@/lib/finance/format";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { inputClass } from "@/components/ui/FormField";
 
 export default async function GeneralLedgerPage({
   params,
@@ -62,16 +64,17 @@ export default async function GeneralLedgerPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Buku Besar</h1>
-        <p className="text-sm text-ink-muted mt-1">Mutasi per akun untuk {company.name} — hanya jurnal berstatus posted.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Keuangan" }, { label: "Buku Besar" }]}
+        title="Buku Besar"
+        description={`Mutasi per akun untuk ${company.name} — hanya jurnal berstatus posted.`}
+      />
 
       <Card title="Filter">
         <form method="get" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div className="lg:col-span-2">
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun</label>
-            <select name="accountId" defaultValue={selectedAccount?.id} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
+            <label className="block text-xs font-semibold text-ink-muted mb-1">Akun</label>
+            <select name="accountId" defaultValue={selectedAccount?.id} className={inputClass}>
               {postingAccounts.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.code} · {a.name}
@@ -80,15 +83,15 @@ export default async function GeneralLedgerPage({
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Dari Tanggal</label>
-            <input autoComplete="off" name="dari" type="date" defaultValue={dari} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+            <label className="block text-xs font-semibold text-ink-muted mb-1">Dari Tanggal</label>
+            <input autoComplete="off" name="dari" type="date" defaultValue={dari} className={inputClass} />
           </div>
           <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Sampai Tanggal</label>
-            <input autoComplete="off" name="sampai" type="date" defaultValue={sampai} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+            <label className="block text-xs font-semibold text-ink-muted mb-1">Sampai Tanggal</label>
+            <input autoComplete="off" name="sampai" type="date" defaultValue={sampai} className={inputClass} />
           </div>
           <div className="lg:col-span-4">
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+            <button type="submit" className="bg-peach-deep hover:bg-peach-deep/90 text-white text-[13px] font-bold px-4 py-2 rounded-[10px] transition-colors cursor-pointer">
               Tampilkan
             </button>
           </div>

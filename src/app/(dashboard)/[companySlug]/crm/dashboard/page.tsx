@@ -10,6 +10,7 @@ import { getVisibleAssigneeIds } from "@/lib/crm/opportunities";
 import { getPipelineValueByStage, getWinRate, getRenewalReminders } from "@/lib/crm/dashboard";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const REMINDER_REASON_LABEL: Record<string, string> = {
   renewal_reminder_date: "Reminder renewal",
@@ -55,13 +56,17 @@ export default async function CrmDashboardPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/crm/opportunities`} className="text-[11px] text-sage-deep hover:underline">&larr; Kembali ke CRM</Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">Dashboard CRM</h1>
-        <p className="text-[11px] text-ink-muted mt-1">
-          {session.user.role === "staff" ? "Ringkasan pipeline milikmu." : session.user.role === "department_head" ? "Ringkasan pipeline departemenmu." : `Ringkasan pipeline ${company.name}.`}
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "CRM" },
+          { label: "Opportunity", href: `/${companySlug}/crm/opportunities` },
+          { label: "Dashboard" },
+        ]}
+        title="Dashboard CRM"
+        description={
+          session.user.role === "staff" ? "Ringkasan pipeline milikmu." : session.user.role === "department_head" ? "Ringkasan pipeline departemenmu." : `Ringkasan pipeline ${company.name}.`
+        }
+      />
 
       <Card title="Pipeline Value per Tahap">
         {pipelineValues.length === 0 ? (

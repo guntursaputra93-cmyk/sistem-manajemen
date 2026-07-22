@@ -9,6 +9,7 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { runDepreciationAction } from "../actions";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const MONTH_LABEL = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
@@ -69,15 +70,15 @@ export default async function DepreciationRunsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[17px] font-extrabold text-ink">Penyusutan Aset Tetap</h1>
-          <p className="text-sm text-ink-muted mt-1">{company.name} — {activeAssetCount} aset berstatus aktif.</p>
-        </div>
-        <Link href={`/${companySlug}/keuangan/aset-tetap`} className="text-xs text-sage-deep hover:underline">
-          &larr; Kembali ke daftar aset
-        </Link>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Keuangan" },
+          { label: "Aset Tetap", href: `/${companySlug}/keuangan/aset-tetap` },
+          { label: "Penyusutan" },
+        ]}
+        title="Penyusutan Aset Tetap"
+        description={`${company.name} — ${activeAssetCount} aset berstatus aktif.`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil dijalankan.</div>}

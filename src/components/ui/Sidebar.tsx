@@ -67,12 +67,11 @@ export type SidebarIconName = keyof typeof ICON_MAP;
 export type SidebarItem = { href: string; label: string; icon: SidebarIconName };
 export type SidebarGroup = { label?: string; icon?: SidebarIconName; items: SidebarItem[] };
 
-// Aksen aktif (border-left + tint icon chip) — teal, dipakai scoped di sini saja,
-// diambil persis dari acuan desain (bukan bagian dari token pastel utama).
-const ACTIVE_ACCENT = "#3D7A6B";
-// Ink kehijauan dipakai khusus untuk teks di atas gradient sidebar (acuan desain) —
-// beda dari token `ink` netral yang dipakai di konten utama.
-const SIDEBAR_INK = "#33422D";
+// Aksen aktif (border-left) — terracotta tema Sunset Peach, scoped di sini saja.
+const ACTIVE_ACCENT = "#B95C2E";
+// Ink cokelat hangat khusus teks di atas gradient peach sidebar — beda dari
+// token `ink` netral yang dipakai di konten utama.
+const SIDEBAR_INK = "#5C3A20";
 
 // Pilih SATU item paling spesifik yang aktif: exact match menang atas prefix
 // match manapun. Tanpa ini, item sibling yang hrefnya jadi prefix dari href
@@ -149,7 +148,7 @@ export function Sidebar({
       className={`shrink-0 overflow-y-auto flex flex-col transition-[width] duration-200 px-[10px] py-3 ${
         collapsed ? "w-16" : "w-[230px]"
       }`}
-      style={{ background: "linear-gradient(to bottom, #C3DBBB 0%, #A8C3A0 100%)" }}
+      style={{ background: "linear-gradient(to bottom, #FBE3CD 0%, #F6C89B 100%)" }}
     >
       {/* Sticky di dalam <aside> yang overflow-y-auto — tetap terlihat saat daftar
           menu di bawahnya (SDM/CRM/dst) panjang dan discroll. Background+shadow
@@ -157,7 +156,7 @@ export function Sidebar({
           tidak "tembus" pandang. */}
       <div
         className={`sticky top-0 z-30 flex items-center gap-2 px-1.5 py-2.5 mb-1 ${collapsed ? "justify-center" : ""}`}
-        style={{ background: "#C3DBBB", boxShadow: "0 4px 10px rgba(51,57,59,0.08)", borderBottom: "1px solid rgba(51,66,45,0.12)" }}
+        style={{ background: "#FBE3CD", boxShadow: "0 4px 10px rgba(59,51,44,0.08)", borderBottom: "1px solid rgba(92,58,32,0.14)" }}
       >
         <span className="relative flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg bg-white text-[10px] font-display font-bold text-sage-deep shadow-[0_3px_8px_rgba(51,57,59,0.1)] overflow-hidden">
           {companyLogoUrl ? (
@@ -196,7 +195,7 @@ export function Sidebar({
                   </span>
                   <span
                     className="flex-1 text-left text-[11.5px] font-extrabold uppercase tracking-[0.03em]"
-                    style={{ color: "#2C3B26" }}
+                    style={{ color: "#4A2E18" }}
                   >
                     {group.label}
                   </span>
@@ -214,7 +213,7 @@ export function Sidebar({
                       ? "ml-[18px] mt-0.5 mb-1.5 pl-3 flex flex-col gap-0.5 border-l-2"
                       : "flex flex-col gap-0.5"
                   }
-                  style={group.label && !collapsed ? { borderColor: "rgba(51,66,45,0.18)" } : undefined}
+                  style={group.label && !collapsed ? { borderColor: "rgba(92,58,32,0.18)" } : undefined}
                 >
                   {group.items.map((item) => {
                     const active = item.href === activeHref;
@@ -225,12 +224,12 @@ export function Sidebar({
                         href={item.href}
                         title={collapsed ? item.label : undefined}
                         aria-current={active ? "page" : undefined}
-                        className={`flex items-center gap-2 rounded-lg px-2 py-[5px] text-[10.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-deep border-l-[3px] ${
+                        className={`flex items-center gap-2 rounded-lg px-2 py-[5px] text-[10.5px] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-deep border-l-[3px] ${
                           collapsed ? "justify-center" : ""
-                        } ${active ? "bg-white shadow-[0_2px_8px_rgba(51,57,59,0.1)] font-bold" : "border-l-transparent font-medium hover:bg-white/30"}`}
+                        } ${active ? "bg-white shadow-[0_2px_8px_rgba(59,51,44,0.1)] font-bold" : "border-l-transparent font-medium hover:bg-white/40 hover:translate-x-[2px]"}`}
                         style={{ color: SIDEBAR_INK, borderLeftColor: active ? ACTIVE_ACCENT : "transparent" }}
                       >
-                        <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#DFEEE2]">
+                        <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#FCEBD6]">
                           <Icon size={11} strokeWidth={2.25} style={{ color: SIDEBAR_INK }} aria-hidden="true" />
                         </span>
                         {!collapsed && item.label}
@@ -244,7 +243,7 @@ export function Sidebar({
         })}
       </nav>
 
-      <div className="flex flex-col gap-0.5 pt-2 mt-2 border-t" style={{ borderColor: "rgba(51,66,45,0.12)" }}>
+      <div className="flex flex-col gap-0.5 pt-2 mt-2 border-t" style={{ borderColor: "rgba(92,58,32,0.14)" }}>
         <button
           type="button"
           onClick={() => setCollapsed((c) => !c)}
@@ -254,7 +253,7 @@ export function Sidebar({
           }`}
           style={{ color: SIDEBAR_INK }}
         >
-          <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#DFEEE2]">
+          <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#FCEBD6]">
             {collapsed ? (
               <PanelLeftOpen size={11} style={{ color: SIDEBAR_INK }} aria-hidden="true" />
             ) : (
@@ -272,7 +271,7 @@ export function Sidebar({
             }`}
             style={{ color: SIDEBAR_INK }}
           >
-            <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#DFEEE2]">
+            <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[6px] bg-[#FCEBD6]">
               <LogOut size={11} style={{ color: SIDEBAR_INK }} aria-hidden="true" />
             </span>
             {!collapsed && "Keluar"}

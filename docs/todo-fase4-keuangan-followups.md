@@ -23,31 +23,81 @@ granular per jenis potongan di buku besar.
 `liability_account_id`) kalau granularitas per jenis potongan diperlukan untuk
 pelaporan.
 
-## 2. Item rekonsiliasi bank manual (non-ledger) belum diimplementasikan
+## 2. Item rekonsiliasi bank manual (non-ledger) — ✅ SELESAI
 
 **Konteks:** Langkah 9 — `bank_reconciliation_items.journal_entry_line_id`
 sengaja dibuat nullable untuk mengakomodasi kemungkinan item manual (mis. biaya
 admin bank yang belum tercatat di jurnal perusahaan) di masa depan.
 
-**Dampak saat ini:** setiap item rekonsiliasi SELALU digenerate otomatis dari
-`journal_entry_lines` — tidak ada UI/logic untuk menambah baris manual.
+**Solusi yang dipilih (Gtr): "langsung buat jurnal".** Item manual sekaligus
+membuat & memposting jurnalnya (bukan baris menggantung tanpa jurnal), jadi buku
+besar langsung benar. Implementasi:
+- Kolom `is_manual` ditambahkan ke `bank_reconciliation_items` (migrasi 0088)
+  sebagai penanda badge di UI.
+- `addManualReconciliationItem` (`src/lib/finance/bankReconciliation.ts`):
+  posting jurnal 2 baris via `createAndPostJournal` bertanggal akhir periode
+  rekonsiliasi. `direction="kurang"` → Dr akun lawan / Cr bank (mis. biaya bank);
+  `direction="tambah"` → Dr bank / Cr akun lawan (mis. bunga). Item ditaut ke
+  baris jurnal BANK, `is_cleared=true`, `is_manual=true`.
+- Action `addManualReconciliationItemAction` + form "Tambah Item Manual" di
+  halaman detail (hanya saat draft & punya izin `MANAGE_BANK_RECONCILIATIONS`),
+  lengkap dengan guard `requireModuleEnabledForAction`.
+- Diverifikasi runtime (jurnal balance, item tertaut & cleared, summary
+  menghitung item manual) dan lolos `next build` + lint.
 
-**Follow-up:** kalau kebutuhan ini muncul (mis. biaya bank yang baru terlihat
-di rekening koran tapi belum dijurnal), bangun form tambah item manual +
-tentukan bagaimana item semacam itu direkonsiliasi ke buku besar.
-
-## 3. Status "jatuh_tempo" invoice AR tidak real-time (tidak ada scheduled job)
+## 3. Status "jatuh_tempo" invoice AR tidak real-time — ✅ ENDPOINT SIAP (tinggal wiring scheduler)
 
 **Konteks:** Langkah 4 — sistem ini tidak punya mekanisme cron/trigger sama
 sekali (Fase 3 Bagian 0). `refreshOverdueInvoiceStatuses` hanya dipanggil saat
 halaman daftar invoice (`keuangan/piutang`) dibuka.
 
-**Dampak saat ini:** invoice yang sudah lewat jatuh tempo tapi belum ada
-pembayaran baru maupun kunjungan ke halaman daftar invoice akan tetap
-menunjukkan status lama (`belum_dibayar`/`sebagian`) sampai halaman dibuka
-lagi — bisa "basi" untuk kebutuhan seperti notifikasi otomatis.
+**Yang sudah dibangun (host-agnostic):**
+- `refreshOverdueInvoiceStatusesAllCompanies(tx)` di `src/lib/finance/ar.ts` —
+  iterasi SEMUA company, panggil `recalculateInvoiceStatus` untuk tiap invoice
+  yang masih terbuka. Idempotent; harus dijalankan dengan context
+  `role: "super_admin"`.
+- Endpoint terproteksi `GET/POST /api/cron/refresh-overdue-invoices`
+  (`src/app/api/cron/refresh-overdue-invoices/route.ts`). Guard header
+  `Authorization: Bearer <CRON_SECRET>`. Kalau `CRON_SECRET` belum diset di env,
+  endpoint MENOLAK (503) — tidak pernah terbuka anonim. Balikan JSON
+  `{ ok, companiesProcessed, invoicesChecked }`.
+- Diverifikasi runtime (invoice `belum_dibayar` lewat jatuh tempo → otomatis
+  jadi `jatuh_tempo` saat endpoint logic dijalankan) dan lolos `next build`.
 
-**Follow-up:** kalau presisi real-time diperlukan (mis. untuk pengingat
-otomatis jatuh tempo), pertimbangkan scheduled job/cron di fase berikutnya
-yang memanggil `refreshOverdueInvoiceStatuses` secara berkala untuk semua
-company.
+**Sisa keputusan Gtr — pilih SATU scheduler lalu wire ke endpoint di atas:**
+1. **Vercel Cron** (kalau deploy di Vercel): tambah `vercel.json`
+   ```json
+   { "crons": [{ "path": "/api/cron/refresh-overdue-invoices", "schedule": "0 1 * * *" }] }
+   ```
+   Vercel otomatis mengirim header `Authorization: Bearer $CRON_SECRET` bila env
+   `CRON_SECRET` diset di project.
+2. **Supabase pg_cron + pg_net** (host-independent, DB-native): jadwalkan
+   `net.http_post` ke URL endpoint dengan header bearer.
+3. **Uptime/cron eksternal** (mis. cron-job.org, GitHub Actions schedule): hit
+   URL endpoint tiap hari dengan header bearer.
+
+Apa pun pilihannya: set env `CRON_SECRET` di server, dan cadence harian (mis.
+jam 01:00) sudah cukup karena transisi `jatuh_tempo` hanya bergantung pada
+pergantian tanggal.
+
+## 4. Audit lapis guard keamanan (hasPermission / withTenantContext / requireModuleEnabled) belum dilakukan
+
+**Konteks:** dari analisis knowledge graph proyek — `hasPermission()`
+(`src/lib/rbac/permissions.ts:181`, 280 koneksi, betweenness centrality
+tertinggi di graph), `withTenantContext()` (`src/lib/db/index.ts:42`, 119
+pemakai, isolasi tenant via RLS session variable) dan `requireModuleEnabled()`
+(`src/lib/modules/index.ts:48`, 59 pemakai, guard modul aktif per company)
+adalah tiga lapis otorisasi independen yang seharusnya dilewati semua
+page.tsx/actions.ts sebelum eksekusi aksi.
+
+**Dampak saat ini:** belum ada audit sistematis yang memverifikasi bahwa
+ketiga guard ini dipanggil konsisten di SEMUA modul — celah di satu page/action
+(lupa panggil salah satu guard) tidak otomatis ditutup oleh guard lain karena
+ketiganya independen (role, tenant, module toggle).
+
+**Follow-up:** setelah semua modul/fase lain selesai ("ready semua"), lakukan
+audit keamanan menyeluruh: cek tiap page.tsx/actions.ts di semua modul (Aset
+Tetap, Rekonsiliasi Bank, Piutang, Jurnal, CRM, SDM, Surat Masuk/Keluar,
+Dokumen, Pengaturan, dll.) memanggil kombinasi guard yang sesuai konteksnya,
+cari page/action yang lupa salah satu dari tiga guard, dan verifikasi urutan
+pemanggilan (hasPermission → requireModuleEnabled → withTenantContext) konsisten.

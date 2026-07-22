@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -9,6 +8,7 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { getVisibleAssigneeIds } from "@/lib/crm/opportunities";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
   belum_dibayar: "Belum Dibayar",
@@ -82,13 +82,11 @@ export default async function ContractsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/crm/opportunities`} className="text-sm text-sage-deep hover:underline">
-          &larr; Kembali ke CRM
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">Contract (CRM)</h1>
-        <p className="text-sm text-ink-muted mt-1">Dibuat otomatis saat opportunity pindah ke tahap &quot;menang&quot;.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "CRM" }, { label: "Contract" }]}
+        title="Contract"
+        description={'Dibuat otomatis saat opportunity pindah ke tahap "menang".'}
+      />
 
       <DataTable columns={columns} rows={contractList} rowKey={(c) => c.id} emptyMessage="Belum ada contract. Contract akan dibuat otomatis saat opportunity menang." />
     </div>

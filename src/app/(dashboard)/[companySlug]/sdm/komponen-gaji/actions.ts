@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { salaryComponents } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 const COMPONENT_TYPES = ["pendapatan", "potongan"] as const;
@@ -21,6 +22,8 @@ export async function createSalaryComponent(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur komponen gaji.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_payroll" });
+
   const code = formData.get("code")?.toString().trim() ?? "";
   const name = formData.get("name")?.toString().trim() ?? "";
   const componentTypeRaw = formData.get("componentType")?.toString() ?? "";
@@ -29,9 +32,11 @@ export async function createSalaryComponent(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kode, nama, dan tipe komponen wajib diisi.")}`);
   }
   const componentType = componentTypeRaw as (typeof COMPONENT_TYPES)[number];
+  // Akun kewajiban hanya relevan untuk potongan; diabaikan (null) untuk pendapatan.
+  const liabilityAccountId = componentType === "potongan" ? formData.get("liabilityAccountId")?.toString() || null : null;
 
   const [sc] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx.insert(salaryComponents).values({ companyId, code, name, componentType }).returning()
+    tx.insert(salaryComponents).values({ companyId, code, name, componentType, liabilityAccountId }).returning()
   );
 
   await logAudit({
@@ -58,6 +63,8 @@ export async function updateSalaryComponent(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur komponen gaji.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_payroll" });
+
   const name = formData.get("name")?.toString().trim() ?? "";
   const componentTypeRaw = formData.get("componentType")?.toString() ?? "";
 
@@ -65,11 +72,12 @@ export async function updateSalaryComponent(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Nama dan tipe komponen wajib diisi.")}`);
   }
   const componentType = componentTypeRaw as (typeof COMPONENT_TYPES)[number];
+  const liabilityAccountId = componentType === "potongan" ? formData.get("liabilityAccountId")?.toString() || null : null;
 
   await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
     tx
       .update(salaryComponents)
-      .set({ name, componentType, updatedAt: new Date() })
+      .set({ name, componentType, liabilityAccountId, updatedAt: new Date() })
       .where(and(eq(salaryComponents.id, salaryComponentId), eq(salaryComponents.companyId, companyId)))
   );
 

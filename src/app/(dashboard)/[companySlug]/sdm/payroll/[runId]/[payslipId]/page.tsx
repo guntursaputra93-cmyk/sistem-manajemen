@@ -8,6 +8,7 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { Card } from "@/components/ui/Card";
 import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { PayslipDetailEntry } from "@/lib/hr/payroll";
 
 const STATUS_LABEL: Record<string, string> = { draft: "Draft", diproses: "Diproses", selesai: "Selesai" };
@@ -76,12 +77,16 @@ export default async function PayslipDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">
-          Slip Gaji — {MONTH_LABEL[run.periodMonth - 1]} {run.periodYear}
-        </h1>
-        <p className="text-[11px] text-ink-muted mt-1">{employee?.fullName ?? "-"}</p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "SDM" },
+          { label: "Payroll", href: `/${companySlug}/sdm/payroll` },
+          { label: `${MONTH_LABEL[run.periodMonth - 1]} ${run.periodYear}`, href: `/${companySlug}/sdm/payroll/${run.id}` },
+          { label: "Slip Gaji" },
+        ]}
+        title={`Slip Gaji — ${MONTH_LABEL[run.periodMonth - 1]} ${run.periodYear}`}
+        description={employee?.fullName ?? "-"}
+      />
 
       <Card title="Status Payroll Run">
         <TrailStepper orientation="horizontal" steps={runTrail} />

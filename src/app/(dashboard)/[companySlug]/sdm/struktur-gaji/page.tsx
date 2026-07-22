@@ -7,6 +7,7 @@ import { companies, employees } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default async function StrukturGajiPage({
   params,
@@ -38,7 +39,7 @@ export default async function StrukturGajiPage({
       key: "name",
       header: "Karyawan",
       render: (e) => (
-        <Link href={`/${companySlug}/sdm/struktur-gaji/${e.id}`} className="font-medium text-sage-deep hover:underline">
+        <Link href={`/${companySlug}/sdm/struktur-gaji/${e.id}`} className="font-semibold text-sage-deep hover:underline">
           {e.fullName}
         </Link>
       ),
@@ -47,11 +48,12 @@ export default async function StrukturGajiPage({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Struktur Gaji Karyawan</h1>
-        <p className="text-sm text-ink-muted mt-1">Pilih karyawan untuk atur komponen gaji — {company.name}.</p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Struktur Gaji" }]}
+        title="Struktur Gaji Karyawan"
+        description={`Pilih karyawan untuk atur komponen gaji — ${company.name}.`}
+      />
 
       <DataTable columns={columns} rows={empList} rowKey={(e) => e.id} emptyMessage="Belum ada data karyawan." />
     </div>

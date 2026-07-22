@@ -8,8 +8,10 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createProjectCost } from "./actions";
 import { formatRupiah } from "@/lib/finance/format";
-import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 export default async function HppProjectCostsPage({
   params,
@@ -70,78 +72,80 @@ export default async function HppProjectCostsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Biaya Langsung Proyek (HPP)</h1>
-        <p className="text-sm text-ink-muted mt-1">Pencatatan biaya per kontrak {company.name} — tiap baris otomatis membuat jurnal.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Keuangan" }, { label: "HPP" }]}
+        title="Biaya Langsung Proyek (HPP)"
+        description={`Pencatatan biaya per kontrak ${company.name} — tiap baris otomatis membuat jurnal.`}
+        actions={
+          canManage && (
+            <FormDrawer
+              buttonLabel="Catat Biaya"
+              title="Catat Biaya Proyek"
+              description="Akun Lawan: bank/kas (dibayar langsung) atau kewajiban (masih terutang)."
+              defaultOpen={Boolean(error)}
+            >
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              {contractList.length === 0 ? (
+                <p className="text-[13px] text-ink-muted">Belum ada kontrak di CRM untuk company ini.</p>
+              ) : hppAccounts.length === 0 ? (
+                <p className="text-[13px] text-ink-muted">Belum ada akun HPP posting di Chart of Accounts.</p>
+              ) : (
+                <form action={createProjectCost}>
+                  <input type="hidden" name="companySlug" value={companySlug} />
+                  <input type="hidden" name="companyId" value={company.id} />
+                  <FormSection title="① Kontrak & Tanggal">
+                    <FormField label="Kontrak *" full>
+                      <select name="contractId" required className={inputClass}>
+                        {contractList.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {orgNameByContractId.get(c.id)} · {formatRupiah(c.contractValue)}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Tanggal Biaya *">
+                      <input autoComplete="off" name="costDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+                    </FormField>
+                    <FormField label="Nominal *">
+                      <input autoComplete="off" name="amount" type="number" step="0.01" min="0.01" required placeholder="0" className={inputClass} />
+                    </FormField>
+                  </FormSection>
+                  <FormSection title="② Akun & Keterangan">
+                    <FormField label="Akun HPP (Debit) *" full>
+                      <select name="hppAccountId" required className={inputClass}>
+                        {hppAccounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.code} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Akun Lawan (Kredit) *" full>
+                      <select name="offsetAccountId" required className={inputClass}>
+                        {postingAccounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.code} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Keterangan" full>
+                      <input autoComplete="off" name="description" placeholder="mis. Honor auditor - audit lapangan" className={inputClass} />
+                    </FormField>
+                  </FormSection>
+                  <DrawerFooter submitLabel="Catat Biaya" />
+                </form>
+              )}
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canManage && (
-        <Card
-          title="Catat Biaya Proyek"
-          description="Akun Lawan bisa akun bank/kas (kalau dibayar langsung) atau akun kewajiban (kalau masih terutang)."
-        >
-          {contractList.length === 0 ? (
-            <p className="text-xs text-ink-muted">Belum ada kontrak di CRM untuk company ini.</p>
-          ) : hppAccounts.length === 0 ? (
-            <p className="text-xs text-ink-muted">Belum ada akun HPP posting di Chart of Accounts.</p>
-          ) : (
-            <form action={createProjectCost} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-              <input type="hidden" name="companySlug" value={companySlug} />
-              <input type="hidden" name="companyId" value={company.id} />
-              <div className="lg:col-span-2">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontrak</label>
-                <select name="contractId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {contractList.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {orgNameByContractId.get(c.id)} · {formatRupiah(c.contractValue)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Biaya</label>
-                <input autoComplete="off" name="costDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun HPP (Debit)</label>
-                <select name="hppAccountId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {hppAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun Lawan (Kredit)</label>
-                <select name="offsetAccountId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {postingAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nominal</label>
-                <input autoComplete="off" name="amount" type="number" step="0.01" min="0.01" required placeholder="0" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div className="lg:col-span-2">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Keterangan</label>
-                <input autoComplete="off" name="description" placeholder="mis. Honor auditor - audit lapangan" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div className="lg:col-span-3">
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                  Catat Biaya
-                </button>
-              </div>
-            </form>
-          )}
-        </Card>
-      )}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <DataTable columns={columns} rows={costList} rowKey={(c) => c.id} emptyMessage="Belum ada biaya proyek tercatat." />
 

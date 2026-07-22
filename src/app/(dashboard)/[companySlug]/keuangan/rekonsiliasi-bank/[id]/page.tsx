@@ -1,16 +1,16 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { companies } from "@/drizzle/schema";
+import { companies, chartOfAccounts } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getBankReconciliationSummary, BankReconciliationError } from "@/lib/finance/bankReconciliation";
-import { setStatementEndingBalanceAction, setItemClearedAction, completeBankReconciliationAction } from "../actions";
+import { setStatementEndingBalanceAction, setItemClearedAction, completeBankReconciliationAction, addManualReconciliationItemAction } from "../actions";
 import { formatRupiah } from "@/lib/finance/format";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const MONTH_LABEL = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
@@ -51,19 +51,30 @@ export default async function BankReconciliationDetailPage({
   const isDraft = reconciliation.status === "draft";
   const isBalanced = selisih !== null && Math.abs(selisih) < 0.005;
 
+  // Akun lawan untuk item manual (mis. Beban Adm Bank, Pendapatan Bunga) — hanya
+  // akun posting aktif selain akun bank rekonsiliasi ini.
+  const counterAccounts =
+    isDraft && canManage
+      ? await withTenantContext(tenantContext, (tx) =>
+          tx
+            .select({ id: chartOfAccounts.id, code: chartOfAccounts.code, name: chartOfAccounts.name })
+            .from(chartOfAccounts)
+            .where(and(eq(chartOfAccounts.companyId, company.id), eq(chartOfAccounts.isHeader, false), eq(chartOfAccounts.isActive, true)))
+            .orderBy(asc(chartOfAccounts.code))
+        )
+      : [];
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[17px] font-extrabold text-ink">
-            {account.code} · {account.name} — {MONTH_LABEL[reconciliation.periodMonth - 1]} {reconciliation.periodYear}
-          </h1>
-          <p className="text-sm text-ink-muted mt-1">{company.name}</p>
-        </div>
-        <Link href={`/${companySlug}/keuangan/rekonsiliasi-bank`} className="text-xs text-sage-deep hover:underline">
-          &larr; Kembali ke daftar rekonsiliasi
-        </Link>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Keuangan" },
+          { label: "Rekonsiliasi Bank", href: `/${companySlug}/keuangan/rekonsiliasi-bank` },
+          { label: `${MONTH_LABEL[reconciliation.periodMonth - 1]} ${reconciliation.periodYear}` },
+        ]}
+        title={`${account.code} · ${account.name} — ${MONTH_LABEL[reconciliation.periodMonth - 1]} ${reconciliation.periodYear}`}
+        description={company.name}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
@@ -148,7 +159,12 @@ export default async function BankReconciliationDetailPage({
                 <tr key={row.item.id} className="border-t border-ink-muted/10">
                   <td className="px-3 py-[7px] text-ink">{row.entry ? new Date(row.entry.entryDate).toLocaleDateString("id-ID") : "-"}</td>
                   <td className="px-3 py-[7px] text-ink">{row.entry?.entryNumber ?? "-"}</td>
-                  <td className="px-3 py-[7px] text-ink">{row.line?.description ?? row.entry?.description ?? "-"}</td>
+                  <td className="px-3 py-[7px] text-ink">
+                    <span className="inline-flex items-center gap-1.5">
+                      {row.line?.description ?? row.entry?.description ?? "-"}
+                      {row.item.isManual && <Badge variant="dusty-rose">Manual</Badge>}
+                    </span>
+                  </td>
                   <td className="px-3 py-[7px] text-right text-ink">{row.line && Number(row.line.debitAmount) > 0 ? formatRupiah(row.line.debitAmount) : "-"}</td>
                   <td className="px-3 py-[7px] text-right text-ink">{row.line && Number(row.line.creditAmount) > 0 ? formatRupiah(row.line.creditAmount) : "-"}</td>
                   {isDraft && canManage ? (
@@ -190,6 +206,60 @@ export default async function BankReconciliationDetailPage({
           </table>
         </div>
       </Card>
+
+      {isDraft && canManage && (
+        <Card title="Tambah Item Manual" description="Untuk mutasi yang baru ketahuan dari rekening koran dan belum dijurnal (mis. biaya administrasi bank, pendapatan bunga). Sistem otomatis membuat & posting jurnalnya dan menandai item ini cleared.">
+          <form action={addManualReconciliationItemAction} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+            <input type="hidden" name="companySlug" value={companySlug} />
+            <input type="hidden" name="companyId" value={company.id} />
+            <input type="hidden" name="reconciliationId" value={reconciliation.id} />
+            <div className="lg:col-span-2">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun Lawan *</label>
+              <select name="counterAccountId" required defaultValue="" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
+                <option value="" disabled>— pilih akun —</option>
+                {counterAccounts
+                  .filter((a) => a.id !== account.id)
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>{a.code} · {a.name}</option>
+                  ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Arah ke Kas Bank *</label>
+              <select name="direction" required defaultValue="kurang" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
+                <option value="kurang">Mengurangi saldo bank (mis. biaya bank)</option>
+                <option value="tambah">Menambah saldo bank (mis. bunga)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nominal *</label>
+              <input
+                autoComplete="off"
+                name="amount"
+                inputMode="decimal"
+                required
+                placeholder="0"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
+              />
+            </div>
+            <div className="lg:col-span-3">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Keterangan *</label>
+              <input
+                autoComplete="off"
+                name="description"
+                required
+                placeholder="mis. Biaya administrasi bank Juli"
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
+              />
+            </div>
+            <div>
+              <button type="submit" className="w-full bg-sage-deep hover:bg-sage-deep/90 text-white text-[11px] font-bold px-3 py-[7px] rounded-lg transition-colors">
+                Tambah & Jurnal
+              </button>
+            </div>
+          </form>
+        </Card>
+      )}
 
       {isDraft && canManage && (
         <Card title="Selesaikan Rekonsiliasi" description="Hanya bisa dilakukan kalau saldo rekening koran sudah diisi dan semua item sudah cleared atau punya catatan.">

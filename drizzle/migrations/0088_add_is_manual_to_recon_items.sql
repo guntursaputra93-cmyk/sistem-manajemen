@@ -1,0 +1,1 @@
+ALTER TABLE "bank_reconciliation_items" ADD COLUMN "is_manual" boolean DEFAULT false NOT NULL;

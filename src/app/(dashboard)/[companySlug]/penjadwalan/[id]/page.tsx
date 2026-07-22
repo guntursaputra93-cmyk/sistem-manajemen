@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -23,6 +22,7 @@ import { Card } from "@/components/ui/Card";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Badge } from "@/components/ui/Badge";
 import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const TERMINOLOGY_DEFAULTS = { personLabel: "Auditor", assignmentLabel: "Penugasan" };
 const STATUS_LABEL: Record<string, string> = { dijadwalkan: "Dijadwalkan", berlangsung: "Berlangsung", selesai: "Selesai", dibatalkan: "Dibatalkan" };
@@ -123,14 +123,16 @@ export default async function ServiceAssignmentDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link href={`/${companySlug}/penjadwalan`} className="text-[11px] text-sage-deep hover:underline">← Kembali</Link>
-          <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">{terminology.assignmentLabel} — {row.organizationName}</h1>
-          <p className="text-sm text-ink-muted mt-1">{terminology.personLabel}: {row.employeeName}</p>
-        </div>
-        <Badge variant={row.assignment.status === "dibatalkan" ? "destructive" : "sage"}>{STATUS_LABEL[row.assignment.status]}</Badge>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Penjadwalan" },
+          { label: terminology.assignmentLabel, href: `/${companySlug}/penjadwalan` },
+          { label: row.organizationName },
+        ]}
+        title={`${terminology.assignmentLabel} — ${row.organizationName}`}
+        description={`${terminology.personLabel}: ${row.employeeName}`}
+        actions={<Badge variant={row.assignment.status === "dibatalkan" ? "destructive" : "sage"}>{STATUS_LABEL[row.assignment.status]}</Badge>}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { contracts, organizations, serviceAssignments, serviceAssignmentTeam, witnessedAuditEvaluations, performanceEvaluations } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { computeCompetencyWarnings } from "@/lib/scheduling/assignments";
 import { DEFAULT_WITNESSED_AUDIT_ASPECTS, DEFAULT_PERFORMANCE_EVALUATION_ASPECTS, type EvaluationScore } from "@/lib/scheduling/evaluations";
@@ -22,6 +23,8 @@ export async function createServiceAssignment(formData: FormData): Promise<void>
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_SERVICE_ASSIGNMENTS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat penugasan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
 
   const contractId = formData.get("contractId")?.toString() ?? "";
   const employeeId = formData.get("employeeId")?.toString() ?? "";
@@ -95,6 +98,8 @@ export async function updateServiceAssignmentDetails(formData: FormData): Promis
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah penugasan.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
+
   const assignmentDate = formData.get("assignmentDate")?.toString() || "";
   const endDate = formData.get("endDate")?.toString() || null;
   const location = formData.get("location")?.toString().trim() || null;
@@ -135,6 +140,8 @@ export async function updateServiceAssignmentStatus(formData: FormData): Promise
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah status penugasan.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
+
   if (!(VALID_STATUSES as readonly string[]).includes(status)) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Status tidak valid.")}`);
   }
@@ -169,6 +176,8 @@ export async function addTeamMember(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_SERVICE_ASSIGNMENTS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menambah anggota tim.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
 
   const employeeId = formData.get("employeeId")?.toString() ?? "";
   const roleInTeam = formData.get("roleInTeam")?.toString().trim() || null;
@@ -227,6 +236,8 @@ export async function removeTeamMember(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menghapus anggota tim.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
+
   await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
     tx.delete(serviceAssignmentTeam).where(and(eq(serviceAssignmentTeam.id, teamMemberId), eq(serviceAssignmentTeam.companyId, companyId)))
   );
@@ -254,6 +265,8 @@ export async function createWitnessedAuditEvaluation(formData: FormData): Promis
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_WITNESSED_AUDIT_EVALUATIONS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat evaluasi witnessed audit.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
 
   const observerEmployeeId = formData.get("observerEmployeeId")?.toString() ?? "";
   const evaluationDate = formData.get("evaluationDate")?.toString() || "";
@@ -307,6 +320,8 @@ export async function toggleEvaluationSigned(formData: FormData): Promise<void> 
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah status tanda tangan.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
+
   if (field !== "observerSigned" && field !== "auditeeSigned") {
     redirect(`${redirectBase}?error=${encodeURIComponent("Field tanda tangan tidak valid.")}`);
   }
@@ -332,6 +347,8 @@ export async function createPerformanceEvaluation(formData: FormData): Promise<v
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_PERFORMANCE_EVALUATIONS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat evaluasi kinerja.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
 
   const evaluatorEmployeeId = formData.get("evaluatorEmployeeId")?.toString() ?? "";
   const evaluationDate = formData.get("evaluationDate")?.toString() || "";
@@ -384,6 +401,8 @@ export async function togglePerformanceEvaluationSigned(formData: FormData): Pro
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_PERFORMANCE_EVALUATIONS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah status tanda tangan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "penjadwalan_layanan" });
 
   if (field !== "evaluatorSigned" && field !== "knownByTechnicalManagerSigned") {
     redirect(`${redirectBase}?error=${encodeURIComponent("Field tanda tangan tidak valid.")}`);

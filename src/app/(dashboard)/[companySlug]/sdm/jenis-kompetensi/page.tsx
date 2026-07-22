@@ -6,8 +6,10 @@ import { companies, competencyTypes } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createCompetencyType, updateCompetencyType } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 export default async function JenisKompetensiPage({
   params,
@@ -38,62 +40,67 @@ export default async function JenisKompetensiPage({
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Jenis Kompetensi</h1>
-        <p className="text-sm text-ink-muted mt-1">Konfigurasi jenis sertifikasi/kompetensi untuk {company.name}.</p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Jenis Kompetensi" }]}
+        title="Jenis Kompetensi"
+        description={`Konfigurasi jenis sertifikasi/kompetensi untuk ${company.name}.`}
+        actions={
+          <FormDrawer buttonLabel="Tambah Jenis Kompetensi" title="Tambah Jenis Kompetensi" defaultOpen={Boolean(error)}>
+            {error && (
+              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                {error}
+              </div>
+            )}
+            <form action={createCompetencyType}>
+              <input type="hidden" name="companySlug" value={companySlug} />
+              <input type="hidden" name="companyId" value={company.id} />
+              <FormSection title="Detail Jenis Kompetensi">
+                <FormField label="Kode *">
+                  <input autoComplete="off" name="code" required placeholder="mis. AK3-UMUM" className={`${inputClass} uppercase`} />
+                </FormField>
+                <FormField label="Nama *">
+                  <input autoComplete="new-password" name="name" required placeholder="mis. AK3 Umum" className={inputClass} />
+                </FormField>
+                <FormField label="Kategori" optional full>
+                  <input autoComplete="off" name="category" className={inputClass} />
+                </FormField>
+              </FormSection>
+              <DrawerFooter submitLabel="Tambah Jenis Kompetensi" />
+            </form>
+          </FormDrawer>
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      <Card title="Tambah Jenis Kompetensi">
-        <form action={createCompetencyType} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-          <input type="hidden" name="companySlug" value={companySlug} />
-          <input type="hidden" name="companyId" value={company.id} />
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
-            <input autoComplete="off" name="code" required placeholder="mis. AK3-UMUM" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base uppercase" />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
-            <input autoComplete="new-password" name="name" required placeholder="mis. AK3 Umum" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori (opsional)</label>
-            <input autoComplete="off" name="category" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-          </div>
-          <div className="col-span-full">
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-              Tambah
-            </button>
-          </div>
-        </form>
-      </Card>
+      {success && (
+        <div className="mb-4 rounded-lg border border-sage-deep/20 bg-sage/20 px-4 py-3 text-[13px] text-ink">
+          Berhasil disimpan.
+        </div>
+      )}
 
       <section className="space-y-2">
         {typeList.length === 0 && <EmptyState message="Belum ada jenis kompetensi. Jenis kompetensi yang ditambahkan akan muncul di sini." />}
         {typeList.map((ct) => (
-          <div key={ct.id} className="max-w-2xl bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3">
+          <div key={ct.id} className="max-w-2xl bg-surface rounded-xl border border-ink-muted/10 shadow-[0_1px_4px_rgba(51,57,59,0.04)] p-4">
             <form action={updateCompetencyType} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="competencyTypeId" value={ct.id} />
               <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
-                <p className="text-[11px] text-ink py-[6px]">{ct.code}</p>
+                <label className="block text-xs font-semibold text-ink-muted mb-1">Kode</label>
+                <p className="text-[13px] font-semibold text-ink py-2">{ct.code}</p>
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
-                <input autoComplete="new-password" name="name" defaultValue={ct.name} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+                <label className="block text-xs font-semibold text-ink-muted mb-1">Nama</label>
+                <input autoComplete="new-password" name="name" defaultValue={ct.name} required className={inputClass} />
               </div>
               <div className="flex items-end gap-3">
                 <div className="flex-1">
-                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
-                  <input autoComplete="off" name="category" defaultValue={ct.category ?? ""} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+                  <label className="block text-xs font-semibold text-ink-muted mb-1">Kategori</label>
+                  <input autoComplete="off" name="category" defaultValue={ct.category ?? ""} className={inputClass} />
                 </div>
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors">
-                  Edit
+                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors cursor-pointer">
+                  Simpan
                 </button>
               </div>
             </form>

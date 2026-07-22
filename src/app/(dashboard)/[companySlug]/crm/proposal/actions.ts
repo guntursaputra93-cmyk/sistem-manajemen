@@ -7,6 +7,7 @@ import { withTenantContext } from "@/lib/db";
 import { outgoingLetters, organizations, companies } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { createProposalItem, updateProposalItem, deleteProposalItem, ProposalItemError } from "@/lib/crm/proposalItems";
 
@@ -18,6 +19,8 @@ export async function createProposalAction(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_OUTGOING_LETTER")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat proposal.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const organizationId = formData.get("organizationId")?.toString() ?? "";
   const departmentId = formData.get("departmentId")?.toString() ?? "";
@@ -82,6 +85,8 @@ export async function createProposalItemAction(formData: FormData): Promise<void
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menambah item proposal.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
+
   const opportunityId = formData.get("opportunityId")?.toString() || null;
   const itemName = formData.get("itemName")?.toString().trim() ?? "";
   const quantity = formData.get("quantity")?.toString().trim() ?? "";
@@ -124,6 +129,8 @@ export async function updateProposalItemAction(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "CREATE_OUTGOING_LETTER")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah item proposal.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const itemName = formData.get("itemName")?.toString().trim() ?? "";
   const quantity = formData.get("quantity")?.toString().trim() ?? "";
@@ -173,6 +180,8 @@ export async function deleteProposalItemAction(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "CREATE_OUTGOING_LETTER")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menghapus item proposal.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));

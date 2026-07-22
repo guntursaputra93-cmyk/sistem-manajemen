@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -11,6 +10,7 @@ import { getAnnualAuditExperience } from "@/lib/scheduling/experience";
 import { getTerminology } from "@/lib/modules/terminology";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const TERMINOLOGY_DEFAULTS = { personLabel: "Auditor", assignmentLabel: "Penugasan" };
 
@@ -62,13 +62,15 @@ export default async function PenjadwalanRekapPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/penjadwalan`} className="text-[11px] text-sage-deep hover:underline">← Daftar {terminology.assignmentLabel}</Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">Rekap Pengalaman Audit Tahunan</h1>
-        <p className="text-sm text-ink-muted mt-1">
-          Agregat {terminology.assignmentLabel.toLowerCase()} berstatus selesai — jumlah, total hari, klien, dan sektor per {terminology.personLabel.toLowerCase()}.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Penjadwalan" },
+          { label: terminology.assignmentLabel, href: `/${companySlug}/penjadwalan` },
+          { label: "Rekap Tahunan" },
+        ]}
+        title="Rekap Pengalaman Audit Tahunan"
+        description={`Agregat ${terminology.assignmentLabel.toLowerCase()} berstatus selesai — jumlah, total hari, klien, dan sektor per ${terminology.personLabel.toLowerCase()}.`}
+      />
 
       <Card>
         <form method="get" className="flex items-end gap-3">

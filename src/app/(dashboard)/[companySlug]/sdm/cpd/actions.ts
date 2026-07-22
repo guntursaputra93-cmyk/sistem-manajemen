@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { cpdActivities, cpdSettings } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { uploadAttachment, AttachmentValidationError } from "@/lib/storage/attachments";
 
@@ -21,6 +22,8 @@ export async function createCpdActivity(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_CPD_ACTIVITY")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mencatat aktivitas CPD.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const employeeId = formData.get("employeeId")?.toString() ?? "";
   const activityName = formData.get("activityName")?.toString().trim() ?? "";
@@ -93,6 +96,8 @@ export async function updateCpdSettings(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_CPD_SETTINGS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur target CPD.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const annualTargetHours = formData.get("annualTargetHours")?.toString().trim() || null;
 

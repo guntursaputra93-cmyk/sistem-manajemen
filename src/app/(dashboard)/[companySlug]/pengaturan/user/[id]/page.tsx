@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -7,6 +6,7 @@ import { companies, departments, users } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { updateUser } from "../actions";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default async function UserEditPage({
   params,
@@ -42,12 +42,14 @@ export default async function UserEditPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/pengaturan/user`} className="text-sm text-sage-deep hover:underline">
-          &larr; Kembali
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{targetUser.fullName}</h1>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Pengaturan" },
+          { label: "User", href: `/${companySlug}/pengaturan/user` },
+          { label: targetUser.fullName },
+        ]}
+        title={targetUser.fullName}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

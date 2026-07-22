@@ -27,9 +27,9 @@ const AUTO_DISMISS_MS = 4000;
 // sage-deep text cuma ~3.3:1) — pola aman yang sama dipakai Sidebar: teks ink
 // gelap di atas latar pastel manapun, kecuali destructive yang sudah gelap sendiri.
 const VARIANT_STYLES: Record<BadgeVariant, string> = {
-  sage: "bg-sage text-ink",
-  "powder-blue": "bg-powder-blue text-ink",
-  "dusty-rose": "bg-dusty-rose text-ink",
+  sage: "bg-peach text-ink",
+  "powder-blue": "bg-butter text-ink",
+  "dusty-rose": "bg-coral text-ink",
   destructive: "bg-destructive text-white",
 };
 

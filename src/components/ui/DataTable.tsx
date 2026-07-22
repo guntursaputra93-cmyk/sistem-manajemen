@@ -18,15 +18,17 @@ export function DataTable<T>({
   rowKey: (row: T) => string;
   emptyMessage: string;
 }) {
+  // Fondasi redesign: teks tabel 13px (naik dari 11px), header 11.5px uppercase
+  // abu di latar netral, padding baris lebih lega, hover sage tipis.
   return (
-    <div className="bg-surface rounded-[14px] shadow-[0_2px_10px_rgba(51,57,59,0.05)] overflow-x-auto">
-      <table className="w-full text-[11px]">
-        <thead className="text-sage-deep text-[10px] uppercase tracking-wide bg-sage/[0.18]">
+    <div className="bg-surface rounded-[14px] border border-ink-muted/10 shadow-[0_1px_4px_rgba(51,57,59,0.04)] overflow-x-auto">
+      <table className="w-full text-[13px]">
+        <thead className="text-ink-muted text-[11.5px] uppercase tracking-wider bg-[#FAF1E5]">
           <tr>
             {columns.map((col, i) => (
               <th
                 key={col.key}
-                className={`text-left px-4 py-[7px] font-bold ${i === 0 ? "rounded-tl-[14px]" : ""} ${i === columns.length - 1 ? "rounded-tr-[14px]" : ""} ${col.className ?? ""}`}
+                className={`text-left px-4 py-[11px] font-bold border-b border-ink-muted/12 ${i === 0 ? "rounded-tl-[14px]" : ""} ${i === columns.length - 1 ? "rounded-tr-[14px]" : ""} ${col.className ?? ""}`}
               >
                 {col.header}
               </th>
@@ -36,15 +38,15 @@ export function DataTable<T>({
         <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-6 text-center text-ink-muted italic">
+              <td colSpan={columns.length} className="px-4 py-8 text-center text-ink-muted italic">
                 {emptyMessage}
               </td>
             </tr>
           )}
           {rows.map((row) => (
-            <tr key={rowKey(row)} className="border-t border-ink-muted/10 hover:bg-bg-base transition-colors">
+            <tr key={rowKey(row)} className="border-t border-ink-muted/8 first:border-t-0 hover:bg-sage/10 transition-colors">
               {columns.map((col) => (
-                <td key={col.key} className={`px-4 py-[7px] text-ink ${col.className ?? ""}`}>
+                <td key={col.key} className={`px-4 py-3 text-ink ${col.className ?? ""}`}>
                   {col.render(row)}
                 </td>
               ))}

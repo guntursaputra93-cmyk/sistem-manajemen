@@ -20,6 +20,10 @@ export const bankReconciliationItems = pgTable("bank_reconciliation_items", {
   // rekonsiliasi ini tidak boleh ikut terhalang/hilang, cukup kehilangan link sumbernya.
   journalEntryLineId: uuid("journal_entry_line_id").references(() => journalEntryLines.id, { onDelete: "set null" }),
   isCleared: boolean("is_cleared").notNull().default(false),
+  // true = baris ditambahkan MANUAL saat rekonsiliasi (mis. biaya admin bank dari
+  // rekening koran) — sistem sekaligus membuat jurnalnya, jadi journal_entry_line_id
+  // tetap terisi (menunjuk baris jurnal bank yang baru dibuat). Penanda utk UI/badge.
+  isManual: boolean("is_manual").notNull().default(false),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

@@ -9,6 +9,7 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const MONTH_LABEL = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
@@ -39,8 +40,8 @@ export default async function GajiSayaPage({
 
   if (!employee) {
     return (
-      <div className="space-y-6">
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Gaji Saya</h1>
+      <div>
+        <PageHeader breadcrumb={[{ label: "SDM" }, { label: "Gaji Saya" }]} title="Gaji Saya" />
         <EmptyState message="Akun Anda belum terhubung ke data karyawan — hubungi admin." />
       </div>
     );
@@ -56,22 +57,23 @@ export default async function GajiSayaPage({
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Gaji Saya</h1>
-        <p className="text-sm text-ink-muted mt-1">Riwayat slip gaji milikmu.</p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Gaji Saya" }]}
+        title="Gaji Saya"
+        description="Riwayat slip gaji milikmu."
+      />
 
       <Card title="Riwayat Slip Gaji">
         {payslipRows.length === 0 ? (
           <EmptyState message="Belum ada slip gaji. Slip gaji akan muncul di sini setelah payroll diproses." />
         ) : (
-          <ul className="space-y-2 text-sm">
+          <ul className="space-y-2 text-[13px]">
             {payslipRows.map((p) => {
               const run = runsById.get(p.payrollRunId);
               return (
                 <li key={p.id} className="flex items-center justify-between border-b border-ink-muted/10 pb-2">
-                  <Link href={`/${companySlug}/sdm/payroll/${p.payrollRunId}/${p.id}`} className="font-medium text-sage-deep hover:underline">
+                  <Link href={`/${companySlug}/sdm/payroll/${p.payrollRunId}/${p.id}`} className="font-semibold text-sage-deep hover:underline">
                     {run ? `${MONTH_LABEL[run.periodMonth - 1]} ${run.periodYear}` : "-"}
                   </Link>
                   <span className="text-ink">Rp {Number(p.netSalaryAmount).toLocaleString("id-ID")}</span>

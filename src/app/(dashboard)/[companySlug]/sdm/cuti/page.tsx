@@ -7,10 +7,13 @@ import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getVisibleEmployeeIds, getEmployeeByUserId, resolveViewer } from "@/lib/hr/employees";
 import { createLeaveRequest, approveLeaveRequestAction, rejectLeaveRequestAction } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
+import { ListToolbar } from "@/components/ui/ListToolbar";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Menunggu",
@@ -31,10 +34,10 @@ export default async function CutiPage({
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; q?: string; status?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
+  const { error, success, q, status } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -73,6 +76,18 @@ export default async function CutiPage({
   const canApprove = hasPermission(session.user.role, "APPROVE_LEAVE_REQUEST");
   const canCreate = hasPermission(session.user.role, "CREATE_LEAVE_REQUEST") && ownEmployee;
 
+  // Penyaringan server-side dari ?q= / ?status= yang di-set ListToolbar.
+  const needle = q?.trim().toLowerCase();
+  const filtered = requestRows.filter((r) => {
+    if (needle) {
+      const empName = empList.find((e) => e.id === r.employeeId)?.fullName ?? "";
+      const typeName = leaveTypeList.find((lt) => lt.id === r.leaveTypeId)?.name ?? "";
+      if (!`${empName} ${typeName}`.toLowerCase().includes(needle)) return false;
+    }
+    if (status && r.status !== status) return false;
+    return true;
+  });
+
   const columns: DataTableColumn<(typeof requestRows)[number]>[] = [
     { key: "employee", header: "Karyawan", render: (r) => empList.find((e) => e.id === r.employeeId)?.fullName ?? "-" },
     { key: "leaveType", header: "Jenis Cuti", render: (r) => leaveTypeList.find((lt) => lt.id === r.leaveTypeId)?.name ?? "-" },
@@ -89,7 +104,7 @@ export default async function CutiPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="leaveRequestId" value={r.id} />
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
                 Setujui
               </button>
             </form>
@@ -97,7 +112,7 @@ export default async function CutiPage({
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="leaveRequestId" value={r.id} />
-              <button type="submit" className="bg-destructive hover:bg-destructive/90 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+              <button type="submit" className="bg-destructive hover:bg-destructive/90 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
                 Tolak
               </button>
             </form>
@@ -109,57 +124,78 @@ export default async function CutiPage({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Pengajuan Cuti</h1>
-        <p className="text-sm text-ink-muted mt-1">
-          {session.user.role === "staff"
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Pengajuan Cuti" }]}
+        title="Pengajuan Cuti"
+        description={
+          session.user.role === "staff"
             ? "Pengajuan cuti milikmu."
             : session.user.role === "department_head"
               ? "Pengajuan cuti di departemenmu."
-              : `Semua pengajuan cuti ${company.name}.`}
-        </p>
-      </div>
+              : `Semua pengajuan cuti ${company.name}.`
+        }
+        actions={
+          canCreate && (
+            <FormDrawer buttonLabel="Ajukan Cuti" title="Ajukan Cuti" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              <form action={createLeaveRequest}>
+                <input type="hidden" name="companySlug" value={companySlug} />
+                <input type="hidden" name="companyId" value={company.id} />
+                <FormSection title="Detail Pengajuan">
+                  <FormField label="Jenis Cuti *" full>
+                    <select name="leaveTypeId" required className={inputClass}>
+                      <option value="">-- pilih --</option>
+                      {leaveTypeList.map((lt) => (
+                        <option key={lt.id} value={lt.id}>{lt.name}</option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Tanggal Mulai *">
+                    <DatePicker name="startDate" required />
+                  </FormField>
+                  <FormField label="Tanggal Selesai *">
+                    <DatePicker name="endDate" required />
+                  </FormField>
+                  <FormField label="Alasan" optional full>
+                    <textarea autoComplete="off" name="reason" rows={3} className={inputClass} />
+                  </FormField>
+                </FormSection>
+                <DrawerFooter submitLabel="Ajukan Cuti" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canCreate && (
-        <Card title="Ajukan Cuti">
-          <form action={createLeaveRequest} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <input type="hidden" name="companyId" value={company.id} />
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Cuti</label>
-              <select name="leaveTypeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                <option value="">-- pilih --</option>
-                {leaveTypeList.map((lt) => (
-                  <option key={lt.id} value={lt.id}>{lt.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Mulai</label>
-              <DatePicker name="startDate" required />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Selesai</label>
-              <DatePicker name="endDate" required />
-            </div>
-            <div className="col-span-full">
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Alasan (opsional)</label>
-              <textarea autoComplete="off" name="reason" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div className="col-span-full">
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                Ajukan
-              </button>
-            </div>
-          </form>
-        </Card>
+      {success && (
+        <div className="mb-4 rounded-lg border border-sage-deep/20 bg-sage/20 px-4 py-3 text-[13px] text-ink">
+          Berhasil disimpan.
+        </div>
       )}
 
-      <DataTable columns={columns} rows={requestRows} rowKey={(r) => r.id} emptyMessage="Belum ada pengajuan cuti." />
+      <ListToolbar
+        searchPlaceholder="Cari nama karyawan atau jenis cuti…"
+        filters={[
+          {
+            name: "status",
+            allLabel: "Semua Status",
+            options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })),
+          },
+        ]}
+        countLabel={`${filtered.length} pengajuan`}
+      />
+
+      <DataTable
+        columns={columns}
+        rows={filtered}
+        rowKey={(r) => r.id}
+        emptyMessage={needle || status ? "Tidak ada pengajuan yang cocok dengan pencarian/filter." : "Belum ada pengajuan cuti."}
+      />
     </div>
   );
 }

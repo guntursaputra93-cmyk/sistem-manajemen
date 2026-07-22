@@ -4,8 +4,10 @@ import { withTenantContext } from "@/lib/db";
 import { companies, companyModules } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 import { ROLE_LABEL, hasPermission, type Role } from "@/lib/rbac/permissions";
+import { Suspense } from "react";
 import { Sidebar, type SidebarGroup } from "@/components/ui/Sidebar";
 import { TopBar } from "@/components/ui/TopBar";
+import { FlashToast } from "@/components/ui/FlashToast";
 import { getNotificationSummary } from "@/lib/notifications/getNotificationSummary";
 
 export default async function CompanyDashboardLayout({
@@ -51,6 +53,10 @@ export default async function CompanyDashboardLayout({
   const keuanganModuleOn = enabledModules.has("keuangan");
 
   const groups: SidebarGroup[] = [];
+
+  // Dashboard di paling atas, tanpa label grup (item tunggal) — semua role bisa
+  // melihat dashboard, jadi tidak perlu gate permission/modul.
+  groups.push({ items: [{ href: `/${companySlug}/dashboard`, label: "Dashboard", icon: "layout-dashboard" }] });
 
   const suratItems: SidebarGroup["items"] = [];
   if (suratModuleOn && hasPermission(session.user.role, "VIEW_INCOMING_LETTERS")) {
@@ -162,19 +168,22 @@ export default async function CompanyDashboardLayout({
   // pernah melihat grup ini sama sekali (Kasbon, satu-satunya halaman Keuangan yang
   // staff akses, sengaja ditaruh di grup SDM di atas, bukan di sini).
   const keuanganItems: SidebarGroup["items"] = [];
-  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_CHART_OF_ACCOUNTS")) {
-    keuanganItems.push({ href: `/${companySlug}/keuangan/akun`, label: "Chart of Accounts", icon: "file-text" });
-  }
   if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_JOURNAL_ENTRIES")) {
     keuanganItems.push({ href: `/${companySlug}/keuangan/jurnal`, label: "Jurnal Umum", icon: "file-text" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/jurnal/transaksi-terbuka`, label: "Transaksi Terbuka", icon: "arrow-left-right" });
   }
   if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_FINANCIAL_REPORTS")) {
     keuanganItems.push({ href: `/${companySlug}/keuangan/buku-besar`, label: "Buku Besar", icon: "bar-chart-3" });
     keuanganItems.push({ href: `/${companySlug}/keuangan/neraca`, label: "Neraca", icon: "bar-chart-3" });
     keuanganItems.push({ href: `/${companySlug}/keuangan/laba-rugi`, label: "Laba Rugi", icon: "bar-chart-3" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/arus-kas`, label: "Arus Kas", icon: "arrow-left-right" });
+    keuanganItems.push({ href: `/${companySlug}/keuangan/kartu-rekanan`, label: "Kartu Rekanan", icon: "contact" });
   }
   if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_AR_INVOICES")) {
     keuanganItems.push({ href: `/${companySlug}/keuangan/piutang`, label: "Piutang (AR)", icon: "wallet" });
+  }
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_AP_BILLS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/hutang`, label: "Hutang (AP)", icon: "wallet" });
   }
   if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_HPP_PROJECT_COSTS")) {
     keuanganItems.push({ href: `/${companySlug}/keuangan/hpp`, label: "Biaya Proyek (HPP)", icon: "wallet" });
@@ -190,6 +199,10 @@ export default async function CompanyDashboardLayout({
   }
   if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_BANK_RECONCILIATIONS")) {
     keuanganItems.push({ href: `/${companySlug}/keuangan/rekonsiliasi-bank`, label: "Rekonsiliasi Bank", icon: "landmark" });
+  }
+  // Setting Keuangan (COA + pengaturan modul lain) — ditaruh paling bawah grup.
+  if (keuanganModuleOn && hasPermission(session.user.role, "VIEW_CHART_OF_ACCOUNTS")) {
+    keuanganItems.push({ href: `/${companySlug}/keuangan/setting/akun`, label: "Setting", icon: "settings" });
   }
   if (keuanganItems.length) groups.push({ label: "Keuangan", icon: "landmark", items: keuanganItems });
 
@@ -241,6 +254,10 @@ export default async function CompanyDashboardLayout({
         />
         <main className="flex-1 px-6 py-3.5 overflow-y-auto">{children}</main>
       </div>
+      {/* Toast sukses global dari ?success= — Suspense krn useSearchParams. */}
+      <Suspense fallback={null}>
+        <FlashToast />
+      </Suspense>
     </div>
   );
 }

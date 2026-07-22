@@ -9,6 +9,7 @@ import { formatRupiah } from "@/lib/finance/format";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const STATUS_LABEL: Record<string, string> = { pending: "Menunggu", disetujui: "Disetujui", ditolak: "Ditolak", lunas: "Lunas" };
 const STATUS_VARIANT: Record<string, BadgeVariant> = { pending: "powder-blue", disetujui: "sage", ditolak: "destructive", lunas: "sage" };
@@ -76,15 +77,15 @@ export default async function KasbonDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[17px] font-extrabold text-ink">Kasbon — {employee?.fullName ?? "-"}</h1>
-          <p className="text-sm text-ink-muted mt-1">{kasbon.purpose}</p>
-        </div>
-        <Link href={`/${companySlug}/keuangan/kasbon`} className="text-xs text-sage-deep hover:underline">
-          &larr; Kembali ke daftar kasbon
-        </Link>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Keuangan" },
+          { label: "Kasbon", href: `/${companySlug}/keuangan/kasbon` },
+          { label: employee?.fullName ?? "-" },
+        ]}
+        title={`Kasbon — ${employee?.fullName ?? "-"}`}
+        description={kasbon.purpose}
+      />
 
       <Card title="Status Kasbon">
         <TrailStepper orientation="horizontal" steps={kasbonTrail} />

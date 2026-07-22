@@ -7,9 +7,11 @@ import { companies, calibrationMeetings, users, attachments } from "@/drizzle/sc
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createCalibrationMeeting } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 export default async function KalibrasiPage({
   params,
@@ -66,7 +68,7 @@ export default async function KalibrasiPage({
       key: "date",
       header: "Tanggal",
       render: (m) => (
-        <Link href={`/${companySlug}/sdm/kalibrasi/${m.id}`} className="font-medium text-sage-deep hover:underline">
+        <Link href={`/${companySlug}/sdm/kalibrasi/${m.id}`} className="font-semibold text-sage-deep hover:underline">
           {m.meetingDate}
         </Link>
       ),
@@ -85,79 +87,83 @@ export default async function KalibrasiPage({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Rapat Kalibrasi</h1>
-        <p className="text-sm text-ink-muted mt-1">Notulen rapat kalibrasi tim {company.name}.</p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Rapat Kalibrasi" }]}
+        title="Rapat Kalibrasi"
+        description={`Notulen rapat kalibrasi tim ${company.name}.`}
+        actions={
+          canManage && (
+            <FormDrawer buttonLabel="Buat Notulen" title="Buat Notulen Rapat Kalibrasi" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              <form action={createCalibrationMeeting}>
+                <input type="hidden" name="companySlug" value={companySlug} />
+                <input type="hidden" name="companyId" value={company.id} />
+                <FormSection title="Detail Rapat">
+                  <FormField label="Tanggal Rapat *">
+                    <DatePicker name="meetingDate" required />
+                  </FormField>
+                  <FormField label="Lokasi/Media" optional>
+                    <input autoComplete="off" name="locationOrMedia" placeholder="mis. Ruang Rapat A / Zoom" className={inputClass} />
+                  </FormField>
+                  <FormField label="Pemimpin Rapat *">
+                    <select name="leaderUserId" required className={inputClass}>
+                      <option value="">-- pilih --</option>
+                      {userList.map((u) => (
+                        <option key={u.id} value={u.id}>{u.fullName}</option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Notulis" optional>
+                    <select name="notetakerUserId" className={inputClass}>
+                      <option value="">-- tidak ada --</option>
+                      {userList.map((u) => (
+                        <option key={u.id} value={u.id}>{u.fullName}</option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Agenda" optional full>
+                    <textarea autoComplete="off" name="agenda" rows={3} className={inputClass} />
+                  </FormField>
+                </FormSection>
+                <DrawerFooter submitLabel="Buat Notulen" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canManage && (
-        <Card title="Buat Notulen Rapat Kalibrasi">
-          <form action={createCalibrationMeeting} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <input type="hidden" name="companyId" value={company.id} />
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Rapat</label>
-              <DatePicker name="meetingDate" required />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Lokasi/Media (opsional)</label>
-              <input autoComplete="off" name="locationOrMedia" placeholder="mis. Ruang Rapat A / Zoom" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Pemimpin Rapat</label>
-              <select name="leaderUserId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                <option value="">-- pilih --</option>
-                {userList.map((u) => (
-                  <option key={u.id} value={u.id}>{u.fullName}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Notulis (opsional)</label>
-              <select name="notetakerUserId" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                <option value="">-- tidak ada --</option>
-                {userList.map((u) => (
-                  <option key={u.id} value={u.id}>{u.fullName}</option>
-                ))}
-              </select>
-            </div>
-            <div className="col-span-full">
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Agenda (opsional)</label>
-              <textarea autoComplete="off" name="agenda" rows={2} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div className="col-span-full">
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                Buat Notulen
-              </button>
-            </div>
-          </form>
-        </Card>
+      {success && (
+        <div className="mb-4 rounded-lg border border-sage-deep/20 bg-sage/20 px-4 py-3 text-[13px] text-ink">
+          Berhasil disimpan.
+        </div>
       )}
 
-      <Card title="Rekap Kalibrasi">
+      <div className="mb-4 flex flex-wrap items-end gap-3">
         <form method="get" className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Dari Tanggal</label>
+            <label className="block text-xs font-semibold text-ink-muted mb-1">Dari Tanggal</label>
             <DatePicker name="from" defaultValue={from} />
           </div>
           <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Sampai Tanggal</label>
+            <label className="block text-xs font-semibold text-ink-muted mb-1">Sampai Tanggal</label>
             <DatePicker name="to" defaultValue={to} />
           </div>
-          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
+          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[13px] font-bold px-4 py-2 rounded-[10px] transition-colors cursor-pointer">
             Filter
           </button>
           {(from || to) && (
-            <Link href={`/${companySlug}/sdm/kalibrasi`} className="text-[11px] text-ink-muted hover:underline">
+            <Link href={`/${companySlug}/sdm/kalibrasi`} className="text-xs text-ink-muted hover:underline pb-2.5">
               Reset
             </Link>
           )}
         </form>
-      </Card>
+        <span className="ml-auto text-xs text-ink-muted">{meetingRows.length} rapat</span>
+      </div>
 
       <DataTable columns={columns} rows={meetingRows} rowKey={(m) => m.id} emptyMessage="Belum ada rapat kalibrasi tercatat." />
     </div>

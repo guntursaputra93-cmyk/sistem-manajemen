@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { contracts } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { updateContract, ContractError } from "@/lib/crm/contracts";
 
@@ -22,6 +23,8 @@ export async function updateContractAction(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_CONTRACTS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah contract.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const contractValue = formData.get("contractValue")?.toString().trim() ?? "";
   const startDate = formData.get("startDate")?.toString() ?? "";

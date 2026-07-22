@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -9,6 +8,7 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { addDisposition } from "../actions";
 import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const STATUS_LABEL: Record<string, string> = {
   baru: "Baru",
@@ -78,15 +78,15 @@ export default async function SuratMasukDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/surat-masuk`} className="text-[11px] text-sage-deep hover:underline">
-          &larr; Kembali
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">{letter.agendaNumber}</h1>
-        <p className="text-[11px] text-ink-muted mt-1">
-          {letter.sender} — {letter.subject}
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Persuratan" },
+          { label: "Surat Masuk", href: `/${companySlug}/surat-masuk` },
+          { label: letter.agendaNumber },
+        ]}
+        title={letter.agendaNumber}
+        description={`${letter.sender} — ${letter.subject}`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && (

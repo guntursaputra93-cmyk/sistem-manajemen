@@ -5,6 +5,7 @@ import { withTenantContext } from "@/lib/db";
 import { companies, companyModules } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { MODULE_KEYS, MODULE_LABEL } from "@/lib/modules";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { toggleModule } from "./actions";
 
 export default async function ModulePage({
@@ -36,10 +37,11 @@ export default async function ModulePage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Modul Aktif</h1>
-        <p className="text-sm text-ink-muted mt-1">Aktif/nonaktifkan modul bisnis untuk {company.name}. Independen antar perusahaan.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Pengaturan" }, { label: "Modul Aktif" }]}
+        title="Modul Aktif"
+        description={`Aktif/nonaktifkan modul bisnis untuk ${company.name}. Independen antar perusahaan.`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

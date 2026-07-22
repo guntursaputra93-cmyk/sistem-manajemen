@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, documents, documentVersions, documentCategories, users } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { submitDocumentVersionForReview, decideDocumentVersionApproval, DocumentVersionError } from "@/lib/documents/versions";
 
@@ -18,6 +19,8 @@ export async function createDocument(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_DOCUMENT")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat dokumen.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "pengendalian_dokumen" });
 
   const title = formData.get("title")?.toString().trim() ?? "";
   const categoryId = formData.get("categoryId")?.toString() ?? "";
@@ -69,6 +72,8 @@ export async function addNewVersion(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menambah versi.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "pengendalian_dokumen" });
+
   const effectiveDate = formData.get("effectiveDate")?.toString() || null;
   const expiresAt = formData.get("expiresAt")?.toString() || null;
 
@@ -119,6 +124,8 @@ export async function submitVersionForReviewAction(formData: FormData): Promise<
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengajukan review.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "pengendalian_dokumen" });
+
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
   if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
@@ -166,6 +173,8 @@ export async function decideVersionApprovalAction(formData: FormData): Promise<v
   if (!session?.user) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Sesi tidak valid.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "pengendalian_dokumen" });
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));

@@ -6,10 +6,13 @@ import { companies, departments, incomingLetters } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createIncomingLetter } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
+import { ListToolbar } from "@/components/ui/ListToolbar";
 
 const STATUS_LABEL: Record<string, string> = {
   baru: "Baru",
@@ -30,10 +33,10 @@ export default async function SuratMasukPage({
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; q?: string; status?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
+  const { error, success, q, status } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -60,6 +63,14 @@ export default async function SuratMasukPage({
 
   const canCreate = hasPermission(session.user.role, "CREATE_INCOMING_LETTER");
 
+  // Penyaringan server-side dari ?q= / ?status= yang di-set ListToolbar.
+  const needle = q?.trim().toLowerCase();
+  const filtered = letters.filter((l) => {
+    if (needle && !`${l.agendaNumber} ${l.sender} ${l.subject}`.toLowerCase().includes(needle)) return false;
+    if (status && l.status !== status) return false;
+    return true;
+  });
+
   const columns: DataTableColumn<(typeof letters)[number]>[] = [
     {
       key: "agenda",
@@ -81,66 +92,71 @@ export default async function SuratMasukPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Surat Masuk</h1>
-        <p className="text-sm text-ink-muted mt-1">Registrasi surat masuk &amp; riwayat disposisi.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Persuratan" }, { label: "Surat Masuk" }]}
+        title="Surat Masuk"
+        description="Registrasi surat masuk & riwayat disposisi."
+        actions={
+          canCreate && (
+            <FormDrawer buttonLabel="Registrasi Surat" title="Registrasi Surat Masuk" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              <form action={createIncomingLetter}>
+                <input type="hidden" name="companySlug" value={companySlug} />
+                <FormSection title="Detail Surat">
+                  <FormField label="Tanggal Surat *">
+                    <DatePicker name="letterDate" required />
+                  </FormField>
+                  <FormField label="Tanggal Diterima *">
+                    <DatePicker name="receivedDate" required />
+                  </FormField>
+                  <FormField label="Pengirim *" full>
+                    <input autoComplete="off" name="sender" required className={inputClass} />
+                  </FormField>
+                  <FormField label="Tujuan Awal" optional full>
+                    <select name="departmentId" className={inputClass}>
+                      <option value="">-- belum ditentukan --</option>
+                      {deptList.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Perihal *" full>
+                    <input autoComplete="off" name="subject" required className={inputClass} />
+                  </FormField>
+                </FormSection>
+                <DrawerFooter submitLabel="Simpan Surat" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      {canCreate && (
-        <Card title="Registrasi Surat Masuk">
-          <form action={createIncomingLetter} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Surat</label>
-              <DatePicker name="letterDate" required />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Diterima</label>
-              <DatePicker name="receivedDate" required />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Pengirim</label>
-              <input autoComplete="off"
-                name="sender"
-                required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tujuan Awal (opsional)</label>
-              <select
-                name="departmentId"
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-              >
-                <option value="">-- belum ditentukan --</option>
-                {deptList.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-span-full">
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Perihal</label>
-              <input autoComplete="off"
-                name="subject"
-                required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-              />
-            </div>
-            <div className="col-span-full">
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                Simpan
-              </button>
-            </div>
-          </form>
-        </Card>
-      )}
+      <ListToolbar
+        searchPlaceholder="Cari no. agenda, pengirim, atau perihal…"
+        filters={[
+          {
+            name: "status",
+            allLabel: "Semua Status",
+            options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })),
+          },
+        ]}
+        countLabel={`${filtered.length} surat`}
+      />
 
-      <DataTable columns={columns} rows={letters} rowKey={(letter) => letter.id} emptyMessage="Belum ada surat masuk. Surat yang diregistrasi akan muncul di sini." />
+      <DataTable
+        columns={columns}
+        rows={filtered}
+        rowKey={(letter) => letter.id}
+        emptyMessage={needle || status ? "Tidak ada surat yang cocok dengan pencarian/filter." : "Belum ada surat masuk. Surat yang diregistrasi akan muncul di sini."}
+      />
     </div>
   );
 }

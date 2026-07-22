@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { cpdActivities } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 import { uploadAttachment, AttachmentValidationError } from "@/lib/storage/attachments";
@@ -27,6 +28,8 @@ export async function createCpdActivitySelf(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_CPD_ACTIVITY")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mencatat aktivitas CPD.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const activityName = formData.get("activityName")?.toString().trim() ?? "";
   const categoryRaw = formData.get("category")?.toString() ?? "";

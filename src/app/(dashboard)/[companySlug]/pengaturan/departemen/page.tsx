@@ -5,8 +5,10 @@ import { withTenantContext } from "@/lib/db";
 import { companies, departments } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { createDepartment, updateDepartment, deleteDepartment } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 export default async function DepartemenPage({
   params,
@@ -37,55 +39,45 @@ export default async function DepartemenPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Departemen</h1>
-        <p className="text-sm text-ink-muted mt-1">Kelola departemen di {company.name}.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Pengaturan" }, { label: "Departemen" }]}
+        title="Departemen"
+        description={`Kelola departemen di ${company.name}.`}
+        actions={
+          <FormDrawer buttonLabel="Tambah Departemen" title="Tambah Departemen" defaultOpen={Boolean(error)}>
+            {error && (
+              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                {error}
+              </div>
+            )}
+            <form action={createDepartment}>
+              <input type="hidden" name="companySlug" value={companySlug} />
+              <input type="hidden" name="companyId" value={company.id} />
+              <FormSection title="Detail Departemen">
+                <FormField label="Nama *">
+                  <input autoComplete="new-password" name="name" required className={inputClass} />
+                </FormField>
+                <FormField label="Kode" optional>
+                  <input autoComplete="off" name="code" maxLength={10} className={`${inputClass} uppercase`} />
+                </FormField>
+                <FormField label="Induk Departemen" optional full>
+                  <select name="parentDepartmentId" className={inputClass}>
+                    <option value="">-- tidak ada --</option>
+                    {deptList.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </FormSection>
+              <DrawerFooter submitLabel="Tambah Departemen" />
+            </form>
+          </FormDrawer>
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      <Card title="Tambah Departemen">
-        <form action={createDepartment} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <input type="hidden" name="companySlug" value={companySlug} />
-          <input type="hidden" name="companyId" value={company.id} />
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
-            <input autoComplete="new-password"
-              name="name"
-              required
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode (opsional)</label>
-            <input autoComplete="off"
-              name="code"
-              maxLength={10}
-              className="w-full border border-ink-muted/20 rounded-lg px-3 py-2 text-sm uppercase text-ink bg-bg-base"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Induk Departemen (opsional)</label>
-            <select
-              name="parentDepartmentId"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            >
-              <option value="">-- tidak ada --</option>
-              {deptList.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-full">
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-              Tambah
-            </button>
-          </div>
-        </form>
-      </Card>
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <section className="space-y-2">
         {deptList.length === 0 && <EmptyState message="Belum ada departemen. Departemen yang ditambahkan akan muncul di sini." />}

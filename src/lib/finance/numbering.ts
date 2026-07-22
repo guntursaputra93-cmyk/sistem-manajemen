@@ -48,3 +48,11 @@ export function formatInvoiceNumber(urut: number, postedAt: Date): string {
   const year = postedAt.getFullYear();
   return `INV/${urutStr}/${month}/${year}`;
 }
+
+/** Format "BILL/000123/VII/2026" (Item 5c, tagihan pemasok/AP) — pola sama. */
+export function formatBillNumber(urut: number, postedAt: Date): string {
+  const urutStr = String(urut).padStart(6, "0");
+  const month = ROMAN_MONTHS[postedAt.getMonth()];
+  const year = postedAt.getFullYear();
+  return `BILL/${urutStr}/${month}/${year}`;
+}

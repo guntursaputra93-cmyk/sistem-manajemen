@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import type { db as Db } from "@/lib/db";
+import { withTenantContext, type db as Db } from "@/lib/db";
 import { companyModules } from "@/drizzle/schema";
 
 // 2 module_key Fase 1 (spesifikasi Bagian 1) + crm (modul tambahan CRM Bagian 1) +
@@ -53,4 +53,26 @@ export async function requireModuleEnabled(
   if (!enabled) {
     redirect(`/${params.companySlug}/dashboard`);
   }
+}
+
+/**
+ * Guard modul untuk SERVER ACTION (hasil audit keamanan). Halaman memanggil
+ * requireModuleEnabled(tx, ...) di dalam withTenantContext-nya sendiri; server action
+ * umumnya belum punya tx terbuka saat guard perlu dijalankan, jadi helper ini
+ * membungkusnya sekalian supaya pemakaiannya cukup satu baris.
+ *
+ * PENTING — companyId diambil dari SESSION, bukan formData. formData dikirim client
+ * dan bisa dipalsukan; RLS memang tetap menahan tulisan lintas-tenant, tapi cek modul
+ * harus mengacu ke company milik user itu sendiri supaya pengecekannya bermakna.
+ */
+export async function requireModuleEnabledForAction(params: {
+  role: string;
+  companyId: string | null;
+  companySlug: string;
+  moduleKey: ModuleKey;
+}): Promise<void> {
+  if (!params.companyId) redirect(`/${params.companySlug}/dashboard`);
+  await withTenantContext({ role: params.role, companyId: params.companyId }, (tx) =>
+    requireModuleEnabled(tx, { companyId: params.companyId as string, moduleKey: params.moduleKey, companySlug: params.companySlug })
+  );
 }

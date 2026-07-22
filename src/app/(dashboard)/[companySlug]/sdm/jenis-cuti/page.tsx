@@ -6,8 +6,10 @@ import { companies, leaveTypes } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createLeaveType, updateLeaveType } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 export default async function JenisCutiPage({
   params,
@@ -38,70 +40,77 @@ export default async function JenisCutiPage({
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Jenis Cuti</h1>
-        <p className="text-sm text-ink-muted mt-1">Konfigurasi jenis cuti & kuota tahunan default untuk {company.name}.</p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Jenis Cuti" }]}
+        title="Jenis Cuti"
+        description={`Konfigurasi jenis cuti & kuota tahunan default untuk ${company.name}.`}
+        actions={
+          <FormDrawer buttonLabel="Tambah Jenis Cuti" title="Tambah Jenis Cuti" defaultOpen={Boolean(error)}>
+            {error && (
+              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                {error}
+              </div>
+            )}
+            <form action={createLeaveType}>
+              <input type="hidden" name="companySlug" value={companySlug} />
+              <input type="hidden" name="companyId" value={company.id} />
+              <FormSection title="Detail Jenis Cuti">
+                <FormField label="Kode *">
+                  <input autoComplete="off" name="code" required placeholder="mis. TAHUNAN" className={`${inputClass} uppercase`} />
+                </FormField>
+                <FormField label="Nama *">
+                  <input autoComplete="new-password" name="name" required className={inputClass} />
+                </FormField>
+                <FormField label="Kuota/Tahun *">
+                  <input autoComplete="off" name="defaultQuotaPerYear" type="number" min={0} required className={inputClass} />
+                </FormField>
+                <FormField label="Dibayar">
+                  <label className="flex items-center gap-2 py-2 text-[13px] text-ink">
+                    <input type="checkbox" name="isPaid" value="true" defaultChecked className="h-4 w-4 accent-sage-deep" />
+                    Cuti dibayar
+                  </label>
+                </FormField>
+              </FormSection>
+              <DrawerFooter submitLabel="Tambah Jenis Cuti" />
+            </form>
+          </FormDrawer>
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      <Card title="Tambah Jenis Cuti">
-        <form action={createLeaveType} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          <input type="hidden" name="companySlug" value={companySlug} />
-          <input type="hidden" name="companyId" value={company.id} />
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
-            <input autoComplete="off" name="code" required placeholder="mis. TAHUNAN" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base uppercase" />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
-            <input autoComplete="new-password" name="name" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kuota/Tahun</label>
-            <input autoComplete="off" name="defaultQuotaPerYear" type="number" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-          </div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" name="isPaid" value="true" id="isPaid" defaultChecked className="h-4 w-4 accent-sage-deep" />
-            <label htmlFor="isPaid" className="text-sm text-ink-muted">Dibayar</label>
-          </div>
-          <div className="col-span-full">
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-              Tambah
-            </button>
-          </div>
-        </form>
-      </Card>
+      {success && (
+        <div className="mb-4 rounded-lg border border-sage-deep/20 bg-sage/20 px-4 py-3 text-[13px] text-ink">
+          Berhasil disimpan.
+        </div>
+      )}
 
       <section className="space-y-2">
         {leaveTypeList.length === 0 && <EmptyState message="Belum ada jenis cuti. Jenis cuti yang ditambahkan akan muncul di sini." />}
         {leaveTypeList.map((lt) => (
-          <div key={lt.id} className="max-w-2xl bg-surface rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3">
+          <div key={lt.id} className="max-w-2xl bg-surface rounded-xl border border-ink-muted/10 shadow-[0_1px_4px_rgba(51,57,59,0.04)] p-4">
             <form action={updateLeaveType} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
               <input type="hidden" name="companySlug" value={companySlug} />
               <input type="hidden" name="companyId" value={company.id} />
               <input type="hidden" name="leaveTypeId" value={lt.id} />
               <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kode</label>
-                <p className="text-[11px] text-ink py-[6px]">{lt.code}</p>
+                <label className="block text-xs font-semibold text-ink-muted mb-1">Kode</label>
+                <p className="text-[13px] font-semibold text-ink py-2">{lt.code}</p>
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama</label>
-                <input autoComplete="new-password" name="name" defaultValue={lt.name} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+                <label className="block text-xs font-semibold text-ink-muted mb-1">Nama</label>
+                <input autoComplete="new-password" name="name" defaultValue={lt.name} required className={inputClass} />
               </div>
               <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kuota/Tahun</label>
-                <input autoComplete="off" name="defaultQuotaPerYear" type="number" min={0} defaultValue={lt.defaultQuotaPerYear} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+                <label className="block text-xs font-semibold text-ink-muted mb-1">Kuota/Tahun</label>
+                <input autoComplete="off" name="defaultQuotaPerYear" type="number" min={0} defaultValue={lt.defaultQuotaPerYear} required className={inputClass} />
               </div>
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-1.5 text-[11px] text-ink-muted">
-                  <input type="checkbox" name="isPaid" value="true" defaultChecked={lt.isPaid} className="h-3.5 w-3.5 accent-sage-deep" />
+                <label className="flex items-center gap-1.5 text-[13px] text-ink-muted">
+                  <input type="checkbox" name="isPaid" value="true" defaultChecked={lt.isPaid} className="h-4 w-4 accent-sage-deep" />
                   Dibayar
                 </label>
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors">
-                  Edit
+                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors cursor-pointer">
+                  Simpan
                 </button>
               </div>
             </form>

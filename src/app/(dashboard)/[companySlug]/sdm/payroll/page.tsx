@@ -7,9 +7,11 @@ import { companies, payrollRuns } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createPayrollRun } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const STATUS_LABEL: Record<string, string> = { draft: "Draft", diproses: "Diproses", selesai: "Selesai" };
 const STATUS_VARIANT: Record<string, "sage" | "powder-blue" | "dusty-rose" | "destructive"> = {
@@ -55,7 +57,7 @@ export default async function PayrollPage({
       key: "period",
       header: "Periode",
       render: (r) => (
-        <Link href={`/${companySlug}/sdm/payroll/${r.id}`} className="font-medium text-sage-deep hover:underline">
+        <Link href={`/${companySlug}/sdm/payroll/${r.id}`} className="font-semibold text-sage-deep hover:underline">
           {MONTH_LABEL[r.periodMonth - 1]} {r.periodYear}
         </Link>
       ),
@@ -65,39 +67,45 @@ export default async function PayrollPage({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Payroll</h1>
-        <p className="text-sm text-ink-muted mt-1">Riwayat payroll run {company.name}.</p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Payroll" }]}
+        title="Payroll"
+        description={`Riwayat payroll run ${company.name}.`}
+        actions={
+          canRun && (
+            <FormDrawer buttonLabel="Buat Payroll Run" title="Buat Payroll Run" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              <form action={createPayrollRun}>
+                <input type="hidden" name="companySlug" value={companySlug} />
+                <input type="hidden" name="companyId" value={company.id} />
+                <FormSection title="Periode">
+                  <FormField label="Bulan *">
+                    <select name="periodMonth" defaultValue={currentDate.getMonth() + 1} required className={inputClass}>
+                      {MONTH_LABEL.map((label, i) => (
+                        <option key={label} value={i + 1}>{label}</option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Tahun *">
+                    <input autoComplete="off" name="periodYear" type="number" defaultValue={currentDate.getFullYear()} required className={inputClass} />
+                  </FormField>
+                </FormSection>
+                <DrawerFooter submitLabel="Buat Payroll Run" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canRun && (
-        <Card title="Buat Payroll Run">
-          <form action={createPayrollRun} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <input type="hidden" name="companyId" value={company.id} />
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Bulan</label>
-              <select name="periodMonth" defaultValue={currentDate.getMonth() + 1} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                {MONTH_LABEL.map((label, i) => (
-                  <option key={label} value={i + 1}>{label}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahun</label>
-              <input autoComplete="off" name="periodYear" type="number" defaultValue={currentDate.getFullYear()} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                Buat
-              </button>
-            </div>
-          </form>
-        </Card>
+      {success && (
+        <div className="mb-4 rounded-lg border border-sage-deep/20 bg-sage/20 px-4 py-3 text-[13px] text-ink">
+          Berhasil disimpan.
+        </div>
       )}
 
       <DataTable columns={columns} rows={runList} rowKey={(r) => r.id} emptyMessage="Belum ada payroll run." />

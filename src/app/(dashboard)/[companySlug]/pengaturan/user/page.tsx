@@ -5,9 +5,11 @@ import { withTenantContext } from "@/lib/db";
 import { companies, departments, users } from "@/drizzle/schema";
 import { hasPermission, ROLE_LABEL } from "@/lib/rbac/permissions";
 import { createUser } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 export default async function UserListPage({
   params,
@@ -59,84 +61,64 @@ export default async function UserListPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">User</h1>
-        <p className="text-sm text-ink-muted mt-1">Kelola akun user di {company.name}.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Pengaturan" }, { label: "User" }]}
+        title="User"
+        description={`Kelola akun user di ${company.name}.`}
+        actions={
+          <FormDrawer
+            buttonLabel="Tambah User"
+            title="Tambah User"
+            description={linkEmployeeId ? "Membuat akses sistem untuk karyawan yang dipilih dari halaman Data Karyawan." : undefined}
+            defaultOpen={Boolean(error) || Boolean(linkEmployeeId)}
+          >
+            {error && (
+              <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                {error}
+              </div>
+            )}
+            <form action={createUser}>
+              <input type="hidden" name="companySlug" value={companySlug} />
+              <input type="hidden" name="companyId" value={company.id} />
+              {linkEmployeeId && <input type="hidden" name="linkEmployeeId" value={linkEmployeeId} />}
+              <FormSection title="① Akun">
+                <FormField label="Nama Lengkap *">
+                  <input autoComplete="new-password" name="fullName" defaultValue={prefillFullName ?? ""} required className={inputClass} />
+                </FormField>
+                <FormField label="Email *">
+                  <input autoComplete="new-password" name="email" type="email" defaultValue={prefillEmail ?? ""} required className={inputClass} />
+                </FormField>
+                <FormField label="Password *" full hint="Minimal 8 karakter.">
+                  <input autoComplete="new-password" name="password" type="password" required minLength={8} className={inputClass} />
+                </FormField>
+              </FormSection>
+              <FormSection title="② Peran & Departemen">
+                <FormField label="Role">
+                  <select name="role" className={inputClass}>
+                    <option value="staff">Staff</option>
+                    <option value="department_head">Kepala Departemen</option>
+                    <option value="company_admin">Admin Perusahaan</option>
+                    <option value="super_admin">Super Admin</option>
+                  </select>
+                </FormField>
+                <FormField label="Departemen" hint="Wajib utk Staff/Kepala Departemen.">
+                  <select name="departmentId" className={inputClass}>
+                    <option value="">-- tidak ada --</option>
+                    {deptList.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </FormSection>
+              <DrawerFooter submitLabel="Tambah User" />
+            </form>
+          </FormDrawer>
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      <Card
-        title="Tambah User"
-        description={linkEmployeeId ? "Membuat akses sistem untuk karyawan yang dipilih dari halaman Data Karyawan." : undefined}
-      >
-        <form action={createUser} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <input type="hidden" name="companySlug" value={companySlug} />
-          <input type="hidden" name="companyId" value={company.id} />
-          {linkEmployeeId && <input type="hidden" name="linkEmployeeId" value={linkEmployeeId} />}
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Lengkap</label>
-            <input autoComplete="new-password"
-              name="fullName"
-              defaultValue={prefillFullName ?? ""}
-              required
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Email</label>
-            <input autoComplete="new-password"
-              name="email"
-              type="email"
-              defaultValue={prefillEmail ?? ""}
-              required
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Password</label>
-            <input autoComplete="new-password"
-              name="password"
-              type="password"
-              required
-              minLength={8}
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Role</label>
-            <select
-              name="role"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            >
-              <option value="staff">Staff</option>
-              <option value="department_head">Kepala Departemen</option>
-              <option value="company_admin">Admin Perusahaan</option>
-              <option value="super_admin">Super Admin</option>
-            </select>
-          </div>
-          <div className="col-span-full">
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (wajib utk Staff/Kepala Departemen)</label>
-            <select
-              name="departmentId"
-              className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-            >
-              <option value="">-- tidak ada --</option>
-              {deptList.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-full">
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-              Tambah User
-            </button>
-          </div>
-        </form>
-      </Card>
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <DataTable columns={columns} rows={userList} rowKey={(u) => u.id} emptyMessage="Belum ada user. User yang ditambahkan akan muncul di sini." />
     </div>

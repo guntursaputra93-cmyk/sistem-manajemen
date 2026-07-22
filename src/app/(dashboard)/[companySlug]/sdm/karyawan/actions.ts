@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { employees } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { changeEmployeePosition } from "@/lib/hr/employees";
 
@@ -22,6 +23,8 @@ export async function createEmployee(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_EMPLOYEES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat data karyawan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_data_karyawan" });
 
   const nik = formData.get("nik")?.toString().trim() ?? "";
   const fullName = formData.get("fullName")?.toString().trim() ?? "";
@@ -88,6 +91,8 @@ export async function updateEmployee(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah data karyawan.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_data_karyawan" });
+
   const nik = formData.get("nik")?.toString().trim() ?? "";
   const fullName = formData.get("fullName")?.toString().trim() ?? "";
   const email = formData.get("email")?.toString().trim().toLowerCase() || null;
@@ -132,6 +137,8 @@ export async function changeEmployeePositionAction(formData: FormData): Promise<
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_POSITION_HISTORY")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah posisi karyawan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_data_karyawan" });
 
   const positionTitle = formData.get("positionTitle")?.toString().trim() ?? "";
   const departmentId = formData.get("departmentId")?.toString() || null;
@@ -182,6 +189,8 @@ export async function updateEmployeeStatusAction(formData: FormData): Promise<vo
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_EMPLOYEES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah status karyawan.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_data_karyawan" });
 
   const newStatus = formData.get("employmentStatus")?.toString() ?? "";
   const resignDate = formData.get("resignDate")?.toString() || null;

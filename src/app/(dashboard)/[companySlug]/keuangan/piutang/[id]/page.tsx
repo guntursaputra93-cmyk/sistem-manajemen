@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq, like } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -12,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -116,17 +116,15 @@ export default async function ArInvoiceDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[17px] font-extrabold text-ink">{invoice.invoiceNumber ?? "Invoice (draft)"}</h1>
-          <p className="text-sm text-ink-muted mt-1">
-            {organization?.name ?? "-"} — Kontrak {formatRupiah(contract?.contractValue ?? "0")}
-          </p>
-        </div>
-        <Link href={`/${companySlug}/keuangan/piutang`} className="text-xs text-sage-deep hover:underline">
-          &larr; Kembali ke daftar invoice
-        </Link>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Keuangan" },
+          { label: "Piutang", href: `/${companySlug}/keuangan/piutang` },
+          { label: invoice.invoiceNumber ?? "Draft" },
+        ]}
+        title={invoice.invoiceNumber ?? "Invoice (draft)"}
+        description={`${organization?.name ?? "-"} — Kontrak ${formatRupiah(contract?.contractValue ?? "0")}`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

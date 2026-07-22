@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { leaveRequests } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 
@@ -29,6 +30,8 @@ export async function createLeaveRequestSelf(formData: FormData): Promise<void> 
   if (!session?.user || !hasPermission(session.user.role, "CREATE_LEAVE_REQUEST")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengajukan cuti.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_cuti_absensi" });
 
   const leaveTypeId = formData.get("leaveTypeId")?.toString() ?? "";
   const startDate = formData.get("startDate")?.toString() || "";

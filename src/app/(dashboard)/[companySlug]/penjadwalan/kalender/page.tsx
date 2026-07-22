@@ -13,6 +13,7 @@ import { getAssignmentsOverlappingRange } from "@/lib/scheduling/assignments";
 import { getTerminology } from "@/lib/modules/terminology";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const TERMINOLOGY_DEFAULTS = { personLabel: "Auditor", assignmentLabel: "Penugasan" };
 const STATUS_LABEL: Record<string, string> = { dijadwalkan: "Dijadwalkan", berlangsung: "Berlangsung", selesai: "Selesai", dibatalkan: "Dibatalkan" };
@@ -105,13 +106,15 @@ export default async function PenjadwalanKalenderPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Link href={`/${companySlug}/penjadwalan`} className="text-[11px] text-sage-deep hover:underline">← Daftar {terminology.assignmentLabel}</Link>
-          <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">Kalender {terminology.assignmentLabel}</h1>
-          <p className="text-sm text-ink-muted mt-1">Tampilan lintas klien — tanpa deteksi bentrok jadwal (sesuai keputusan spesifikasi).</p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Penjadwalan" },
+          { label: terminology.assignmentLabel, href: `/${companySlug}/penjadwalan` },
+          { label: "Kalender" },
+        ]}
+        title={`Kalender ${terminology.assignmentLabel}`}
+        description="Tampilan lintas klien — tanpa deteksi bentrok jadwal (sesuai keputusan spesifikasi)."
+      />
 
       <Card>
         <form method="get" className="flex flex-wrap items-end gap-3">

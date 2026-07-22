@@ -5,10 +5,12 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabled } from "@/lib/modules";
 import { expireOverdueDocumentVersions } from "@/lib/documents/versions";
 import { getDashboardSettings, getActiveDocumentCountByCategory, getAttentionItems, getAccessStatistics } from "@/lib/dashboard/monitoring";
 import { updateDashboardSettings } from "./actions";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const REASON_LABEL: Record<string, string> = {
   in_review_lama: "Sedang direview kelamaan",
@@ -40,6 +42,13 @@ export default async function MonitoringPage({
     tx.select().from(companies).where(eq(companies.slug, companySlug))
   );
   if (!company) notFound();
+  // Halaman ini menampilkan data modul Pengendalian Dokumen (jumlah dokumen per
+  // kategori, item perlu perhatian, statistik akses) — jadi harus ikut ter-gate modul,
+  // sama seperti dokumen/page.tsx. Sebelumnya guard ini absen sehingga halaman tetap
+  // memuat data meski modulnya dimatikan untuk company tersebut.
+  await withTenantContext(tenantContext, (tx) =>
+    requireModuleEnabled(tx, { companyId: company.id, moduleKey: "pengendalian_dokumen", companySlug })
+  );
 
   await withTenantContext(tenantContext, (tx) => expireOverdueDocumentVersions(tx, { companyId: company.id }));
 
@@ -53,13 +62,15 @@ export default async function MonitoringPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/dokumen`} className="text-[11px] text-sage-deep hover:underline">
-          &larr; Kembali ke Dokumen
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">Dashboard Pemantauan</h1>
-        <p className="text-[11px] text-ink-muted mt-1">Monitoring dokumen &amp; surat untuk {company.name}.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Persuratan" },
+          { label: "Dokumen", href: `/${companySlug}/dokumen` },
+          { label: "Monitoring" },
+        ]}
+        title="Dashboard Pemantauan"
+        description={`Monitoring dokumen & surat untuk ${company.name}.`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && (

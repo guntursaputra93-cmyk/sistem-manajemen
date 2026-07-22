@@ -1,0 +1,3 @@
+ALTER TABLE "journal_entry_lines" ADD COLUMN "organization_id" uuid;--> statement-breakpoint
+ALTER TABLE "journal_entry_lines" ADD CONSTRAINT "journal_entry_lines_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "journal_entry_lines_company_organization_idx" ON "journal_entry_lines" USING btree ("company_id","organization_id");

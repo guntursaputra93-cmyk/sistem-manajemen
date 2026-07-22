@@ -540,6 +540,90 @@
       "when": 1784050000000,
       "tag": "0076_rls_row_level_sensitive_finance",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1784087031385,
+      "tag": "0077_create_journal_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1784087055708,
+      "tag": "0078_rls_journal_templates",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1784092757135,
+      "tag": "0079_create_open_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1784092772672,
+      "tag": "0080_rls_open_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1784126993077,
+      "tag": "0081_add_open_item_flag_to_coa",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1784510849008,
+      "tag": "0082_add_organization_to_open_items",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1784615806268,
+      "tag": "0083_add_organization_to_journal_lines",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1784617466174,
+      "tag": "0084_add_partner_type_to_organizations",
+      "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1784634826893,
+      "tag": "0085_create_ap_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1784634894668,
+      "tag": "0086_rls_ap_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1784677853088,
+      "tag": "0087_add_liability_account_to_salary_components",
+      "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1784678782253,
+      "tag": "0088_add_is_manual_to_recon_items",
+      "breakpoints": true
     }
   ]
 }

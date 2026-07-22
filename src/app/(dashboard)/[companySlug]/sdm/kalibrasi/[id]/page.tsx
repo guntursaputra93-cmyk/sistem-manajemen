@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default async function KalibrasiDetailPage({
   params,
@@ -54,10 +55,15 @@ export default async function KalibrasiDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Rapat Kalibrasi — {meeting.meetingDate}</h1>
-        <p className="text-sm text-ink-muted mt-1">Pemimpin: {userList.find((u) => u.id === meeting.leaderUserId)?.fullName ?? "-"}</p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "SDM" },
+          { label: "Rapat Kalibrasi", href: `/${companySlug}/sdm/kalibrasi` },
+          { label: meeting.meetingDate },
+        ]}
+        title={`Rapat Kalibrasi — ${meeting.meetingDate}`}
+        description={`Pemimpin: ${userList.find((u) => u.id === meeting.leaderUserId)?.fullName ?? "-"}`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

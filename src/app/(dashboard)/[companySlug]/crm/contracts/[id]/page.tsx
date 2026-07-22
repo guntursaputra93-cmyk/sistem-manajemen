@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -11,6 +10,7 @@ import { updateContractAction } from "../actions";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const PAYMENT_STATUS_LABEL: Record<string, string> = {
   belum_dibayar: "Belum Dibayar",
@@ -65,13 +65,15 @@ export default async function ContractDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/crm/contracts`} className="text-sm text-sage-deep hover:underline">
-          &larr; Kembali
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{opp?.title ?? "Contract"}</h1>
-        <p className="text-sm text-ink-muted mt-1">{org?.name}</p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "CRM" },
+          { label: "Contract", href: `/${companySlug}/crm/contracts` },
+          { label: opp?.title ?? "Contract" },
+        ]}
+        title={opp?.title ?? "Contract"}
+        description={org?.name}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

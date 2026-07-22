@@ -1,32 +1,82 @@
 @import "tailwindcss";
 
 @theme {
-  /* Spesifikasi Desain UI — Sistem Manajemen Sapta */
-  --color-bg-base: #FAF9F6;
+  /* ===== Tema "Sunset Peach" (disetujui via mockup docs/redesign/02) =====
+     Palet pastel hangat: apricot/peach + coral + butter di atas krem hangat,
+     tinta cokelat tua menggantikan hitam. Menggantikan tema sage hijau. */
+  --color-bg-base: #FDF6EE;
   --color-surface: #FFFFFF;
 
-  /* Revert ke hijau sage original — iterasi mint cerah (green-300/800) dinilai
-     terlalu kuat/memblok. Sidebar sekarang pakai gradient dari token ini (lihat
-     Sidebar.tsx), bukan solid, jadi warna dasar boleh kembali ke tone original. */
-  --color-sage: #A8C3A0;
-  --color-sage-deep: #4A6741;
+  /* Token utama palet baru */
+  --color-peach: #F4B183;
+  --color-peach-soft: #FBE3CD;
+  --color-peach-deep: #B95C2E;
+  --color-coral: #E8918A;
+  --color-coral-deep: #A94A42;
+  --color-butter: #F6D8A8;
+  --color-butter-deep: #8F6420;
+  --color-success: #6E9152;
 
-  --color-powder-blue: #A9C4D8;
-  --color-powder-blue-deep: #5B7A91;
+  /* ALIAS nama lama → nilai palet baru. Halaman existing memakai class
+     bg-sage/text-sage-deep dst. — lewat alias ini seluruh aplikasi langsung
+     pindah tema tanpa menyentuh tiap halaman. Migrasi ke nama baru
+     (peach/coral/butter) dilakukan bertahap saat halaman disentuh. */
+  --color-sage: #F4B183;        /* → peach */
+  --color-sage-deep: #B95C2E;   /* → peach-deep (terracotta) */
+  --color-powder-blue: #F6D8A8; /* → butter */
+  --color-powder-blue-deep: #8F6420;
+  --color-dusty-rose: #E8918A;  /* → coral */
+  --color-dusty-rose-deep: #A94A42;
 
-  --color-dusty-rose: #D9A99F;
-  --color-dusty-rose-deep: #A85D50;
+  --color-ink: #3B332C;
+  --color-ink-muted: #8A7C6F;
 
-  --color-ink: #33393B;
-  --color-ink-muted: #6B7280;
+  --color-destructive: #C0453A;
 
-  --color-destructive: #B84A3E;
-
-  --color-focus-ring: #F2994A;
+  --color-focus-ring: #D97742;
 
   --font-display: var(--font-plus-jakarta-sans), sans-serif;
   --font-body: var(--font-inter), sans-serif;
   --font-mono: var(--font-ibm-plex-mono), monospace;
+}
+
+/* Aplikasi ini bertema TERANG saja. Tanpa deklarasi ini, Windows/Chrome yang
+   sedang mode gelap merender UI bawaan browser (terutama SCROLLBAR) versi gelap
+   — muncul sebagai "strip kehitaman" full-height di tepi kanan konten. Deklarasi
+   eksplisit juga menolak auto-dark-mode browser. */
+:root {
+  color-scheme: light;
+}
+
+/* Scrollbar tipis senada tema hangat, bukan abu/gelap bawaan OS.
+   scrollbar-width/color = Firefox; ::-webkit-* = Chrome/Edge. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 51, 44, 0.25) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(59, 51, 44, 0.22);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(59, 51, 44, 0.38);
+}
+
+/* Cegah scroll horizontal dari panel off-canvas (FormDrawer/RowDrawer) yang saat
+   tertutup di-geser ke luar layar (translate-x-full). Tidak mengganggu scroll
+   vertikal (main pakai overflow-y-auto sendiri). */
+html,
+body {
+  overflow-x: hidden;
 }
 
 body {
@@ -59,6 +109,23 @@ body {
   [tabindex]:focus-visible {
     outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
+  }
+}
+
+/* Mode cetak (tombol "Cetak / PDF" di laporan keuangan): sembunyikan navigasi
+   (sidebar <aside>, topbar <header>) dan elemen ber-class print:hidden, sisakan
+   konten laporan memenuhi halaman. */
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+  main {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  body {
+    background: #fff;
   }
 }
 

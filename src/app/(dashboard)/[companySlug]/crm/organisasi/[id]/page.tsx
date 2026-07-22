@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -12,6 +11,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const ACTIVITY_TYPE_LABEL: Record<string, string> = {
   telepon: "Telepon",
@@ -68,12 +68,14 @@ export default async function OrganisasiDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-sage-deep hover:underline">
-          &larr; Kembali
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">{org.name}</h1>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "CRM" },
+          { label: "Organisasi / Klien", href: `/${companySlug}/crm/organisasi` },
+          { label: org.name },
+        ]}
+        title={org.name}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
@@ -92,6 +94,18 @@ export default async function OrganisasiDetailPage({
                 required
                 className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
               />
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tipe Rekanan</label>
+              <select
+                name="partnerType"
+                defaultValue={org.partnerType}
+                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
+              >
+                <option value="klien">Klien (pelanggan)</option>
+                <option value="pemasok">Pemasok / Vendor</option>
+                <option value="keduanya">Keduanya</option>
+              </select>
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Industri</label>

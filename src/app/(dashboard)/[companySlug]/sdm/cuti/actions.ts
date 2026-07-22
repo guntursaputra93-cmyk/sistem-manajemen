@@ -6,6 +6,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { leaveRequests } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 import { approveLeaveRequestAndIncrementBalance, rejectLeaveRequest, LeaveRequestError } from "@/lib/hr/leaveRequests";
@@ -25,6 +26,8 @@ export async function createLeaveRequest(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_LEAVE_REQUEST")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengajukan cuti.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_cuti_absensi" });
 
   const leaveTypeId = formData.get("leaveTypeId")?.toString() ?? "";
   const startDate = formData.get("startDate")?.toString() || "";
@@ -78,6 +81,8 @@ export async function approveLeaveRequestAction(formData: FormData): Promise<voi
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menyetujui cuti.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_cuti_absensi" });
+
   try {
     await withTenantContext({ role: session.user.role, companyId: session.user.companyId, userId: session.user.id }, (tx) =>
       approveLeaveRequestAndIncrementBalance(tx, { companyId, leaveRequestId, approverId: session.user.id })
@@ -112,6 +117,8 @@ export async function rejectLeaveRequestAction(formData: FormData): Promise<void
   if (!session?.user || !hasPermission(session.user.role, "APPROVE_LEAVE_REQUEST")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menolak cuti.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_cuti_absensi" });
 
   try {
     await withTenantContext({ role: session.user.role, companyId: session.user.companyId, userId: session.user.id }, (tx) =>

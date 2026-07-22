@@ -14,6 +14,10 @@ import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
+import { ListToolbar } from "@/components/ui/ListToolbar";
 
 const STATUS_LABEL: Record<string, string> = {
   aktif: "Aktif",
@@ -32,10 +36,10 @@ export default async function KompetensiPage({
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; q?: string; status?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
+  const { error, success, q, status } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -86,6 +90,18 @@ export default async function KompetensiPage({
   const canManage = hasPermission(session.user.role, "MANAGE_EMPLOYEE_COMPETENCIES");
   const visibleExpiring = visibleEmployeeIds ? expiringRows.filter((r) => visibleEmployeeIds.includes(r.employeeId)) : expiringRows;
 
+  // Penyaringan server-side dari ?q= / ?status= yang di-set ListToolbar.
+  const needle = q?.trim().toLowerCase();
+  const filtered = competencyRows.filter((r) => {
+    if (needle) {
+      const empName = empList.find((e) => e.id === r.employeeId)?.fullName ?? "";
+      const typeName = typeList.find((t) => t.id === r.competencyTypeId)?.name ?? "";
+      if (!`${empName} ${typeName} ${r.certificateNumber ?? ""} ${r.sectorScheme ?? ""}`.toLowerCase().includes(needle)) return false;
+    }
+    if (status && r.status !== status) return false;
+    return true;
+  });
+
   const columns: DataTableColumn<(typeof competencyRows)[number]>[] = [
     { key: "employee", header: "Karyawan", render: (r) => empList.find((e) => e.id === r.employeeId)?.fullName ?? "-" },
     { key: "type", header: "Jenis", render: (r) => typeList.find((t) => t.id === r.competencyTypeId)?.name ?? "-" },
@@ -99,34 +115,34 @@ export default async function KompetensiPage({
       render: (r) =>
         canManage ? (
           <details>
-            <summary className="text-sage-deep hover:underline text-xs cursor-pointer inline">Kelola</summary>
+            <summary className="text-sage-deep hover:underline text-xs font-semibold cursor-pointer inline">Kelola</summary>
             <div className="mt-2 space-y-3 w-72">
               <form action={updateEmployeeCompetency} className="space-y-2">
                 <input type="hidden" name="companySlug" value={companySlug} />
                 <input type="hidden" name="companyId" value={company.id} />
                 <input type="hidden" name="employeeCompetencyId" value={r.id} />
                 <div>
-                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">No. Sertifikat</label>
-                  <input autoComplete="off" name="certificateNumber" defaultValue={r.certificateNumber ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-bg-base" />
+                  <label className="block text-xs font-semibold text-ink-muted mb-1">No. Sertifikat</label>
+                  <input autoComplete="off" name="certificateNumber" defaultValue={r.certificateNumber ?? ""} className={inputClass} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Skema Sektor</label>
-                  <input autoComplete="off" name="sectorScheme" defaultValue={r.sectorScheme ?? ""} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-bg-base" />
+                  <label className="block text-xs font-semibold text-ink-muted mb-1">Skema Sektor</label>
+                  <input autoComplete="off" name="sectorScheme" defaultValue={r.sectorScheme ?? ""} className={inputClass} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai</label>
+                  <label className="block text-xs font-semibold text-ink-muted mb-1">Berlaku Sampai</label>
                   <DatePicker name="expiresAt" defaultValue={r.expiresAt} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Status</label>
-                  <select name="status" defaultValue={r.status} className="w-full border border-ink-muted/20 rounded-lg px-2 py-1 text-xs text-ink bg-bg-base">
+                  <label className="block text-xs font-semibold text-ink-muted mb-1">Status</label>
+                  <select name="status" defaultValue={r.status} className={inputClass}>
                     {Object.entries(STATUS_LABEL).map(([value, label]) => (
                       <option key={value} value={value}>{label}</option>
                     ))}
                   </select>
                 </div>
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors">
-                  Edit
+                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer">
+                  Simpan
                 </button>
               </form>
               <div>
@@ -142,83 +158,106 @@ export default async function KompetensiPage({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Kompetensi & Sertifikasi</h1>
-        <p className="text-sm text-ink-muted mt-1">
-          {session.user.role === "staff" ? "Kompetensi milikmu." : session.user.role === "department_head" ? "Kompetensi di departemenmu." : `Kompetensi ${company.name}.`}
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Kompetensi & Sertifikasi" }]}
+        title="Kompetensi & Sertifikasi"
+        description={
+          session.user.role === "staff" ? "Kompetensi milikmu." : session.user.role === "department_head" ? "Kompetensi di departemenmu." : `Kompetensi ${company.name}.`
+        }
+        actions={
+          canManage && (
+            <FormDrawer buttonLabel="Assign Kompetensi" title="Assign Kompetensi ke Karyawan" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              <form action={createEmployeeCompetency}>
+                <input type="hidden" name="companySlug" value={companySlug} />
+                <input type="hidden" name="companyId" value={company.id} />
+                <FormSection title="① Karyawan & Jenis">
+                  <FormField label="Karyawan *" full>
+                    <select name="employeeId" required className={inputClass}>
+                      <option value="">-- pilih --</option>
+                      {empList.map((e) => (
+                        <option key={e.id} value={e.id}>{e.fullName}</option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Jenis Kompetensi *" full>
+                    <select name="competencyTypeId" required className={inputClass}>
+                      <option value="">-- pilih --</option>
+                      {typeList.map((t) => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </FormField>
+                </FormSection>
+                <FormSection title="② Sertifikat">
+                  <FormField label="Skema Sektor" optional>
+                    <input autoComplete="off" name="sectorScheme" className={inputClass} />
+                  </FormField>
+                  <FormField label="No. Sertifikat">
+                    <input autoComplete="off" name="certificateNumber" className={inputClass} />
+                  </FormField>
+                  <FormField label="Tanggal Terbit">
+                    <DatePicker name="issuedDate" />
+                  </FormField>
+                  <FormField label="Berlaku Sampai">
+                    <DatePicker name="expiresAt" />
+                  </FormField>
+                </FormSection>
+                <DrawerFooter submitLabel="Assign Kompetensi" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      <Card title="Akan Kedaluwarsa (≤3 Bulan)">
-        {visibleExpiring.length === 0 ? (
-          <EmptyState message="Tidak ada kompetensi yang akan kedaluwarsa dalam 3 bulan ke depan." />
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {visibleExpiring.map((r) => (
-              <li key={r.id} className="flex justify-between border-b border-ink-muted/10 pb-2">
-                <span>
-                  {empList.find((e) => e.id === r.employeeId)?.fullName ?? "-"} — {typeList.find((t) => t.id === r.competencyTypeId)?.name ?? "-"}
-                </span>
-                <span className="text-destructive font-medium">{r.expiresAt}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
-
-      {canManage && (
-        <Card title="Assign Kompetensi ke Karyawan">
-          <form action={createEmployeeCompetency} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <input type="hidden" name="companyId" value={company.id} />
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
-              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                <option value="">-- pilih --</option>
-                {empList.map((e) => (
-                  <option key={e.id} value={e.id}>{e.fullName}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jenis Kompetensi</label>
-              <select name="competencyTypeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                <option value="">-- pilih --</option>
-                {typeList.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Skema Sektor (opsional)</label>
-              <input autoComplete="off" name="sectorScheme" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">No. Sertifikat</label>
-              <input autoComplete="off" name="certificateNumber" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Terbit</label>
-              <DatePicker name="issuedDate" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai</label>
-              <DatePicker name="expiresAt" />
-            </div>
-            <div className="col-span-full">
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                Assign
-              </button>
-            </div>
-          </form>
-        </Card>
+      {success && (
+        <div className="mb-4 rounded-lg border border-sage-deep/20 bg-sage/20 px-4 py-3 text-[13px] text-ink">
+          Berhasil disimpan.
+        </div>
       )}
 
-      <DataTable columns={columns} rows={competencyRows} rowKey={(r) => r.id} emptyMessage="Belum ada kompetensi tercatat." />
+      <div className="mb-5">
+        <Card title="Akan Kedaluwarsa (≤3 Bulan)">
+          {visibleExpiring.length === 0 ? (
+            <EmptyState message="Tidak ada kompetensi yang akan kedaluwarsa dalam 3 bulan ke depan." />
+          ) : (
+            <ul className="space-y-2 text-[13px]">
+              {visibleExpiring.map((r) => (
+                <li key={r.id} className="flex justify-between border-b border-ink-muted/10 pb-2">
+                  <span>
+                    {empList.find((e) => e.id === r.employeeId)?.fullName ?? "-"} — {typeList.find((t) => t.id === r.competencyTypeId)?.name ?? "-"}
+                  </span>
+                  <span className="text-destructive font-semibold">{r.expiresAt}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      <ListToolbar
+        searchPlaceholder="Cari karyawan, jenis, atau no. sertifikat…"
+        filters={[
+          {
+            name: "status",
+            allLabel: "Semua Status",
+            options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })),
+          },
+        ]}
+        countLabel={`${filtered.length} kompetensi`}
+      />
+
+      <DataTable
+        columns={columns}
+        rows={filtered}
+        rowKey={(r) => r.id}
+        emptyMessage={needle || status ? "Tidak ada kompetensi yang cocok dengan pencarian/filter." : "Belum ada kompetensi tercatat."}
+      />
     </div>
   );
 }

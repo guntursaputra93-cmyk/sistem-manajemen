@@ -8,6 +8,8 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { getBudgetRealization } from "@/lib/finance/rkapReport";
 import { formatRupiah } from "@/lib/finance/format";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { inputClass } from "@/components/ui/FormField";
 
 const MONTH_LABEL = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
@@ -57,18 +59,23 @@ export default async function RkapRealizationPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[17px] font-extrabold text-ink">Realisasi vs Anggaran</h1>
-          <p className="text-sm text-ink-muted mt-1">{company.name} — tahun {year}, aktual dari jurnal berstatus posted.</p>
-        </div>
-        <form method="get" className="flex items-center gap-2">
-          <input autoComplete="off" name="year" type="number" defaultValue={year} className="w-24 border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors">
-            Tampilkan
-          </button>
-        </form>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Keuangan" },
+          { label: "RKAP", href: `/${companySlug}/keuangan/rkap` },
+          { label: "Realisasi" },
+        ]}
+        title="Realisasi vs Anggaran"
+        description={`${company.name} — tahun ${year}, aktual dari jurnal berstatus posted.`}
+        actions={
+          <form method="get" className="flex items-center gap-2">
+            <input autoComplete="off" name="year" type="number" defaultValue={year} className={`${inputClass} w-24`} />
+            <button type="submit" className="bg-peach-deep hover:bg-peach-deep/90 text-white text-[13px] font-bold px-3 py-2 rounded-[10px] transition-colors cursor-pointer">
+              Tampilkan
+            </button>
+          </form>
+        }
+      />
 
       {rows.length === 0 && <Card title="Realisasi Anggaran">Belum ada anggaran untuk tahun {year}.</Card>}
 

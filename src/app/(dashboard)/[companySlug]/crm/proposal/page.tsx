@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -7,9 +6,11 @@ import { companies, departments, organizations, opportunities, outgoingLetters, 
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createProposalAction } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -106,70 +107,60 @@ export default async function ProposalPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/crm/organisasi`} className="text-sm text-sage-deep hover:underline">
-          &larr; Kembali ke CRM
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-2">Proposal / Penawaran (CRM)</h1>
-        <p className="text-sm text-ink-muted mt-1">Proposal adalah surat keluar (jenis: penawaran) dgn item &amp; nilai — kelola item &amp; lifecycle approval di halaman detail surat.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "CRM" }, { label: "Proposal / Penawaran" }]}
+        title="Proposal / Penawaran"
+        description="Proposal adalah surat keluar (jenis: penawaran) dgn item & nilai — kelola item & lifecycle approval di halaman detail surat."
+        actions={
+          canCreate && (
+            <FormDrawer
+              buttonLabel="Buat Proposal"
+              title="Buat Proposal Baru"
+              description="Item proposal & kaitan opportunity ditambahkan di halaman detail surat setelah draft dibuat."
+              defaultOpen={Boolean(error)}
+            >
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              {orgList.length === 0 || deptList.length === 0 ? (
+                <p className="text-[13px] text-ink-muted italic">Belum ada organisasi atau departemen. Buat dulu di CRM &rarr; Organisasi / Pengaturan &rarr; Departemen.</p>
+              ) : (
+                <form action={createProposalAction}>
+                  <input type="hidden" name="companySlug" value={companySlug} />
+                  <FormSection title="Detail Proposal">
+                    <FormField label="Organisasi *" full>
+                      <select name="organizationId" required className={inputClass}>
+                        {orgList.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Departemen (penentu nomor) *" full>
+                      <select name="departmentId" required className={inputClass}>
+                        {deptList.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Perihal *" full>
+                      <input autoComplete="off" name="subject" required className={inputClass} />
+                    </FormField>
+                  </FormSection>
+                  <DrawerFooter submitLabel="Buat Draft Proposal" />
+                </form>
+              )}
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canCreate && (
-        <Card title="Buat Proposal Baru">
-          {orgList.length === 0 || deptList.length === 0 ? (
-            <p className="text-sm text-ink-muted italic">Belum ada organisasi atau departemen. Buat dulu di CRM &rarr; Organisasi / Pengaturan &rarr; Departemen.</p>
-          ) : (
-            <form action={createProposalAction} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <input type="hidden" name="companySlug" value={companySlug} />
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Organisasi</label>
-                <select
-                  name="organizationId"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                >
-                  {orgList.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Departemen (penentu nomor)</label>
-                <select
-                  name="departmentId"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                >
-                  {deptList.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-span-full">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Perihal</label>
-                <input autoComplete="off"
-                  name="subject"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                />
-              </div>
-              <div className="col-span-full">
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                  Buat Draft Proposal
-                </button>
-                <p className="text-xs text-ink-muted italic mt-2">Item proposal &amp; kaitan opportunity ditambahkan di halaman detail surat setelah draft dibuat.</p>
-              </div>
-            </form>
-          )}
-        </Card>
-      )}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <DataTable columns={columns} rows={letters} rowKey={(letter) => letter.id} emptyMessage="Belum ada proposal. Proposal yang dibuat akan muncul di sini." />
     </div>

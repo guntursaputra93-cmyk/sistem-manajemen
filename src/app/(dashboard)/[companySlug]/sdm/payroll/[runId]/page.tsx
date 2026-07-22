@@ -10,6 +10,7 @@ import { generatePayslipsAction, finalizePayrollRunAction } from "../actions";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const STATUS_LABEL: Record<string, string> = { draft: "Draft", diproses: "Diproses", selesai: "Selesai" };
 const RUN_STEPS = ["draft", "diproses", "selesai"] as const;
@@ -79,11 +80,14 @@ export default async function PayrollRunDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">
-          Payroll {MONTH_LABEL[run.periodMonth - 1]} {run.periodYear}
-        </h1>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "SDM" },
+          { label: "Payroll", href: `/${companySlug}/sdm/payroll` },
+          { label: `${MONTH_LABEL[run.periodMonth - 1]} ${run.periodYear}` },
+        ]}
+        title={`Payroll ${MONTH_LABEL[run.periodMonth - 1]} ${run.periodYear}`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

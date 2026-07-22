@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { organizations, organizationContacts, activities } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 export async function createOrganization(formData: FormData): Promise<void> {
@@ -19,7 +20,12 @@ export async function createOrganization(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat organisasi.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
+
   const name = formData.get("name")?.toString().trim() ?? "";
+  // Peran rekanan: klien (CRM), pemasok (vendor untuk uang muka/hutang), atau keduanya.
+  const rawType = formData.get("partnerType")?.toString();
+  const partnerType = rawType === "pemasok" || rawType === "keduanya" ? rawType : "klien";
   const industry = formData.get("industry")?.toString().trim() || null;
   const companySize = formData.get("companySize")?.toString().trim() || null;
   const source = formData.get("source")?.toString().trim() || null;
@@ -30,7 +36,7 @@ export async function createOrganization(formData: FormData): Promise<void> {
   }
 
   const [org] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx.insert(organizations).values({ companyId, name, industry, companySize, source, notes }).returning()
+    tx.insert(organizations).values({ companyId, name, partnerType, industry, companySize, source, notes }).returning()
   );
 
   await logAudit({
@@ -57,7 +63,12 @@ export async function updateOrganization(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah organisasi.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
+
   const name = formData.get("name")?.toString().trim() ?? "";
+  // Peran rekanan: klien (CRM), pemasok (vendor untuk uang muka/hutang), atau keduanya.
+  const rawType = formData.get("partnerType")?.toString();
+  const partnerType = rawType === "pemasok" || rawType === "keduanya" ? rawType : "klien";
   const industry = formData.get("industry")?.toString().trim() || null;
   const companySize = formData.get("companySize")?.toString().trim() || null;
   const source = formData.get("source")?.toString().trim() || null;
@@ -70,7 +81,7 @@ export async function updateOrganization(formData: FormData): Promise<void> {
   await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
     tx
       .update(organizations)
-      .set({ name, industry, companySize, source, notes, updatedAt: new Date() })
+      .set({ name, partnerType, industry, companySize, source, notes, updatedAt: new Date() })
       .where(and(eq(organizations.id, organizationId), eq(organizations.companyId, companyId)))
   );
 
@@ -97,6 +108,8 @@ export async function createContact(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_ORGANIZATIONS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menambah kontak.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const name = formData.get("name")?.toString().trim() ?? "";
   const position = formData.get("position")?.toString().trim() || null;
@@ -134,6 +147,8 @@ export async function createActivity(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_ACTIVITY")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mencatat aktivitas.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const activityType = formData.get("activityType")?.toString() ?? "";
   const opportunityId = formData.get("opportunityId")?.toString() || null;

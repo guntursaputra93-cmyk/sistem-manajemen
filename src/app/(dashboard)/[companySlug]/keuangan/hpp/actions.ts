@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { recordProjectCost, HppError } from "@/lib/finance/hpp";
 
@@ -17,6 +18,8 @@ export async function createProjectCost(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_HPP_PROJECT_COSTS")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mencatat biaya proyek.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const contractId = formData.get("contractId")?.toString() ?? "";
   const costDate = formData.get("costDate")?.toString() ?? "";

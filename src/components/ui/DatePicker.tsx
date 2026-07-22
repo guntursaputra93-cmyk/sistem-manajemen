@@ -56,13 +56,20 @@ export function DatePicker({
       <button
         type="button"
         disabled={disabled}
-        aria-required={required}
         onClick={() => setOpen((o) => !o)}
         className={`w-full flex items-center justify-between gap-2 border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] bg-bg-base text-left disabled:opacity-50 disabled:cursor-not-allowed ${
           selected ? "text-ink" : "text-ink-muted"
         }`}
       >
-        {displayValue || placeholder}
+        <span>
+          {displayValue || placeholder}
+          {/* Penanda wajib hanya saat masih kosong. `aria-required` TIDAK dipakai di sini
+              karena tidak valid untuk role button (jsx-a11y/role-supports-aria-props);
+              kewajibannya sendiri ditegakkan server-side di action masing-masing. */}
+          {required && !selected && (
+            <span className="ml-1 font-semibold text-destructive" aria-hidden="true">*</span>
+          )}
+        </span>
         <CalendarIcon size={16} className="shrink-0 text-ink-muted" aria-hidden="true" />
       </button>
 

@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { pipelineStages } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { deletePipelineStage, updatePipelineStageFlags, PipelineStageError } from "@/lib/crm/pipeline";
 
@@ -19,6 +20,8 @@ export async function addPipelineStage(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_PIPELINE_STAGES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur pipeline.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const stageKey = formData.get("stageKey")?.toString().trim() ?? "";
   const stageOrder = Number.parseInt(formData.get("stageOrder")?.toString() ?? "", 10);
@@ -65,6 +68,8 @@ export async function updatePipelineStage(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_PIPELINE_STAGES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur pipeline.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const stageKey = formData.get("stageKey")?.toString().trim() ?? "";
   const stageOrder = Number.parseInt(formData.get("stageOrder")?.toString() ?? "", 10);
@@ -119,6 +124,8 @@ export async function removePipelineStage(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_PIPELINE_STAGES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur pipeline.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   try {
     await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>

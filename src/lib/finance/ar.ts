@@ -1,6 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import type { db as Db } from "@/lib/db";
-import { arInvoices, arPayments, chartOfAccounts, journalEntries, journalEntryLines, type arInvoiceStatusEnum } from "@/drizzle/schema";
+import { arInvoices, arPayments, chartOfAccounts, companies, contracts, journalEntries, journalEntryLines, type arInvoiceStatusEnum } from "@/drizzle/schema";
 import { getNextFinanceSequenceNumber, formatInvoiceNumber } from "./numbering";
 import { postJournalEntry } from "./journal";
 
@@ -14,6 +14,16 @@ type InvoiceStatus = (typeof arInvoiceStatusEnum.enumValues)[number];
 async function getPostingAccountById(tx: typeof Db, companyId: string, accountId: string) {
   const [account] = await tx.select().from(chartOfAccounts).where(and(eq(chartOfAccounts.id, accountId), eq(chartOfAccounts.companyId, companyId)));
   return account;
+}
+
+/**
+ * Rekanan (klien) invoice ini — AR menautkannya lewat contracts, bukan kolom sendiri.
+ * Dipakai untuk menandai baris jurnal dengan organization_id (Item 5b) supaya piutang
+ * & pendapatan klien ikut terekap di Kartu Rekanan, setara modul AP.
+ */
+async function getInvoiceOrganizationId(tx: typeof Db, contractId: string): Promise<string | null> {
+  const [contract] = await tx.select({ organizationId: contracts.organizationId }).from(contracts).where(eq(contracts.id, contractId));
+  return contract?.organizationId ?? null;
 }
 
 async function getAccountByCode(tx: typeof Db, companyId: string, code: string) {
@@ -58,9 +68,11 @@ export async function postInvoice(
     })
     .returning();
 
+  const organizationId = await getInvoiceOrganizationId(tx, invoice.contractId);
+
   await tx.insert(journalEntryLines).values([
-    { companyId: params.companyId, journalEntryId: entry.id, accountId: piutangUsaha.id, lineOrder: 1, debitAmount: invoice.amount, creditAmount: "0" },
-    { companyId: params.companyId, journalEntryId: entry.id, accountId: revenueAccount.id, lineOrder: 2, debitAmount: "0", creditAmount: invoice.amount },
+    { companyId: params.companyId, journalEntryId: entry.id, accountId: piutangUsaha.id, lineOrder: 1, debitAmount: invoice.amount, creditAmount: "0", organizationId },
+    { companyId: params.companyId, journalEntryId: entry.id, accountId: revenueAccount.id, lineOrder: 2, debitAmount: "0", creditAmount: invoice.amount, organizationId },
   ]);
 
   await postJournalEntry(tx, { companyId: params.companyId, journalEntryId: entry.id, postedBy: params.postedBy });
@@ -124,9 +136,11 @@ export async function recordPayment(
     })
     .returning();
 
+  const organizationId = await getInvoiceOrganizationId(tx, invoice.contractId);
+
   await tx.insert(journalEntryLines).values([
-    { companyId: params.companyId, journalEntryId: entry.id, accountId: bankAccount.id, lineOrder: 1, debitAmount: params.amount, creditAmount: "0" },
-    { companyId: params.companyId, journalEntryId: entry.id, accountId: piutangUsaha.id, lineOrder: 2, debitAmount: "0", creditAmount: params.amount },
+    { companyId: params.companyId, journalEntryId: entry.id, accountId: bankAccount.id, lineOrder: 1, debitAmount: params.amount, creditAmount: "0", organizationId },
+    { companyId: params.companyId, journalEntryId: entry.id, accountId: piutangUsaha.id, lineOrder: 2, debitAmount: "0", creditAmount: params.amount, organizationId },
   ]);
 
   await postJournalEntry(tx, { companyId: params.companyId, journalEntryId: entry.id, postedBy: params.recordedBy });
@@ -198,4 +212,31 @@ export async function refreshOverdueInvoiceStatuses(tx: typeof Db, params: { com
   for (const inv of openInvoices) {
     await recalculateInvoiceStatus(tx, { companyId: params.companyId, invoiceId: inv.id });
   }
+}
+
+/**
+ * Versi lintas-company untuk dipanggil oleh scheduled job (cron) — lihat
+ * docs/todo-fase4-keuangan-followups.md #3. Meng-iterasi SEMUA company lalu
+ * memanggil refreshOverdueInvoiceStatuses per company, supaya transisi
+ * belum_dibayar/sebagian → jatuh_tempo tetap segar walau tidak ada payment baru
+ * maupun kunjungan ke halaman piutang. HARUS dijalankan dengan tenant context
+ * role "super_admin" (RLS finance mengizinkan super_admin lintas company).
+ * Idempotent. Mengembalikan ringkasan jumlah company & invoice yang diperiksa.
+ */
+export async function refreshOverdueInvoiceStatusesAllCompanies(
+  tx: typeof Db
+): Promise<{ companiesProcessed: number; invoicesChecked: number }> {
+  const companyRows = await tx.select({ id: companies.id }).from(companies);
+  let invoicesChecked = 0;
+  for (const c of companyRows) {
+    const open = await tx
+      .select({ id: arInvoices.id })
+      .from(arInvoices)
+      .where(and(eq(arInvoices.companyId, c.id), inArray(arInvoices.status, ["belum_dibayar", "sebagian", "jatuh_tempo"])));
+    for (const inv of open) {
+      await recalculateInvoiceStatus(tx, { companyId: c.id, invoiceId: inv.id });
+      invoicesChecked += 1;
+    }
+  }
+  return { companiesProcessed: companyRows.length, invoicesChecked };
 }

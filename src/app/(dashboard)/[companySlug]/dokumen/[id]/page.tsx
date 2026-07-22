@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -23,6 +22,7 @@ import { addNewVersion, submitVersionForReviewAction, decideVersionApprovalActio
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
 import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 // Urutan wajar 1 versi dari draft sampai ke status akhirnya — dipakai utk
 // ringkasan "Riwayat Versi" horizontal (Bagian 3 spesifikasi desain, dipakai
@@ -100,13 +100,15 @@ export default async function DokumenDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/dokumen`} className="text-[11px] text-sage-deep hover:underline">
-          &larr; Kembali
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">{doc.title}</h1>
-        <p className="text-[11px] text-ink-muted mt-1">{category?.name}</p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Persuratan" },
+          { label: "Dokumen", href: `/${companySlug}/dokumen` },
+          { label: doc.title },
+        ]}
+        title={doc.title}
+        description={category?.name}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && (

@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const TYPE_LABEL: Record<string, string> = { pendapatan: "Pendapatan", potongan: "Potongan" };
 
@@ -94,10 +95,15 @@ export default async function StrukturGajiDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Struktur Gaji — {employee.fullName}</h1>
-        <p className="text-sm text-ink-muted mt-1">{employee.currentPositionTitle ?? "-"}</p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "SDM" },
+          { label: "Struktur Gaji", href: `/${companySlug}/sdm/struktur-gaji` },
+          { label: employee.fullName },
+        ]}
+        title={`Struktur Gaji — ${employee.fullName}`}
+        description={employee.currentPositionTitle ?? "-"}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

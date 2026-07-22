@@ -8,9 +8,11 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 import { createKasbonRequestAction, approveKasbonAction, rejectKasbonAction } from "./actions";
 import { formatRupiah } from "@/lib/finance/format";
-import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const STATUS_LABEL: Record<string, string> = { pending: "Menunggu", disetujui: "Disetujui", ditolak: "Ditolak", lunas: "Lunas" };
 const STATUS_VARIANT: Record<string, BadgeVariant> = { pending: "powder-blue", disetujui: "sage", ditolak: "destructive", lunas: "sage" };
@@ -120,41 +122,40 @@ export default async function KasbonPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Kasbon</h1>
-        <p className="text-sm text-ink-muted mt-1">
-          {canManage ? `Semua pengajuan kasbon ${company.name}.` : "Pengajuan kasbon milikmu."}
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Keuangan" }, { label: "Kasbon" }]}
+        title="Kasbon"
+        description={canManage ? `Semua pengajuan kasbon ${company.name}.` : "Pengajuan kasbon milikmu."}
+        actions={
+          canActuallyCreate && (
+            <FormDrawer buttonLabel="Ajukan Kasbon" title="Ajukan Kasbon" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              <form action={createKasbonRequestAction}>
+                <input type="hidden" name="companySlug" value={companySlug} />
+                <input type="hidden" name="companyId" value={company.id} />
+                <FormSection title="Detail Pengajuan">
+                  <FormField label="Total Kasbon *">
+                    <input autoComplete="off" name="totalAmount" type="number" step="0.01" min="0.01" required placeholder="0" className={inputClass} />
+                  </FormField>
+                  <FormField label="Cicilan per Bulan *">
+                    <input autoComplete="off" name="installmentAmount" type="number" step="0.01" min="0.01" required placeholder="0" className={inputClass} />
+                  </FormField>
+                  <FormField label="Keperluan *" full>
+                    <input autoComplete="off" name="purpose" required placeholder="mis. Kebutuhan mendesak keluarga" className={inputClass} />
+                  </FormField>
+                </FormSection>
+                <DrawerFooter submitLabel="Ajukan Kasbon" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canActuallyCreate && (
-        <Card title="Ajukan Kasbon">
-          <form action={createKasbonRequestAction} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <input type="hidden" name="companyId" value={company.id} />
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Total Kasbon</label>
-              <input autoComplete="off" name="totalAmount" type="number" step="0.01" min="0.01" required placeholder="0" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Cicilan per Bulan</label>
-              <input autoComplete="off" name="installmentAmount" type="number" step="0.01" min="0.01" required placeholder="0" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div className="lg:col-span-2">
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Keperluan</label>
-              <input autoComplete="off" name="purpose" required placeholder="mis. Kebutuhan mendesak keluarga" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                Ajukan
-              </button>
-            </div>
-          </form>
-        </Card>
-      )}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <DataTable columns={columns} rows={kasbonList} rowKey={(k) => k.id} emptyMessage="Belum ada pengajuan kasbon." />
     </div>

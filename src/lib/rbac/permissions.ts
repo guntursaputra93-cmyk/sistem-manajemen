@@ -144,6 +144,11 @@ export const PERMISSIONS = {
   VIEW_AR_INVOICES: ["super_admin", "company_admin"],
   MANAGE_AR_INVOICES: ["super_admin", "company_admin"],
 
+  // AP Tagihan & Pembayaran (Item 5c) — cerminan AR: 1 permission MANAGE mencakup
+  // buat/posting tagihan DAN mencatat pembayaran.
+  VIEW_AP_BILLS: ["super_admin", "company_admin"],
+  MANAGE_AP_BILLS: ["super_admin", "company_admin"],
+
   // HPP Proyek & Margin (Langkah 5) — pola sama persis dgn VIEW/MANAGE_AR_INVOICES.
   // Laporan margin proyek dianggap read-only (turunan dari hpp_project_costs +
   // ar_invoices + contracts), jadi cukup gate dengan VIEW_HPP_PROJECT_COSTS yang sama,

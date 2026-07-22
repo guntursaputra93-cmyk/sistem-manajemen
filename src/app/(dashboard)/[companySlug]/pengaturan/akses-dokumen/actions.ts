@@ -43,8 +43,10 @@ export async function addDocumentAccessRule(formData: FormData): Promise<void> {
   if (scope === "departemen_tertentu" && !departmentId) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Pilih departemen untuk scope departemen tertentu.")}`);
   }
-  if (scope === "role_tertentu" && !role) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Pilih role untuk scope role tertentu.")}`);
+  // Divalidasi terhadap daftar nilainya (bukan sekadar cek terisi) — sejajar dengan
+  // pengecekan SCOPE_VALUES di atas; sebelumnya `role` cuma di-cast tanpa diperiksa.
+  if (scope === "role_tertentu" && !ROLE_VALUES.includes(role as (typeof ROLE_VALUES)[number])) {
+    redirect(`${redirectBase}?error=${encodeURIComponent("Pilih role yang valid untuk scope role tertentu.")}`);
   }
 
   const tenantContext = { role: session.user.role, companyId: session.user.companyId };

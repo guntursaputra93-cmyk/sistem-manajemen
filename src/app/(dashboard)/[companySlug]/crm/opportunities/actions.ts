@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { createOpportunity, changeOpportunityStage, reassignOpportunity, OpportunityError } from "@/lib/crm/opportunities";
 
@@ -17,6 +18,8 @@ export async function createOpportunityAction(formData: FormData): Promise<void>
   if (!session?.user || !hasPermission(session.user.role, "CREATE_OPPORTUNITY")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat opportunity.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const organizationId = formData.get("organizationId")?.toString() ?? "";
   const title = formData.get("title")?.toString().trim() ?? "";
@@ -80,6 +83,8 @@ export async function changeStageAction(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah tahap.")}`);
   }
 
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
+
   const newStageId = formData.get("newStageId")?.toString() ?? "";
   const lostReason = formData.get("lostReason")?.toString().trim() || null;
 
@@ -134,6 +139,8 @@ export async function reassignOpportunityAction(formData: FormData): Promise<voi
   if (!session?.user || !hasPermission(session.user.role, "REASSIGN_OPPORTUNITY")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin memindahkan pemilik opportunity.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "crm" });
 
   const newAssignedTo = formData.get("newAssignedTo")?.toString() ?? "";
   if (!newAssignedTo) {

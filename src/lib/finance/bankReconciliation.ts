@@ -2,6 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 import type { db as Db } from "@/lib/db";
 import { bankReconciliations, bankReconciliationItems, chartOfAccounts, journalEntryLines, journalEntries } from "@/drizzle/schema";
 import { getGeneralLedgerForAccount } from "./reports";
+import { createAndPostJournal } from "./journal";
 
 export class BankReconciliationError extends Error {}
 
@@ -74,6 +75,76 @@ export async function openBankReconciliation(
   }
 
   return { reconciliationId: reconciliation.id, itemCount: ledger.lines.length };
+}
+
+/**
+ * Tambah item rekonsiliasi MANUAL (TODO Fase 3 #2) — untuk mutasi yang muncul di
+ * rekening koran tapi belum dijurnal (mis. biaya admin bank, bunga bank). Keputusan
+ * Gtr: item manual SEKALIGUS membuat & memposting jurnalnya, jadi buku besar langsung
+ * benar (tidak ada yang menggantung). Item lalu ditaut ke baris jurnal BANK yang baru
+ * dibuat dan otomatis is_cleared=true (karena memang sudah cocok dengan rekening koran).
+ *
+ * direction:
+ *   - "kurang" → mengurangi saldo bank (mis. biaya admin): Dr akun lawan / Cr bank
+ *   - "tambah" → menambah saldo bank (mis. bunga bank):    Dr bank / Cr akun lawan
+ */
+export async function addManualReconciliationItem(
+  tx: typeof Db,
+  params: {
+    companyId: string;
+    reconciliationId: string;
+    counterAccountId: string;
+    amount: number;
+    direction: "kurang" | "tambah";
+    description: string;
+    addedBy: string;
+  }
+): Promise<{ journalEntryId: string; entryNumber: string }> {
+  const [reconciliation] = await tx
+    .select()
+    .from(bankReconciliations)
+    .where(and(eq(bankReconciliations.id, params.reconciliationId), eq(bankReconciliations.companyId, params.companyId)));
+  if (!reconciliation) throw new BankReconciliationError("Rekonsiliasi tidak ditemukan.");
+  if (reconciliation.status !== "draft") throw new BankReconciliationError("Rekonsiliasi ini sudah selesai — tidak bisa menambah item lagi.");
+  if (!(params.amount > 0)) throw new BankReconciliationError("Nominal item manual harus lebih dari 0.");
+  if (!params.description.trim()) throw new BankReconciliationError("Keterangan item manual wajib diisi.");
+
+  const [bankAccount] = await tx.select().from(chartOfAccounts).where(and(eq(chartOfAccounts.id, reconciliation.bankAccountId), eq(chartOfAccounts.companyId, params.companyId)));
+  if (!bankAccount) throw new BankReconciliationError("Akun bank rekonsiliasi tidak ditemukan.");
+
+  const [counter] = await tx.select().from(chartOfAccounts).where(and(eq(chartOfAccounts.id, params.counterAccountId), eq(chartOfAccounts.companyId, params.companyId)));
+  if (!counter || counter.isHeader) throw new BankReconciliationError("Akun lawan harus akun posting yang valid (bukan header/grup).");
+  if (counter.id === bankAccount.id) throw new BankReconciliationError("Akun lawan tidak boleh sama dengan akun bank.");
+
+  // Jurnal tertanggal akhir periode rekonsiliasi (mutasi ini memang milik periode itu).
+  const { periodEnd } = periodRange(reconciliation.periodMonth, reconciliation.periodYear);
+  const bankDebit = params.direction === "tambah";
+  const posted = await createAndPostJournal(tx, {
+    companyId: params.companyId,
+    entryDate: periodEnd,
+    description: `Rekonsiliasi bank — ${params.description.trim()}`,
+    userId: params.addedBy,
+    lines: [
+      { accountId: bankAccount.id, debit: bankDebit ? params.amount : 0, credit: bankDebit ? 0 : params.amount },
+      { accountId: counter.id, debit: bankDebit ? 0 : params.amount, credit: bankDebit ? params.amount : 0 },
+    ],
+  });
+
+  // Cari baris jurnal yang menyentuh akun BANK (untuk ditaut ke item rekonsiliasi).
+  const postedLines = await tx.select().from(journalEntryLines).where(eq(journalEntryLines.journalEntryId, posted.journalEntryId));
+  const bankLine = postedLines.find((l) => l.accountId === bankAccount.id);
+  if (!bankLine) throw new BankReconciliationError("Gagal menautkan baris jurnal bank.");
+
+  await tx.insert(bankReconciliationItems).values({
+    companyId: params.companyId,
+    reconciliationId: reconciliation.id,
+    journalEntryLineId: bankLine.id,
+    isCleared: true, // item manual sudah pasti cocok dengan rekening koran
+    isManual: true,
+    notes: params.description.trim(),
+  });
+
+  return posted;
 }
 
 export async function setStatementEndingBalance(

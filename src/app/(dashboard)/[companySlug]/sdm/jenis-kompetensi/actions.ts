@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { competencyTypes } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 export async function createCompetencyType(formData: FormData): Promise<void> {
@@ -18,6 +19,8 @@ export async function createCompetencyType(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_COMPETENCY_TYPES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur jenis kompetensi.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const code = formData.get("code")?.toString().trim() ?? "";
   const name = formData.get("name")?.toString().trim() ?? "";
@@ -54,6 +57,8 @@ export async function updateCompetencyType(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_COMPETENCY_TYPES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur jenis kompetensi.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_kompetensi" });
 
   const name = formData.get("name")?.toString().trim() ?? "";
   const category = formData.get("category")?.toString().trim() || null;

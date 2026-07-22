@@ -12,6 +12,9 @@ import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const CATEGORY_LABEL: Record<string, string> = { internal: "Internal", eksternal: "Eksternal" };
 
@@ -125,164 +128,167 @@ export default async function CpdPage({
   ];
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Logbook CPD</h1>
-        <p className="text-sm text-ink-muted mt-1">Continuing Professional Development — {company.name}.</p>
-      </div>
+    <div>
+      <PageHeader
+        breadcrumb={[{ label: "SDM" }, { label: "Logbook CPD" }]}
+        title="Logbook CPD"
+        description={`Continuing Professional Development — ${company.name}.`}
+        actions={
+          canCreate && (
+            <FormDrawer buttonLabel="Catat Aktivitas" title="Catat Aktivitas CPD" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              <form action={createCpdActivity}>
+                <input type="hidden" name="companySlug" value={companySlug} />
+                <input type="hidden" name="companyId" value={company.id} />
+                <FormSection title="① Aktivitas">
+                  <FormField label="Karyawan *" full>
+                    <select name="employeeId" required className={inputClass}>
+                      <option value="">-- pilih --</option>
+                      {empList.map((e) => (
+                        <option key={e.id} value={e.id}>{e.fullName}</option>
+                      ))}
+                    </select>
+                  </FormField>
+                  <FormField label="Nama Aktivitas *" full>
+                    <input autoComplete="off" name="activityName" required className={inputClass} />
+                  </FormField>
+                  <FormField label="Kategori *">
+                    <select name="category" required className={inputClass}>
+                      <option value="internal">Internal</option>
+                      <option value="eksternal">Eksternal</option>
+                    </select>
+                  </FormField>
+                  <FormField label="Penyelenggara" optional>
+                    <input autoComplete="off" name="organizer" className={inputClass} />
+                  </FormField>
+                </FormSection>
+                <FormSection title="② Waktu & Durasi">
+                  <FormField label="Durasi (jam) *">
+                    <input autoComplete="off" name="durationHours" type="number" step="0.5" min={0} required className={inputClass} />
+                  </FormField>
+                  <FormField label="Tahun *">
+                    <input autoComplete="off" name="year" type="number" defaultValue={currentYear} required className={inputClass} />
+                  </FormField>
+                  <FormField label="Tanggal" optional>
+                    <DatePicker name="activityDate" />
+                  </FormField>
+                </FormSection>
+                <FormSection title="③ Bukti">
+                  <FormField
+                    label="Bukti Aktivitas (PDF) *"
+                    full
+                    hint="Bukti wajib diunggah (PDF) — aktivitas tanpa bukti tidak dapat dicatat (persyaratan Kemnaker)."
+                  >
+                    <input
+                      name="attachmentFile"
+                      type="file"
+                      accept="application/pdf"
+                      required
+                      className={`${inputClass} file:mr-3 file:rounded-md file:border-0 file:bg-sage/20 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-sage-deep`}
+                    />
+                  </FormField>
+                </FormSection>
+                <DrawerFooter submitLabel="Catat Aktivitas" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-
-      <Card
-        title={`Ringkasan Jam CPD ${rangeFrom === rangeTo ? rangeFrom : `${rangeFrom}–${rangeTo}`}`}
-        description={rangeTarget != null ? `Target periode: ${rangeTarget} jam${yearSpan > 1 ? ` (${currentTarget} jam/tahun × ${yearSpan} tahun)` : ""}.` : "Target tahunan belum diatur admin."}
-      >
-        {summaries.length === 0 ? (
-          <p className="text-[11px] text-ink-muted italic">Belum ada karyawan untuk ditampilkan.</p>
-        ) : (
-          <ul className="space-y-2.5">
-            {summaries.map(({ employee, summary }) => {
-              const pct = rangeTarget ? Math.max(0, Math.min(100, Math.round((summary.totalHours / rangeTarget) * 100))) : null;
-              return (
-                <li key={employee.id} className="flex items-center gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sage/20 text-[10px] font-bold text-sage-deep">
-                    {initials(employee.fullName)}
-                  </span>
-                  <p className="text-[11px] font-bold text-ink truncate flex-1 min-w-0">{employee.fullName}</p>
-                  {pct !== null && (
-                    <div className="h-1.5 w-20 shrink-0 rounded-full bg-sage/20 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-[width] ${summary.met ? "bg-sage-deep" : "bg-dusty-rose-deep"}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  )}
-                  <span className="text-[11px] text-ink-muted whitespace-nowrap shrink-0">
-                    <span className="font-bold text-ink">{summary.totalHours}</span>
-                    {rangeTarget != null ? ` / ${rangeTarget} jam` : " jam"}
-                  </span>
-                  {summary.met !== null && (
-                    <Badge variant={summary.met ? "sage" : "dusty-rose"}>{summary.met ? "Tercapai" : "Belum Tercapai"}</Badge>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </Card>
-
-      {canManageSettings && (
-        <Card title="Pengaturan Target CPD">
-          <form action={updateCpdSettings} className="flex items-end gap-4">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <input type="hidden" name="companyId" value={company.id} />
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Target Jam CPD per Tahun</label>
-              <input autoComplete="off"
-                name="annualTargetHours"
-                type="number"
-                step="0.5"
-                min={0}
-                defaultValue={currentTarget ?? ""}
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-              />
-            </div>
-            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-              Edit
-            </button>
-          </form>
+      <div className="space-y-5">
+        <Card
+          title={`Ringkasan Jam CPD ${rangeFrom === rangeTo ? rangeFrom : `${rangeFrom}–${rangeTo}`}`}
+          description={rangeTarget != null ? `Target periode: ${rangeTarget} jam${yearSpan > 1 ? ` (${currentTarget} jam/tahun × ${yearSpan} tahun)` : ""}.` : "Target tahunan belum diatur admin."}
+        >
+          {summaries.length === 0 ? (
+            <p className="text-[13px] text-ink-muted italic">Belum ada karyawan untuk ditampilkan.</p>
+          ) : (
+            <ul className="space-y-2.5">
+              {summaries.map(({ employee, summary }) => {
+                const pct = rangeTarget ? Math.max(0, Math.min(100, Math.round((summary.totalHours / rangeTarget) * 100))) : null;
+                return (
+                  <li key={employee.id} className="flex items-center gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-sage/20 text-[11px] font-bold text-sage-deep">
+                      {initials(employee.fullName)}
+                    </span>
+                    <p className="text-[13px] font-semibold text-ink truncate flex-1 min-w-0">{employee.fullName}</p>
+                    {pct !== null && (
+                      <div className="h-1.5 w-24 shrink-0 rounded-full bg-sage/20 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-[width] ${summary.met ? "bg-sage-deep" : "bg-dusty-rose-deep"}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    )}
+                    <span className="text-xs text-ink-muted whitespace-nowrap shrink-0">
+                      <span className="font-bold text-ink">{summary.totalHours}</span>
+                      {rangeTarget != null ? ` / ${rangeTarget} jam` : " jam"}
+                    </span>
+                    {summary.met !== null && (
+                      <Badge variant={summary.met ? "sage" : "dusty-rose"}>{summary.met ? "Tercapai" : "Belum Tercapai"}</Badge>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </Card>
-      )}
 
-      {canCreate && (
-        <Card title="Catat Aktivitas CPD">
-          <form action={createCpdActivity} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <input type="hidden" name="companySlug" value={companySlug} />
-            <input type="hidden" name="companyId" value={company.id} />
+        {canManageSettings && (
+          <Card title="Pengaturan Target CPD">
+            <form action={updateCpdSettings} className="flex items-end gap-3">
+              <input type="hidden" name="companySlug" value={companySlug} />
+              <input type="hidden" name="companyId" value={company.id} />
+              <div>
+                <label className="block text-xs font-semibold text-ink-muted mb-1">Target Jam CPD per Tahun</label>
+                <input
+                  autoComplete="off"
+                  name="annualTargetHours"
+                  type="number"
+                  step="0.5"
+                  min={0}
+                  defaultValue={currentTarget ?? ""}
+                  className={inputClass}
+                />
+              </div>
+              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[13px] font-bold px-4 py-2 rounded-[10px] transition-colors cursor-pointer">
+                Simpan
+              </button>
+            </form>
+          </Card>
+        )}
+
+        <Card title="Rekap Aktivitas CPD">
+          <form method="get" className="flex flex-wrap items-end gap-3">
             <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
-              <select name="employeeId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                <option value="">-- pilih --</option>
+              <label className="block text-xs font-semibold text-ink-muted mb-1">Karyawan</label>
+              <select name="employeeId" defaultValue={selectedEmployeeId ?? ""} className={inputClass}>
+                <option value="">-- Semua Karyawan --</option>
                 {empList.map((e) => (
                   <option key={e.id} value={e.id}>{e.fullName}</option>
                 ))}
               </select>
             </div>
-            <div className="sm:col-span-2 lg:col-span-2">
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Aktivitas</label>
-              <input autoComplete="off" name="activityName" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
+            <div>
+              <label className="block text-xs font-semibold text-ink-muted mb-1">Dari Tahun</label>
+              <input autoComplete="off" name="yearFrom" type="number" defaultValue={rangeFrom} className={`${inputClass} w-28`} />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
-              <select name="category" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                <option value="internal">Internal</option>
-                <option value="eksternal">Eksternal</option>
-              </select>
+              <label className="block text-xs font-semibold text-ink-muted mb-1">Sampai Tahun</label>
+              <input autoComplete="off" name="yearTo" type="number" defaultValue={rangeTo} className={`${inputClass} w-28`} />
             </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Penyelenggara (opsional)</label>
-              <input autoComplete="off" name="organizer" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Durasi (jam)</label>
-              <input autoComplete="off" name="durationHours" type="number" step="0.5" min={0} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal (opsional)</label>
-              <DatePicker name="activityDate" />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahun</label>
-              <input autoComplete="off" name="year" type="number" defaultValue={currentYear} required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-            </div>
-            <div className="col-span-full">
-              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Bukti Aktivitas (PDF)</label>
-              <input
-                name="attachmentFile"
-                type="file"
-                accept="application/pdf"
-                required
-                className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base file:mr-3 file:rounded-md file:border-0 file:bg-sage/20 file:px-2 file:py-1 file:text-[10px] file:font-semibold file:text-sage-deep"
-              />
-              <p className="text-[10px] text-ink-muted mt-1">
-                Bukti wajib diunggah (PDF) — aktivitas tanpa bukti tidak dapat dicatat (persyaratan Kemnaker).
-              </p>
-            </div>
-            <div className="col-span-full">
-              <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                Catat
-              </button>
-            </div>
+            <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[13px] font-bold px-4 py-2 rounded-[10px] transition-colors cursor-pointer">
+              Filter
+            </button>
           </form>
         </Card>
-      )}
 
-      <Card title="Rekap Aktivitas CPD">
-        <form method="get" className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Karyawan</label>
-            <select name="employeeId" defaultValue={selectedEmployeeId ?? ""} className="border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-              <option value="">-- Semua Karyawan --</option>
-              {empList.map((e) => (
-                <option key={e.id} value={e.id}>{e.fullName}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Dari Tahun</label>
-            <input autoComplete="off" name="yearFrom" type="number" defaultValue={rangeFrom} className="w-24 border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-ink-muted mb-1">Sampai Tahun</label>
-            <input autoComplete="off" name="yearTo" type="number" defaultValue={rangeTo} className="w-24 border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-          </div>
-          <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-            Filter
-          </button>
-        </form>
-      </Card>
-
-      <DataTable columns={columns} rows={activityRows} rowKey={(r) => r.id} emptyMessage="Belum ada aktivitas CPD tercatat." />
+        <DataTable columns={columns} rows={activityRows} rowKey={(r) => r.id} emptyMessage="Belum ada aktivitas CPD tercatat." />
+      </div>
     </div>
   );
 }

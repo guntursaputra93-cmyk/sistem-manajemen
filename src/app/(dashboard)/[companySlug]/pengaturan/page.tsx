@@ -6,6 +6,7 @@ import { withTenantContext } from "@/lib/db";
 import { companies } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { isModuleEnabled } from "@/lib/modules";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { updateCompanyCode } from "./actions";
 import { Tag, Building2, Users, CheckSquare, FileText, Shield, LayoutGrid, Target, type LucideIcon } from "lucide-react";
 
@@ -48,10 +49,11 @@ export default async function PengaturanPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Pengaturan</h1>
-        <p className="text-sm text-ink-muted mt-1">Kode perusahaan &amp; departemen dipakai untuk format nomor surat/nota dinas.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Pengaturan" }]}
+        title="Pengaturan"
+        description="Kode perusahaan & departemen dipakai untuk format nomor surat/nota dinas."
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Kode berhasil disimpan.</div>}

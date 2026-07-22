@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -9,6 +8,7 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { saveMonthlyBreakdown } from "../actions";
 import { formatRupiah } from "@/lib/finance/format";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const MONTH_LABEL = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
@@ -54,19 +54,15 @@ export default async function RkapBudgetDetailPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[17px] font-extrabold text-ink">
-            {row.account.code} · {row.account.name}
-          </h1>
-          <p className="text-sm text-ink-muted mt-1">
-            Anggaran tahun {row.budget.year} — {formatRupiah(row.budget.budgetedAmount)}
-          </p>
-        </div>
-        <Link href={`/${companySlug}/keuangan/rkap?year=${row.budget.year}`} className="text-xs text-sage-deep hover:underline">
-          &larr; Kembali ke daftar RKAP
-        </Link>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Keuangan" },
+          { label: "RKAP", href: `/${companySlug}/keuangan/rkap?year=${row.budget.year}` },
+          { label: `${row.account.code} · ${row.account.name}` },
+        ]}
+        title={`${row.account.code} · ${row.account.name}`}
+        description={`Anggaran tahun ${row.budget.year} — ${formatRupiah(row.budget.budgetedAmount)}`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

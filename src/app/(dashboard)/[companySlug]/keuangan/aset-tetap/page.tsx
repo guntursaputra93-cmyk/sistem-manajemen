@@ -8,9 +8,11 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createAsset, changeAssetStatus } from "./actions";
 import { formatRupiah } from "@/lib/finance/format";
-import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const STATUS_LABEL: Record<string, string> = { aktif: "Aktif", dijual: "Dijual", dihapuskan: "Dihapuskan" };
 const STATUS_VARIANT: Record<string, BadgeVariant> = { aktif: "sage", dijual: "powder-blue", dihapuskan: "destructive" };
@@ -96,80 +98,81 @@ export default async function FixedAssetsPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Aset Tetap</h1>
-        <p className="text-sm text-ink-muted mt-1">Daftar aset tetap {company.name}.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Keuangan" }, { label: "Aset Tetap" }]}
+        title="Aset Tetap"
+        description={`Daftar aset tetap ${company.name}.`}
+        actions={
+          canManage && (
+            <FormDrawer
+              buttonLabel="Tambah Aset"
+              title="Tambah Aset Tetap"
+              description="Akun Aset kelompok 121xx, Akumulasi Penyusutan kelompok 122xx."
+              defaultOpen={Boolean(error)}
+            >
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              {assetAccounts.length === 0 || accumAccounts.length === 0 || expenseAccounts.length === 0 ? (
+                <p className="text-[13px] text-ink-muted">Akun 121xx / 122xx / biaya posting belum lengkap di Chart of Accounts.</p>
+              ) : (
+                <form action={createAsset}>
+                  <input type="hidden" name="companySlug" value={companySlug} />
+                  <input type="hidden" name="companyId" value={company.id} />
+                  <FormSection title="① Data Aset">
+                    <FormField label="Nama Aset *" full>
+                      <input autoComplete="off" name="assetName" required placeholder="mis. Laptop Auditor #3" className={inputClass} />
+                    </FormField>
+                    <FormField label="Tanggal Perolehan *">
+                      <input autoComplete="off" name="acquisitionDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+                    </FormField>
+                    <FormField label="Harga Perolehan *">
+                      <input autoComplete="off" name="acquisitionCost" type="number" step="0.01" min="0.01" required placeholder="0" className={inputClass} />
+                    </FormField>
+                    <FormField label="Masa Manfaat (bulan) *">
+                      <input autoComplete="off" name="usefulLifeMonths" type="number" step="1" min="1" required placeholder="mis. 48" className={inputClass} />
+                    </FormField>
+                  </FormSection>
+                  <FormSection title="② Akun Terkait">
+                    <FormField label="Akun Aset (121xx) *" full>
+                      <select name="accountId" required className={inputClass}>
+                        {assetAccounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.code} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Akun Akumulasi Penyusutan (122xx) *" full>
+                      <select name="accumulatedDepreciationAccountId" required className={inputClass}>
+                        {accumAccounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.code} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Akun Beban Penyusutan *" full>
+                      <select name="depreciationExpenseAccountId" required className={inputClass}>
+                        {expenseAccounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.code} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                  </FormSection>
+                  <DrawerFooter submitLabel="Tambah Aset" />
+                </form>
+              )}
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canManage && (
-        <Card
-          title="Tambah Aset Tetap"
-          description="Akun Aset harus kelompok 121xx, Akun Akumulasi Penyusutan harus kelompok 122xx. Akun Beban Penyusutan bebas dipilih dari akun biaya yang ada."
-        >
-          {assetAccounts.length === 0 || accumAccounts.length === 0 || expenseAccounts.length === 0 ? (
-            <p className="text-xs text-ink-muted">Akun 121xx / 122xx / biaya posting belum lengkap di Chart of Accounts.</p>
-          ) : (
-            <form action={createAsset} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-              <input type="hidden" name="companySlug" value={companySlug} />
-              <input type="hidden" name="companyId" value={company.id} />
-              <div className="lg:col-span-2">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nama Aset</label>
-                <input autoComplete="off" name="assetName" required placeholder="mis. Laptop Auditor #3" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Perolehan</label>
-                <input autoComplete="off" name="acquisitionDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun Aset (121xx)</label>
-                <select name="accountId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {assetAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun Akumulasi Penyusutan (122xx)</label>
-                <select name="accumulatedDepreciationAccountId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {accumAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun Beban Penyusutan</label>
-                <select name="depreciationExpenseAccountId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {expenseAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Harga Perolehan</label>
-                <input autoComplete="off" name="acquisitionCost" type="number" step="0.01" min="0.01" required placeholder="0" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Masa Manfaat (bulan)</label>
-                <input autoComplete="off" name="usefulLifeMonths" type="number" step="1" min="1" required placeholder="mis. 48" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div>
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                  Tambah Aset
-                </button>
-              </div>
-            </form>
-          )}
-        </Card>
-      )}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <DataTable columns={columns} rows={assetList} rowKey={(a) => a.id} emptyMessage="Belum ada aset tetap." />
 

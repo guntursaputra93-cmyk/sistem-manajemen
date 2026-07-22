@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { TrailStepper, type TrailStep, type TrailStepStatus } from "@/components/ui/TrailStepper";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -101,12 +102,22 @@ export default async function KaryawanDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">{employee.fullName}</h1>
-        <p className="text-sm text-ink-muted mt-1">
-          {employee.currentPositionTitle ?? "-"} — <Badge variant={employee.employmentStatus === "aktif" ? "sage" : "dusty-rose"}>{STATUS_LABEL[employee.employmentStatus] ?? employee.employmentStatus}</Badge>
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "SDM" },
+          { label: "Data Karyawan", href: `/${companySlug}/sdm/karyawan` },
+          { label: employee.fullName },
+        ]}
+        title={employee.fullName}
+        description={
+          <>
+            {employee.currentPositionTitle ?? "-"} —{" "}
+            <Badge variant={employee.employmentStatus === "aktif" ? "sage" : "dusty-rose"}>
+              {STATUS_LABEL[employee.employmentStatus] ?? employee.employmentStatus}
+            </Badge>
+          </>
+        }
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}

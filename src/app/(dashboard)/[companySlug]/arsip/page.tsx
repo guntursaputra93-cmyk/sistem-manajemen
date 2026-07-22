@@ -20,6 +20,7 @@ import { queryCombinedSuratArchive } from "@/lib/letters/archive";
 import { parsePage, offsetFor, totalPages, PAGE_SIZE } from "@/lib/pagination";
 import { Pagination } from "@/components/Pagination";
 import { Tabs } from "@/components/ui/Tabs";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { UnreadBadge } from "@/components/ui/UnreadBadge";
 import { DatePicker } from "@/components/ui/DatePicker";
@@ -103,12 +104,11 @@ export default async function ArsipPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Arsip & Pencarian</h1>
-        <p className="text-[11px] text-ink-muted mt-1">
-          Tiap bagian punya halaman & filter sendiri — tidak digabung jadi 1 daftar panjang.
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Persuratan" }, { label: "Arsip & Pencarian" }]}
+        title="Arsip & Pencarian"
+        description="Tiap bagian punya halaman & filter sendiri — tidak digabung jadi 1 daftar panjang."
+      />
 
       <Tabs
         value={activeTab}
@@ -221,7 +221,7 @@ async function DocumentTab({
 
   return (
     <section className="space-y-4">
-      <FilterForm basePath={basePath} sp={sp} tabKey={tabKey} showDepartment={false} statusOptions={DOC_STATUS_LABEL} />
+      <FilterForm sp={sp} tabKey={tabKey} showDepartment={false} statusOptions={DOC_STATUS_LABEL} />
 
       <DataTable columns={columns} rows={pageRows} rowKey={(doc) => doc.id} emptyMessage={`Tidak ada dokumen ${label.toLowerCase()}.`} />
 
@@ -280,7 +280,7 @@ async function NotaDinasTab({
 
   return (
     <section className="space-y-4">
-      <FilterForm basePath={basePath} sp={sp} tabKey="nd" showDepartment departments={deptList} statusOptions={LETTER_STATUS_LABEL} />
+      <FilterForm sp={sp} tabKey="nd" showDepartment departments={deptList} statusOptions={LETTER_STATUS_LABEL} />
 
       <DataTable columns={columns} rows={rows} rowKey={(letter) => letter.id} emptyMessage="Tidak ada nota dinas." />
 
@@ -340,7 +340,7 @@ async function SuratMasukKeluarTab({
 
   return (
     <section className="space-y-4">
-      <FilterForm basePath={basePath} sp={sp} tabKey="surat" showDepartment departments={deptList} showJenis />
+      <FilterForm sp={sp} tabKey="surat" showDepartment departments={deptList} showJenis />
 
       <DataTable columns={columns} rows={rows} rowKey={(row) => `${row.jenis}-${row.id}`} emptyMessage="Tidak ada surat." />
 
@@ -350,7 +350,6 @@ async function SuratMasukKeluarTab({
 }
 
 function FilterForm({
-  basePath,
   sp,
   tabKey,
   showDepartment,
@@ -358,7 +357,6 @@ function FilterForm({
   statusOptions,
   showJenis,
 }: {
-  basePath: string;
   sp: SearchParams;
   tabKey: string;
   showDepartment: boolean;

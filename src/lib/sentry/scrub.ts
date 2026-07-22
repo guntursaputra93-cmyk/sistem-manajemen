@@ -1,4 +1,4 @@
-import type { ErrorEvent, EventHint } from "@sentry/nextjs";
+import type { ErrorEvent } from "@sentry/nextjs";
 
 // Nama field yang dianggap PII dan wajib disamarkan sebelum dikirim ke Sentry.
 // Dicocokkan case-insensitive terhadap key object (termasuk snake_case dan camelCase).
@@ -57,7 +57,7 @@ function scrubRequestDataInPlace(event: ErrorEvent): void {
   event.request!.data = scrubValue(data);
 }
 
-export function scrubPii(event: ErrorEvent, _hint: EventHint): ErrorEvent {
+export function scrubPii(event: ErrorEvent): ErrorEvent {
   scrubRequestDataInPlace(event);
 
   if (event.extra) {

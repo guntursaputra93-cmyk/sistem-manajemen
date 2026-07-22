@@ -7,7 +7,7 @@ import { companies } from "./companies";
 // per-departemen seperti surat. 'invoice' (Langkah 4, AR invoices) pakai fungsi
 // numbering generik yang sama, bukan tabel baru lagi (spesifikasi Fase 3 Bagian 0:
 // "tabel sequence baru atau extend yang ada").
-export const financeSequenceTypeEnum = pgEnum("finance_sequence_type", ["jurnal_umum", "invoice"]);
+export const financeSequenceTypeEnum = pgEnum("finance_sequence_type", ["jurnal_umum", "invoice", "tagihan"]);
 
 export const financeNumberSequences = pgTable(
   "finance_number_sequences",

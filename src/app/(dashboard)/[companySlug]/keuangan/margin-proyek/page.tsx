@@ -9,6 +9,7 @@ import { getProjectMarginList } from "@/lib/finance/margin";
 import { formatRupiah } from "@/lib/finance/format";
 import { Card } from "@/components/ui/Card";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export default async function ProjectMarginPage({
   params,
@@ -67,12 +68,11 @@ export default async function ProjectMarginPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Margin Proyek</h1>
-        <p className="text-sm text-ink-muted mt-1">
-          Margin {company.name} per kontrak — nilai kontrak/AR dikurangi total biaya langsung (HPP).
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Keuangan" }, { label: "Margin Proyek" }]}
+        title="Margin Proyek"
+        description={`Margin ${company.name} per kontrak — nilai kontrak/AR dikurangi total biaya langsung (HPP).`}
+      />
 
       <Card
         title="Catatan"

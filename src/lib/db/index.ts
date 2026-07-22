@@ -13,8 +13,29 @@ if (!adminConnectionString) {
   throw new Error("DATABASE_URL belum diset di environment variables.");
 }
 
-const appClient = postgres(appConnectionString, { prepare: false });
-const adminClient = postgres(adminConnectionString, { prepare: false });
+// Di `next dev`, tiap recompile (HMR) meng-evaluasi ulang modul ini. Tanpa cache,
+// setiap evaluasi membuat connection pool BARU sementara pool lama tidak pernah
+// ditutup — koneksi menumpuk sampai Postgres menolak dengan
+// "(EMAXCONN) max client connections reached". Dengan 2 client x pool default 10,
+// ~10 kali reload sudah cukup menembus batas 200.
+//
+// Solusinya: simpan client di globalThis saat development supaya semua reload
+// memakai ulang pool yang sama. Di production tidak di-cache — build produksi tidak
+// pernah HMR, jadi modul hanya dievaluasi sekali per instance.
+const globalForDb = globalThis as unknown as {
+  __saptaAppClient?: ReturnType<typeof postgres>;
+  __saptaAdminClient?: ReturnType<typeof postgres>;
+};
+
+const appClient = globalForDb.__saptaAppClient ?? postgres(appConnectionString, { prepare: false, max: 10 });
+// Admin hanya dipakai 2 kasus pra-autentikasi (lihat komentar dbAdmin di bawah),
+// jadi poolnya sengaja kecil.
+const adminClient = globalForDb.__saptaAdminClient ?? postgres(adminConnectionString, { prepare: false, max: 5 });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForDb.__saptaAppClient = appClient;
+  globalForDb.__saptaAdminClient = adminClient;
+}
 
 // Dipakai untuk SEMUA query aplikasi biasa (lewat role app_user, tunduk pada RLS).
 export const db = drizzle(appClient, { schema });

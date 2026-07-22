@@ -8,10 +8,12 @@ import { hasPermission, type Role } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { getVisibleAssigneeIds } from "@/lib/crm/opportunities";
 import { createOpportunityAction } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const STATUS_LABEL: Record<string, string> = { open: "Berjalan", won: "Menang", lost: "Hilang" };
 const STATUS_VARIANT: Record<string, BadgeVariant> = { open: "powder-blue", won: "sage", lost: "destructive" };
@@ -84,108 +86,87 @@ export default async function OpportunitiesPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Opportunity / Pipeline (CRM)</h1>
-        <p className="text-sm text-ink-muted mt-1">
-          {session.user.role === "staff" ? "Opportunity milikmu." : session.user.role === "department_head" ? "Opportunity di departemenmu." : `Semua opportunity di ${company.name}.`}
-        </p>
-      </div>
-
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canCreate && (
-        <Card title="Buat Opportunity">
-          {orgList.length === 0 || stageList.length === 0 ? (
-            <p className="text-sm text-ink-muted italic">
-              Belum ada organisasi atau tahap pipeline. Buat dulu di{" "}
-              <Link href={`/${companySlug}/crm/organisasi`} className="text-sage-deep hover:underline">
-                CRM &rarr; Organisasi
-              </Link>{" "}
-              atau{" "}
-              <Link href={`/${companySlug}/pengaturan/pipeline`} className="text-sage-deep hover:underline">
-                Pengaturan &rarr; Pipeline
-              </Link>
-              .
-            </p>
-          ) : (
-            <form action={createOpportunityAction} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <input type="hidden" name="companySlug" value={companySlug} />
-              <input type="hidden" name="companyId" value={company.id} />
-              <div className="sm:col-span-2 lg:col-span-2">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Judul Deal</label>
-                <input autoComplete="off"
-                  name="title"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Organisasi</label>
-                <select
-                  name="organizationId"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                >
-                  {orgList.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tahap Awal</label>
-                <select
-                  name="currentStageId"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                >
-                  {stageList.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.stageKey}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Estimasi Nilai (Rp)</label>
-                <input autoComplete="off"
-                  name="estimatedValue"
-                  type="number"
-                  step="0.01"
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Target Tutup</label>
-                <DatePicker name="expectedCloseDate" />
-              </div>
-              {!restrictAssignee && (
-                <div className="sm:col-span-2 lg:col-span-2">
-                  <label className="block text-[10px] font-semibold text-ink-muted mb-1">Ditugaskan ke</label>
-                  <select
-                    name="assignedTo"
-                    className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                    defaultValue={session.user.id}
-                  >
-                    {userList.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.fullName}
-                      </option>
-                    ))}
-                  </select>
+      <PageHeader
+        breadcrumb={[{ label: "CRM" }, { label: "Opportunity / Pipeline" }]}
+        title="Opportunity / Pipeline"
+        description={
+          session.user.role === "staff" ? "Opportunity milikmu." : session.user.role === "department_head" ? "Opportunity di departemenmu." : `Semua opportunity di ${company.name}.`
+        }
+        actions={
+          canCreate && (
+            <FormDrawer buttonLabel="Buat Opportunity" title="Buat Opportunity" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
                 </div>
               )}
-              <div className="col-span-full">
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                  Buat Opportunity
-                </button>
-              </div>
-            </form>
-          )}
-        </Card>
-      )}
+              {orgList.length === 0 || stageList.length === 0 ? (
+                <p className="text-[13px] text-ink-muted italic">
+                  Belum ada organisasi atau tahap pipeline. Buat dulu di{" "}
+                  <Link href={`/${companySlug}/crm/organisasi`} className="text-sage-deep hover:underline">
+                    CRM &rarr; Organisasi
+                  </Link>{" "}
+                  atau{" "}
+                  <Link href={`/${companySlug}/pengaturan/pipeline`} className="text-sage-deep hover:underline">
+                    Pengaturan &rarr; Pipeline
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <form action={createOpportunityAction}>
+                  <input type="hidden" name="companySlug" value={companySlug} />
+                  <input type="hidden" name="companyId" value={company.id} />
+                  <FormSection title="① Deal">
+                    <FormField label="Judul Deal *" full>
+                      <input autoComplete="off" name="title" required className={inputClass} />
+                    </FormField>
+                    <FormField label="Organisasi *" full>
+                      <select name="organizationId" required className={inputClass}>
+                        {orgList.map((o) => (
+                          <option key={o.id} value={o.id}>
+                            {o.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                  </FormSection>
+                  <FormSection title="② Pipeline & Nilai">
+                    <FormField label="Tahap Awal *">
+                      <select name="currentStageId" required className={inputClass}>
+                        {stageList.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.stageKey}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Estimasi Nilai (Rp)">
+                      <input autoComplete="off" name="estimatedValue" type="number" step="0.01" className={inputClass} />
+                    </FormField>
+                    <FormField label="Target Tutup">
+                      <DatePicker name="expectedCloseDate" />
+                    </FormField>
+                    {!restrictAssignee && (
+                      <FormField label="Ditugaskan ke" full>
+                        <select name="assignedTo" className={inputClass} defaultValue={session.user.id}>
+                          {userList.map((u) => (
+                            <option key={u.id} value={u.id}>
+                              {u.fullName}
+                            </option>
+                          ))}
+                        </select>
+                      </FormField>
+                    )}
+                  </FormSection>
+                  <DrawerFooter submitLabel="Buat Opportunity" />
+                </form>
+              )}
+            </FormDrawer>
+          )
+        }
+      />
+
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <DataTable columns={columns} rows={oppList} rowKey={(opp) => opp.id} emptyMessage="Belum ada opportunity. Opportunity baru akan muncul di sini." />
     </div>

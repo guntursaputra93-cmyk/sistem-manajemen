@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
@@ -19,9 +18,10 @@ import { requireModuleEnabled, isModuleEnabled } from "@/lib/modules";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
 import { submitForApprovalAction, decideApprovalAction, markSentAction } from "../actions";
 import { createProposalItemAction, updateProposalItemAction, deleteProposalItemAction } from "../../crm/proposal/actions";
-import { TrailStepper, type TrailStep } from "@/components/ui/TrailStepper";
+import { TrailStepper } from "@/components/ui/TrailStepper";
 import { approvalStepsToTrail } from "@/lib/ui/approvalTrail";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const CATEGORY_LABEL: Record<string, string> = {
   surat_keluar: "Surat Keluar",
@@ -106,15 +106,15 @@ export default async function SuratKeluarDetailPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href={`/${companySlug}/surat-keluar`} className="text-[11px] text-sage-deep hover:underline">
-          &larr; Kembali
-        </Link>
-        <h1 className="font-display text-[17px] font-extrabold text-ink mt-1">{letter.letterNumber ?? "(Draft — belum ada nomor)"}</h1>
-        <p className="text-[11px] text-ink-muted mt-1">
-          {CATEGORY_LABEL[letter.letterCategory]} — {letter.subject}
-        </p>
-      </div>
+      <PageHeader
+        breadcrumb={[
+          { label: "Persuratan" },
+          { label: "Surat Keluar", href: `/${companySlug}/surat-keluar` },
+          { label: letter.letterNumber ?? "Draft" },
+        ]}
+        title={letter.letterNumber ?? "(Draft — belum ada nomor)"}
+        description={`${CATEGORY_LABEL[letter.letterCategory]} — ${letter.subject}`}
+      />
 
       {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
       {success && (

@@ -2,187 +2,139 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
-import { journalEntries, journalEntryLines, chartOfAccounts } from "@/drizzle/schema";
+import { chartOfAccounts } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
-import { postJournalEntry, voidJournalEntry, JournalError } from "@/lib/finance/journal";
+import { createAndPostJournal, voidJournalEntry, JournalError, type NewJournalLine } from "@/lib/finance/journal";
+import { openOpenItem, settleOpenItem, OpenItemError, openItemTriggerSide, normalizeOpenItemType } from "@/lib/finance/openItems";
 
-export async function createJournalEntry(formData: FormData): Promise<void> {
-  const companySlug = formData.get("companySlug")?.toString() ?? "";
-  const companyId = formData.get("companyId")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/keuangan/jurnal`;
-
-  const session = await auth();
-  if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat jurnal.")}`);
-  }
-
-  const entryDate = formData.get("entryDate")?.toString() ?? "";
-  const description = formData.get("description")?.toString().trim() ?? "";
-
-  if (!entryDate || !description) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tanggal dan keterangan wajib diisi.")}`);
-  }
-
-  const [entry] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx.insert(journalEntries).values({ companyId, entryDate, description, createdBy: session.user.id }).returning()
-  );
-
-  await logAudit({
-    companyId,
-    userId: session.user.id,
-    action: "create_journal_entry",
-    entityType: "journal_entry",
-    entityId: entry.id,
-    metadata: { entryDate, description },
-  });
-
-  revalidatePath(redirectBase);
-  redirect(`${redirectBase}/${entry.id}?success=1`);
+// Parsing nominal ber-format id-ID (titik = ribuan, koma = desimal) — sama persis
+// dengan QuickJournalForm/createQuickJournal supaya perilaku input konsisten.
+function parseAmount(v: string): number {
+  const raw = v.trim().replace(/\./g, "").replace(",", ".");
+  if (!raw) return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
-export async function updateJournalEntryHeader(formData: FormData): Promise<void> {
+/**
+ * Jurnal manual ATOMIK (pengganti alur draft lama): header + semua baris + posting
+ * dalam satu aksi. Opsional sekaligus membuka "transaksi terbuka" (uang muka / DP).
+ * Juga dipakai untuk jurnal koreksi (correctsEntryId dari jurnal yang sudah di-void).
+ * Tidak ada jurnal draft yang tersimpan — gagal ⇒ rollback total.
+ */
+export async function createManualJournal(formData: FormData): Promise<void> {
   const companySlug = formData.get("companySlug")?.toString() ?? "";
   const companyId = formData.get("companyId")?.toString() ?? "";
-  const journalEntryId = formData.get("journalEntryId")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/keuangan/jurnal/${journalEntryId}`;
+  const correctsEntryId = formData.get("correctsEntryId")?.toString() || null;
+  const backBase = `/${companySlug}/keuangan/jurnal/baru${correctsEntryId ? `?corrects=${correctsEntryId}` : ""}`;
+  const sep = correctsEntryId ? "&" : "?";
 
   const session = await auth();
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah jurnal.")}`);
+    redirect(`${backBase}${sep}error=${encodeURIComponent("Tidak punya izin membuat jurnal.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const entryDate = formData.get("entryDate")?.toString() ?? "";
   const description = formData.get("description")?.toString().trim() ?? "";
   if (!entryDate || !description) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tanggal dan keterangan wajib diisi.")}`);
+    redirect(`${backBase}${sep}error=${encodeURIComponent("Tanggal dan keterangan wajib diisi.")}`);
   }
 
-  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
-  const [updated] = await withTenantContext(tenantContext, (tx) =>
-    tx
-      .update(journalEntries)
-      .set({ entryDate, description })
-      .where(and(eq(journalEntries.id, journalEntryId), eq(journalEntries.companyId, companyId), eq(journalEntries.status, "draft")))
-      .returning()
-  );
-  if (!updated) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Jurnal ini sudah tidak berstatus draft — tidak bisa diubah.")}`);
-  }
+  // Baris disubmit sebagai array paralel per kolom (urutan DOM sama) — indeks ke-i
+  // di tiap array pasti pasangan yang benar. lineOpenItemDesc/Due diisi HANYA untuk
+  // baris yang mendebet akun ber-flag "transaksi terbuka" (deteksi otomatis).
+  const accountIds = formData.getAll("lineAccountId").map((v) => v.toString());
+  const debits = formData.getAll("lineDebit").map((v) => v.toString());
+  const credits = formData.getAll("lineCredit").map((v) => v.toString());
+  const oiDescs = formData.getAll("lineOpenItemDesc").map((v) => v.toString());
+  const oiDues = formData.getAll("lineOpenItemDue").map((v) => v.toString());
+  // Rekanan per baris (Item 5b) — berlaku untuk SEMUA baris, bukan hanya baris
+  // transaksi terbuka: inilah yang memungkinkan penelusuran biaya/hutang/piutang
+  // per rekanan langsung dari baris jurnal.
+  const lineOrgs = formData.getAll("lineOrg").map((v) => v.toString());
 
-  await logAudit({
-    companyId,
-    userId: session.user.id,
-    action: "update_journal_entry",
-    entityType: "journal_entry",
-    entityId: journalEntryId,
-    metadata: { entryDate, description },
-  });
+  type Row = { accountId: string; debit: number; credit: number; oiDesc: string; oiDue: string | null; org: string | null };
+  const rows: Row[] = accountIds
+    .map((accountId, i) => ({
+      accountId,
+      debit: parseAmount(debits[i] ?? ""),
+      credit: parseAmount(credits[i] ?? ""),
+      oiDesc: (oiDescs[i] ?? "").trim(),
+      oiDue: (oiDues[i] ?? "").trim() || null,
+      org: (lineOrgs[i] ?? "").trim() || null,
+    }))
+    .filter((r) => r.accountId && (r.debit > 0 || r.credit > 0));
+  const lines: NewJournalLine[] = rows.map((r) => ({
+    accountId: r.accountId,
+    debit: r.debit,
+    credit: r.credit,
+    organizationId: r.org,
+  }));
 
-  revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
-}
-
-export async function deleteJournalEntry(formData: FormData): Promise<void> {
-  const companySlug = formData.get("companySlug")?.toString() ?? "";
-  const companyId = formData.get("companyId")?.toString() ?? "";
-  const journalEntryId = formData.get("journalEntryId")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/keuangan/jurnal`;
-
-  const session = await auth();
-  if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin menghapus jurnal.")}`);
-  }
-
-  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
-  // where status='draft' langsung di query (bukan cek lalu hapus terpisah) — jurnal
-  // posted/void TIDAK PERNAH dihapus (Fase 3: "posted tidak bisa diedit, hanya void +
-  // jurnal koreksi baru"), baris menghilang tanpa efek kalau precondition tidak cocok.
-  const [deleted] = await withTenantContext(tenantContext, (tx) =>
-    tx
-      .delete(journalEntries)
-      .where(and(eq(journalEntries.id, journalEntryId), eq(journalEntries.companyId, companyId), eq(journalEntries.status, "draft")))
-      .returning()
-  );
-  if (!deleted) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Jurnal ini sudah tidak berstatus draft — tidak bisa dihapus, void saja.")}`);
-  }
-
-  await logAudit({
-    companyId,
-    userId: session.user.id,
-    action: "delete_journal_entry",
-    entityType: "journal_entry",
-    entityId: journalEntryId,
-  });
-
-  revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
-}
-
-export async function addJournalLine(formData: FormData): Promise<void> {
-  const companySlug = formData.get("companySlug")?.toString() ?? "";
-  const companyId = formData.get("companyId")?.toString() ?? "";
-  const journalEntryId = formData.get("journalEntryId")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/keuangan/jurnal/${journalEntryId}`;
-
-  const session = await auth();
-  if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah jurnal.")}`);
-  }
-
-  const accountId = formData.get("accountId")?.toString() ?? "";
-  const debitAmount = (formData.get("debitAmount")?.toString().trim() || "0").replace(",", ".");
-  const creditAmount = (formData.get("creditAmount")?.toString().trim() || "0").replace(",", ".");
-  const description = formData.get("description")?.toString().trim() || null;
-
-  const debit = Number(debitAmount);
-  const credit = Number(creditAmount);
-  if (!accountId || !Number.isFinite(debit) || !Number.isFinite(credit) || debit < 0 || credit < 0) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Akun dan nominal wajib diisi dengan benar.")}`);
-  }
-  if ((debit > 0 && credit > 0) || (debit === 0 && credit === 0)) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Isi salah satu saja — debit ATAU kredit, tidak boleh dua-duanya atau kosong dua-duanya.")}`);
-  }
-
-  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
-
+  let result: { journalEntryId: string; entryNumber: string };
+  let openItemCount = 0;
   try {
-    await withTenantContext(tenantContext, async (tx) => {
-      const [entry] = await tx
-        .select()
-        .from(journalEntries)
-        .where(and(eq(journalEntries.id, journalEntryId), eq(journalEntries.companyId, companyId)));
-      if (!entry || entry.status !== "draft") throw new JournalError("Jurnal ini sudah tidak berstatus draft.");
+    result = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, async (tx) => {
+      // Akun ber-flag "transaksi terbuka" (deteksi otomatis, hanya sisi debet — Item 3).
+      const usedIds = [...new Set(rows.map((r) => r.accountId))];
+      const accs = usedIds.length
+        ? await tx.select().from(chartOfAccounts).where(and(eq(chartOfAccounts.companyId, companyId), inArray(chartOfAccounts.id, usedIds)))
+        : [];
+      const flagged = new Map(accs.filter((a) => a.isOpenItem).map((a) => [a.id, a]));
 
-      // Validasi is_header=false di level aplikasi (Fase 3 Langkah 2) — dropdown UI
-      // sudah difilter, ini menjaga kalau request dibuat manual di luar form.
-      const [account] = await tx
-        .select()
-        .from(chartOfAccounts)
-        .where(and(eq(chartOfAccounts.id, accountId), eq(chartOfAccounts.companyId, companyId)));
-      if (!account || account.isHeader) {
-        throw new JournalError("Akun yang dipilih adalah akun header (grup) — hanya akun posting yang boleh dijurnal.");
+      // Baris yang memakai akun ber-flag DI SISI PEMICUNYA wajib isi Pihak/Rekanan —
+      // inilah pengganti checkbox lama: user tidak bisa lupa karena dipicu oleh pilihan
+      // akun + wajib. Sisi pemicu diturunkan dari jenis (uang muka = debet, DP = kredit).
+      const openingRows = rows.filter((r) => {
+        const acc = flagged.get(r.accountId);
+        if (!acc) return false;
+        return openItemTriggerSide(acc.openItemType) === "debit" ? r.debit > 0 : r.credit > 0;
+      });
+      for (const r of openingRows) {
+        // Cukup salah satu: keterangan bebas ATAU rekanan (openOpenItem memakai nama
+        // rekanan sebagai keterangan bila keterangannya dikosongkan).
+        if (!r.oiDesc && !r.org) {
+          throw new OpenItemError(`Akun ${flagged.get(r.accountId)!.code} adalah akun transaksi terbuka — isi Pihak/keterangan atau pilih Rekanan pada barisnya.`);
+        }
       }
 
-      const existingLines = await tx.select().from(journalEntryLines).where(eq(journalEntryLines.journalEntryId, journalEntryId));
-
-      await tx.insert(journalEntryLines).values({
+      const posted = await createAndPostJournal(tx, {
         companyId,
-        journalEntryId,
-        accountId,
-        lineOrder: existingLines.length + 1,
-        debitAmount: debit.toFixed(2),
-        creditAmount: credit.toFixed(2),
+        entryDate,
         description,
+        userId: session.user.id,
+        lines,
+        correctsEntryId,
       });
+
+      for (const r of openingRows) {
+        const acc = flagged.get(r.accountId)!;
+        await openOpenItem(tx, {
+          companyId,
+          type: normalizeOpenItemType(acc.openItemType),
+          controlAccountId: r.accountId,
+          description: r.oiDesc,
+          organizationId: r.org,
+          openingEntryId: posted.journalEntryId,
+          // Nilai pembuka diambil dari sisi pemicunya (DP dibuka dari sisi kredit).
+          openingAmount: r.debit > 0 ? r.debit : r.credit,
+          dueDate: r.oiDue,
+          userId: session.user.id,
+        });
+      }
+      openItemCount = openingRows.length;
+      return posted;
     });
   } catch (err) {
-    if (err instanceof JournalError) {
-      redirect(`${redirectBase}?error=${encodeURIComponent(err.message)}`);
+    if (err instanceof JournalError || err instanceof OpenItemError) {
+      redirect(`${backBase}${sep}error=${encodeURIComponent(err.message)}`);
     }
     throw err;
   }
@@ -190,89 +142,17 @@ export async function addJournalLine(formData: FormData): Promise<void> {
   await logAudit({
     companyId,
     userId: session.user.id,
-    action: "add_journal_line",
+    action: correctsEntryId ? "create_journal_correction" : "create_manual_journal",
     entityType: "journal_entry",
-    entityId: journalEntryId,
-    metadata: { accountId, debit, credit },
+    entityId: result.journalEntryId,
+    metadata: { entryNumber: result.entryNumber, correctsEntryId, openItemCount },
   });
 
-  revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  revalidatePath(`/${companySlug}/keuangan/jurnal`);
+  redirect(`/${companySlug}/keuangan/jurnal/${result.journalEntryId}?success=1`);
 }
 
-export async function deleteJournalLine(formData: FormData): Promise<void> {
-  const companySlug = formData.get("companySlug")?.toString() ?? "";
-  const companyId = formData.get("companyId")?.toString() ?? "";
-  const journalEntryId = formData.get("journalEntryId")?.toString() ?? "";
-  const lineId = formData.get("lineId")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/keuangan/jurnal/${journalEntryId}`;
-
-  const session = await auth();
-  if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengubah jurnal.")}`);
-  }
-
-  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
-  const [entry] = await withTenantContext(tenantContext, (tx) =>
-    tx.select().from(journalEntries).where(and(eq(journalEntries.id, journalEntryId), eq(journalEntries.companyId, companyId)))
-  );
-  if (!entry || entry.status !== "draft") {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Jurnal ini sudah tidak berstatus draft — baris tidak bisa dihapus.")}`);
-  }
-
-  await withTenantContext(tenantContext, (tx) =>
-    tx.delete(journalEntryLines).where(and(eq(journalEntryLines.id, lineId), eq(journalEntryLines.journalEntryId, journalEntryId)))
-  );
-
-  await logAudit({
-    companyId,
-    userId: session.user.id,
-    action: "delete_journal_line",
-    entityType: "journal_entry",
-    entityId: journalEntryId,
-    metadata: { lineId },
-  });
-
-  revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
-}
-
-export async function postJournalEntryAction(formData: FormData): Promise<void> {
-  const companySlug = formData.get("companySlug")?.toString() ?? "";
-  const companyId = formData.get("companyId")?.toString() ?? "";
-  const journalEntryId = formData.get("journalEntryId")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/keuangan/jurnal/${journalEntryId}`;
-
-  const session = await auth();
-  if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin memposting jurnal.")}`);
-  }
-
-  let result;
-  try {
-    result = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      postJournalEntry(tx, { companyId, journalEntryId, postedBy: session.user.id })
-    );
-  } catch (err) {
-    if (err instanceof JournalError) {
-      redirect(`${redirectBase}?error=${encodeURIComponent(err.message)}`);
-    }
-    throw err;
-  }
-
-  await logAudit({
-    companyId,
-    userId: session.user.id,
-    action: "post_journal_entry",
-    entityType: "journal_entry",
-    entityId: journalEntryId,
-    metadata: { entryNumber: result.entryNumber },
-  });
-
-  revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
-}
-
+/** Void jurnal posted — satu-satunya cara membatalkan (lalu buat jurnal koreksi baru). */
 export async function voidJournalEntryAction(formData: FormData): Promise<void> {
   const companySlug = formData.get("companySlug")?.toString() ?? "";
   const companyId = formData.get("companyId")?.toString() ?? "";
@@ -283,6 +163,8 @@ export async function voidJournalEntryAction(formData: FormData): Promise<void> 
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membatalkan jurnal.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
   const voidReason = formData.get("voidReason")?.toString().trim() ?? "";
   if (!voidReason) {
@@ -313,44 +195,44 @@ export async function voidJournalEntryAction(formData: FormData): Promise<void> 
   redirect(`${redirectBase}?success=1`);
 }
 
-export async function createCorrectionEntry(formData: FormData): Promise<void> {
+/**
+ * Selesaikan transaksi terbuka (sebagian/penuh): membuat jurnal penyelesaian atomik
+ * yang membersihkan akun kontrol + baris lawan yang diisi user, lalu memperbarui
+ * status item. Gagal ⇒ rollback (tidak ada jurnal/penautan tersisa).
+ */
+export async function settleOpenItemAction(formData: FormData): Promise<void> {
   const companySlug = formData.get("companySlug")?.toString() ?? "";
   const companyId = formData.get("companyId")?.toString() ?? "";
-  const sourceEntryId = formData.get("sourceEntryId")?.toString() ?? "";
-  const redirectBase = `/${companySlug}/keuangan/jurnal/${sourceEntryId}`;
+  const openItemId = formData.get("openItemId")?.toString() ?? "";
+  const backBase = `/${companySlug}/keuangan/jurnal/transaksi-terbuka/${openItemId}`;
 
   const session = await auth();
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_JOURNAL_ENTRIES")) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat jurnal koreksi.")}`);
+    redirect(`${backBase}?error=${encodeURIComponent("Tidak punya izin menyelesaikan transaksi.")}`);
   }
 
-  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "keuangan" });
 
-  let correction: typeof journalEntries.$inferSelect;
+  const entryDate = formData.get("entryDate")?.toString() ?? "";
+  const description = formData.get("description")?.toString().trim() ?? "";
+  if (!entryDate || !description) {
+    redirect(`${backBase}?error=${encodeURIComponent("Tanggal dan keterangan wajib diisi.")}`);
+  }
+
+  const accountIds = formData.getAll("counterAccountId").map((v) => v.toString());
+  const amounts = formData.getAll("counterAmount").map((v) => v.toString());
+  const counterLines = accountIds
+    .map((accountId, i) => ({ accountId, amount: parseAmount(amounts[i] ?? "") }))
+    .filter((l) => l.accountId && l.amount > 0);
+
+  let result: { journalEntryId: string; entryNumber: string };
   try {
-    correction = await withTenantContext(tenantContext, async (tx) => {
-      const [source] = await tx
-        .select()
-        .from(journalEntries)
-        .where(and(eq(journalEntries.id, sourceEntryId), eq(journalEntries.companyId, companyId)));
-      if (!source || source.status !== "void") {
-        throw new JournalError("Jurnal koreksi hanya bisa dibuat dari jurnal yang sudah di-void.");
-      }
-      const [created] = await tx
-        .insert(journalEntries)
-        .values({
-          companyId,
-          entryDate: new Date().toISOString().slice(0, 10),
-          description: `Koreksi atas ${source.entryNumber ?? source.id}`,
-          correctsEntryId: source.id,
-          createdBy: session.user.id,
-        })
-        .returning();
-      return created;
-    });
+    result = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+      settleOpenItem(tx, { companyId, openItemId, entryDate, description, counterLines, userId: session.user.id })
+    );
   } catch (err) {
-    if (err instanceof JournalError) {
-      redirect(`${redirectBase}?error=${encodeURIComponent(err.message)}`);
+    if (err instanceof JournalError || err instanceof OpenItemError) {
+      redirect(`${backBase}?error=${encodeURIComponent(err.message)}`);
     }
     throw err;
   }
@@ -358,12 +240,12 @@ export async function createCorrectionEntry(formData: FormData): Promise<void> {
   await logAudit({
     companyId,
     userId: session.user.id,
-    action: "create_journal_correction",
-    entityType: "journal_entry",
-    entityId: correction.id,
-    metadata: { correctsEntryId: sourceEntryId },
+    action: "settle_open_item",
+    entityType: "open_item",
+    entityId: openItemId,
+    metadata: { entryNumber: result.entryNumber },
   });
 
-  revalidatePath(redirectBase);
-  redirect(`/${companySlug}/keuangan/jurnal/${correction.id}?success=1`);
+  revalidatePath(`/${companySlug}/keuangan/jurnal`);
+  redirect(`/${companySlug}/keuangan/jurnal/${result.journalEntryId}?success=1`);
 }

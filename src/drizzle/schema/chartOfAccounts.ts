@@ -38,6 +38,13 @@ export const chartOfAccounts = pgTable(
     isHeader: boolean("is_header").notNull().default(false),
     // Nonaktifkan tanpa menghapus (akun lama tetap perlu tampil di laporan historis).
     isActive: boolean("is_active").notNull().default(true),
+    // Setting "akun transaksi terbuka" (Item Setting Keuangan). Kalau true, tiap kali
+    // akun ini DIDEBET di jurnal, sistem otomatis membuka transaksi terbuka (uang muka
+    // dsb) — menghilangkan risiko user lupa menandai. open_item_type = jenis default
+    // item yang dibuka ('uang_muka' | 'lainnya'); disimpan text (bukan enum) untuk
+    // menghindari saling-impor antar file schema — nilainya divalidasi app-level.
+    isOpenItem: boolean("is_open_item").notNull().default(false),
+    openItemType: text("open_item_type"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

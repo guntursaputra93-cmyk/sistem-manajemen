@@ -9,9 +9,11 @@ import { requireModuleEnabled } from "@/lib/modules";
 import { refreshOverdueInvoiceStatuses } from "@/lib/finance/ar";
 import { createInvoice } from "./actions";
 import { formatRupiah } from "@/lib/finance/format";
-import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -94,69 +96,74 @@ export default async function ArInvoicesPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Piutang (AR Invoice)</h1>
-        <p className="text-sm text-ink-muted mt-1">Invoice pelanggan {company.name}, sumber data klien &amp; kontrak dari CRM.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Keuangan" }, { label: "Piutang" }]}
+        title="Piutang (AR Invoice)"
+        description={`Invoice pelanggan ${company.name}, sumber data klien & kontrak dari CRM.`}
+        actions={
+          canManage && (
+            <FormDrawer
+              buttonLabel="Buat Invoice"
+              title="Buat Invoice Baru"
+              description="Invoice dibuat sebagai draft — nomor invoice muncul setelah diposting."
+              defaultOpen={Boolean(error)}
+            >
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              {contractList.length === 0 ? (
+                <p className="text-[13px] text-ink-muted">Belum ada kontrak di CRM untuk company ini — buat kontrak dulu sebelum menagih invoice.</p>
+              ) : revenueAccounts.length === 0 ? (
+                <p className="text-[13px] text-ink-muted">Belum ada akun pendapatan posting di Chart of Accounts.</p>
+              ) : (
+                <form action={createInvoice}>
+                  <input type="hidden" name="companySlug" value={companySlug} />
+                  <input type="hidden" name="companyId" value={company.id} />
+                  <FormSection title="① Kontrak & Akun">
+                    <FormField label="Kontrak *" full>
+                      <select name="contractId" required className={inputClass}>
+                        {contractList.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {orgNameByContractId.get(c.id)} · {formatRupiah(c.contractValue)}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Akun Pendapatan *" full>
+                      <select name="revenueAccountId" required className={inputClass}>
+                        {revenueAccounts.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.code} · {a.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                  </FormSection>
+                  <FormSection title="② Tanggal & Nominal">
+                    <FormField label="Tanggal Invoice *">
+                      <input autoComplete="off" name="invoiceDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className={inputClass} />
+                    </FormField>
+                    <FormField label="Jatuh Tempo *">
+                      <input autoComplete="off" name="dueDate" type="date" required className={inputClass} />
+                    </FormField>
+                    <FormField label="Nominal *">
+                      <input autoComplete="off" name="amount" type="number" step="0.01" min="0.01" required placeholder="0" className={inputClass} />
+                    </FormField>
+                    <FormField label="Keterangan" full>
+                      <input autoComplete="off" name="description" placeholder="mis. Termin 1 - Sertifikasi SMK3" className={inputClass} />
+                    </FormField>
+                  </FormSection>
+                  <DrawerFooter submitLabel="Buat Draft" />
+                </form>
+              )}
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
-
-      {canManage && (
-        <Card title="Buat Invoice Baru" description="Invoice dibuat sebagai draft dulu — nomor invoice baru muncul setelah diposting.">
-          {contractList.length === 0 ? (
-            <p className="text-xs text-ink-muted">Belum ada kontrak di CRM untuk company ini — buat kontrak dulu sebelum menagih invoice.</p>
-          ) : revenueAccounts.length === 0 ? (
-            <p className="text-xs text-ink-muted">Belum ada akun pendapatan posting di Chart of Accounts.</p>
-          ) : (
-            <form action={createInvoice} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
-              <input type="hidden" name="companySlug" value={companySlug} />
-              <input type="hidden" name="companyId" value={company.id} />
-              <div className="lg:col-span-2">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kontrak</label>
-                <select name="contractId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {contractList.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {orgNameByContractId.get(c.id)} · {formatRupiah(c.contractValue)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akun Pendapatan</label>
-                <select name="revenueAccountId" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base">
-                  {revenueAccounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.code} · {a.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Invoice</label>
-                <input autoComplete="off" name="invoiceDate" type="date" required defaultValue={new Date().toISOString().slice(0, 10)} className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Jatuh Tempo</label>
-                <input autoComplete="off" name="dueDate" type="date" required className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Nominal</label>
-                <input autoComplete="off" name="amount" type="number" step="0.01" min="0.01" required placeholder="0" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div className="lg:col-span-2">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Keterangan</label>
-                <input autoComplete="off" name="description" placeholder="mis. Termin 1 - Sertifikasi SMK3" className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base" />
-              </div>
-              <div className="lg:col-span-3">
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                  Buat Draft
-                </button>
-              </div>
-            </form>
-          )}
-        </Card>
-      )}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
       <DataTable columns={columns} rows={invoiceList} rowKey={(inv) => inv.id} emptyMessage="Belum ada invoice." />
     </div>

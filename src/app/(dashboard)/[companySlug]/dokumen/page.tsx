@@ -9,10 +9,13 @@ import { expireOverdueDocumentVersions } from "@/lib/documents/versions";
 import { canViewDocument } from "@/lib/documents/access";
 import { requireModuleEnabled } from "@/lib/modules";
 import { createDocument } from "./actions";
-import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
 import { DataTable, type DataTableColumn } from "@/components/ui/DataTable";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
+import { FormSection, FormField, inputClass } from "@/components/ui/FormField";
+import { ListToolbar } from "@/components/ui/ListToolbar";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -37,10 +40,10 @@ export default async function DokumenPage({
   searchParams,
 }: {
   params: Promise<{ companySlug: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; q?: string; kategori?: string; status?: string }>;
 }) {
   const { companySlug } = await params;
-  const { error, success } = await searchParams;
+  const { error, success, q, kategori, status } = await searchParams;
   const session = await auth();
   if (!session?.user) return null;
 
@@ -81,9 +84,18 @@ export default async function DokumenPage({
     return versionsForDoc.find((v) => v.status === "active") ?? versionsForDoc.sort((a, b) => b.versionNumber - a.versionNumber)[0];
   }
 
-  const rows: DocRow[] = docList.map((doc) => {
+  const allRows: DocRow[] = docList.map((doc) => {
     const version = latestVersionOf(doc.id);
     return { id: doc.id, title: doc.title, categoryId: doc.categoryId, latestVersion: version ? { versionNumber: version.versionNumber, status: version.status } : null };
+  });
+
+  // Penyaringan server-side dari ?q= / ?kategori= / ?status= yang di-set ListToolbar.
+  const needle = q?.trim().toLowerCase();
+  const rows = allRows.filter((doc) => {
+    if (needle && !doc.title.toLowerCase().includes(needle)) return false;
+    if (kategori && doc.categoryId !== kategori) return false;
+    if (status && doc.latestVersion?.status !== status) return false;
+    return true;
   });
 
   const columns: DataTableColumn<DocRow>[] = [
@@ -112,68 +124,82 @@ export default async function DokumenPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-[17px] font-extrabold text-ink">Dokumen Perusahaan</h1>
-        <p className="text-sm text-ink-muted mt-1">Peraturan Perusahaan, SK Direktur, dan dokumen lain — dengan versioning.</p>
-      </div>
+      <PageHeader
+        breadcrumb={[{ label: "Persuratan" }, { label: "Dokumen Perusahaan" }]}
+        title="Dokumen Perusahaan"
+        description="Peraturan Perusahaan, SK Direktur, dan dokumen lain — dengan versioning."
+        actions={
+          canCreate && (
+            <FormDrawer buttonLabel="Buat Dokumen" title="Buat Dokumen Baru" defaultOpen={Boolean(error)}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
+                  {error}
+                </div>
+              )}
+              {categories.length === 0 ? (
+                <p className="text-[13px] text-ink-muted italic">
+                  Belum ada kategori dokumen. Admin perlu atur dulu di{" "}
+                  <Link href={`/${companySlug}/pengaturan/kategori-dokumen`} className="text-sage-deep hover:underline">
+                    Pengaturan &rarr; Kategori Dokumen
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <form action={createDocument}>
+                  <input type="hidden" name="companySlug" value={companySlug} />
+                  <FormSection title="Detail Dokumen">
+                    <FormField label="Judul *" full>
+                      <input autoComplete="off" name="title" required className={inputClass} />
+                    </FormField>
+                    <FormField label="Kategori *" full>
+                      <select name="categoryId" required className={inputClass}>
+                        {categories.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.code})
+                          </option>
+                        ))}
+                      </select>
+                    </FormField>
+                    <FormField label="Tanggal Efektif" optional>
+                      <DatePicker name="effectiveDate" />
+                    </FormField>
+                    <FormField label="Berlaku Sampai" optional>
+                      <DatePicker name="expiresAt" />
+                    </FormField>
+                  </FormSection>
+                  <DrawerFooter submitLabel="Buat Dokumen (Draft Versi 1)" />
+                </form>
+              )}
+            </FormDrawer>
+          )
+        }
+      />
 
-      {error && <div className="bg-destructive/10 border border-destructive/30 text-ink text-sm rounded-lg px-4 py-3">{error}</div>}
-      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-sm rounded-lg px-4 py-3">Berhasil disimpan.</div>}
+      {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      {canCreate && (
-        <Card title="Buat Dokumen Baru">
-          {categories.length === 0 ? (
-            <p className="text-sm text-ink-muted italic">
-              Belum ada kategori dokumen. Admin perlu atur dulu di{" "}
-              <Link href={`/${companySlug}/pengaturan/kategori-dokumen`} className="text-sage-deep hover:underline">
-                Pengaturan &rarr; Kategori Dokumen
-              </Link>
-              .
-            </p>
-          ) : (
-            <form action={createDocument} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <input type="hidden" name="companySlug" value={companySlug} />
-              <div className="sm:col-span-2 lg:col-span-2">
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Judul</label>
-                <input autoComplete="off"
-                  name="title"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Kategori</label>
-                <select
-                  name="categoryId"
-                  required
-                  className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
-                >
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} ({c.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Tanggal Efektif (opsional)</label>
-                <DatePicker name="effectiveDate" />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
-                <DatePicker name="expiresAt" />
-              </div>
-              <div className="col-span-full">
-                <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
-                  Buat Dokumen (Draft Versi 1)
-                </button>
-              </div>
-            </form>
-          )}
-        </Card>
-      )}
+      <ListToolbar
+        searchPlaceholder="Cari judul dokumen…"
+        filters={[
+          {
+            name: "kategori",
+            allLabel: "Semua Kategori",
+            options: categories.map((c) => ({ value: c.id, label: `${c.name} (${c.code})` })),
+          },
+          {
+            name: "status",
+            allLabel: "Semua Status",
+            options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })),
+          },
+        ]}
+        countLabel={`${rows.length} dokumen`}
+      />
 
-      <DataTable columns={columns} rows={rows} rowKey={(doc) => doc.id} emptyMessage="Belum ada dokumen. Dokumen yang dibuat akan muncul di sini." />
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(doc) => doc.id}
+        emptyMessage={needle || kategori || status ? "Tidak ada dokumen yang cocok dengan pencarian/filter." : "Belum ada dokumen. Dokumen yang dibuat akan muncul di sini."}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { leaveTypes } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 
 export async function createLeaveType(formData: FormData): Promise<void> {
@@ -18,6 +19,8 @@ export async function createLeaveType(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_LEAVE_TYPES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur jenis cuti.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_cuti_absensi" });
 
   const code = formData.get("code")?.toString().trim() ?? "";
   const name = formData.get("name")?.toString().trim() ?? "";
@@ -55,6 +58,8 @@ export async function updateLeaveType(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "MANAGE_LEAVE_TYPES")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengatur jenis cuti.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "sdm_cuti_absensi" });
 
   const name = formData.get("name")?.toString().trim() ?? "";
   const defaultQuotaPerYear = Number(formData.get("defaultQuotaPerYear"));

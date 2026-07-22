@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, incomingLetters, users } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
+import { requireModuleEnabledForAction } from "@/lib/modules";
 import { logAudit } from "@/lib/audit/log";
 import { getNextAgendaNumber, formatAgendaNumber } from "@/lib/letters/agenda";
 import { createDisposition, DispositionError } from "@/lib/letters/dispositions";
@@ -19,6 +20,8 @@ export async function createIncomingLetter(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_INCOMING_LETTER")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin registrasi surat masuk.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "surat_masuk_keluar" });
 
   const letterDate = formData.get("letterDate")?.toString() ?? "";
   const receivedDate = formData.get("receivedDate")?.toString() ?? "";
@@ -76,6 +79,8 @@ export async function addDisposition(formData: FormData): Promise<void> {
   if (!session?.user || !hasPermission(session.user.role, "CREATE_DISPOSITION")) {
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin membuat disposisi.")}`);
   }
+
+  await requireModuleEnabledForAction({ role: session.user.role, companyId: session.user.companyId, companySlug, moduleKey: "surat_masuk_keluar" });
 
   const targetDepartmentId = formData.get("targetDepartmentId")?.toString() || null;
   const targetUserId = formData.get("targetUserId")?.toString() || null;
