@@ -666,6 +666,20 @@
       "when": 1784714944364,
       "tag": "0094_rls_case_number_sequences",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1784715634958,
+      "tag": "0095_create_case_support_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1784715634959,
+      "tag": "0096_rls_case_support_tables",
+      "breakpoints": true
     }
   ]
 }

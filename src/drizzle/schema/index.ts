@@ -70,3 +70,7 @@ export * from "./cases";
 export * from "./caseStageHistory";
 export * from "./caseServiceAssignments";
 export * from "./caseNumberSequences";
+export * from "./caseMilestones";
+export * from "./caseDeliverables";
+export * from "./caseExternalSubmissions";
+export * from "./caseExternalSubmissionHistory";
