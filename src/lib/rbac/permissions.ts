@@ -179,6 +179,13 @@ export const PERMISSIONS = {
   // Rekonsiliasi Bank (Langkah 9) — pola sama persis dgn VIEW/MANAGE_FIXED_ASSETS.
   VIEW_BANK_RECONCILIATIONS: ["super_admin", "company_admin"],
   MANAGE_BANK_RECONCILIATIONS: ["super_admin", "company_admin"],
+
+  // --- Case Management (orkestrasi layanan klien) ---
+  // Pola sama dgn VIEW/MANAGE_SERVICE_ASSIGNMENTS: semua role boleh LIHAT (staff
+  // dibatasi ke case-nya sendiri via scoping app-level nanti di 1.8), MANAGE
+  // (buat/edit/pindah tahap/link) tanpa staff — case dikelola PIC admin/kepala departemen.
+  VIEW_CASES: ["super_admin", "company_admin", "department_head", "staff"],
+  MANAGE_CASES: ["super_admin", "company_admin", "department_head"],
 } as const satisfies Record<string, readonly Role[]>;
 
 export type Permission = keyof typeof PERMISSIONS;

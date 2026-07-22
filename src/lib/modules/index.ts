@@ -19,6 +19,7 @@ export const MODULE_KEYS = [
   "sdm_payroll",
   "penjadwalan_layanan",
   "keuangan",
+  "case_management",
 ] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
@@ -32,6 +33,7 @@ export const MODULE_LABEL: Record<ModuleKey, string> = {
   sdm_payroll: "SDM — Payroll",
   penjadwalan_layanan: "Penjadwalan Layanan/Sumber Daya",
   keuangan: "Keuangan (Akuntansi & Pelaporan Keuangan)",
+  case_management: "Case Management (Orkestrasi Layanan Klien)",
 };
 
 /** Default FALSE kalau belum ada baris sama sekali — modul harus diaktifkan eksplisit. */
