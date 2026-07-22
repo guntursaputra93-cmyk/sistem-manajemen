@@ -652,6 +652,20 @@
       "when": 1784703197128,
       "tag": "0092_add_case_attachment_entity_type",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1784714944363,
+      "tag": "0093_create_case_number_sequences",
+      "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1784714944364,
+      "tag": "0094_rls_case_number_sequences",
+      "breakpoints": true
     }
   ]
 }
