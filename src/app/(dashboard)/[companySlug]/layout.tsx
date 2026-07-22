@@ -51,6 +51,7 @@ export default async function CompanyDashboardLayout({
   const sdmPayrollOn = enabledModules.has("sdm_payroll");
   const penjadwalanLayananOn = enabledModules.has("penjadwalan_layanan");
   const keuanganModuleOn = enabledModules.has("keuangan");
+  const caseManagementOn = enabledModules.has("case_management");
 
   const groups: SidebarGroup[] = [];
 
@@ -99,6 +100,14 @@ export default async function CompanyDashboardLayout({
     crmItems.push({ href: `/${companySlug}/crm/dashboard`, label: "Dashboard CRM", icon: "layout-dashboard" });
   }
   if (crmItems.length) groups.push({ label: "CRM", icon: "handshake", items: crmItems });
+
+  // Case Management — lapisan orkestrasi layanan klien (Langkah 1.8). Grup sendiri,
+  // gated module_key 'case_management' + VIEW_CASES (pola sama modul lain).
+  const caseItems: SidebarGroup["items"] = [];
+  if (caseManagementOn && hasPermission(session.user.role, "VIEW_CASES")) {
+    caseItems.push({ href: `/${companySlug}/cases`, label: "Case Board", icon: "file-check" });
+  }
+  if (caseItems.length) groups.push({ label: "Case Management", icon: "folder", items: caseItems });
 
   const sdmItems: SidebarGroup["items"] = [];
   if (sdmDataKaryawanOn && hasPermission(session.user.role, "VIEW_EMPLOYEES")) {
