@@ -16,6 +16,9 @@ export const attachmentEntityTypeEnum = pgEnum("attachment_entity_type", [
   // Lampiran rapat kalibrasi — satu-satunya entity_type yang boleh JPG/PNG selain
   // PDF (lihat lib/storage/attachments.ts), sisanya tetap PDF-only.
   "kalibrasi",
+  // Case Management (langkah 1.2) — file/dokumen terikat langsung ke sebuah case
+  // (entity_type='case', entity_id=cases.id) lewat tabel attachments yang sudah ada.
+  "case",
 ]);
 
 export const attachments = pgTable("attachments", {

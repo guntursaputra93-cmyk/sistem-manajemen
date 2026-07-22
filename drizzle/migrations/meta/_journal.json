@@ -624,6 +624,34 @@
       "when": 1784678782253,
       "tag": "0088_add_is_manual_to_recon_items",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1784702656625,
+      "tag": "0089_create_cases_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1784702656626,
+      "tag": "0090_rls_cases_module",
+      "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1784703167118,
+      "tag": "0091_add_case_id_to_activities",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1784703197128,
+      "tag": "0092_add_case_attachment_entity_type",
+      "breakpoints": true
     }
   ]
 }
