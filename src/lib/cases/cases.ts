@@ -1,6 +1,19 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, asc, count, desc, eq, max } from "drizzle-orm";
 import type { db as Db } from "@/lib/db";
-import { cases, caseStageHistory, caseServiceAssignments, organizations, users, opportunities, contracts, serviceAssignments } from "@/drizzle/schema";
+import {
+  cases,
+  caseStageHistory,
+  caseServiceAssignments,
+  caseMilestones,
+  caseDeliverables,
+  caseExternalSubmissions,
+  caseExternalSubmissionHistory,
+  organizations,
+  users,
+  opportunities,
+  contracts,
+  serviceAssignments,
+} from "@/drizzle/schema";
 import { getNextCaseSequenceNumber, formatCaseNumber } from "./numbering";
 import { advanceCaseStage } from "./autoAdvanceStage";
 import { PAGE_SIZE, offsetFor } from "@/lib/pagination";
@@ -9,6 +22,16 @@ export class CaseError extends Error {}
 
 type CaseStage = (typeof cases.currentStage.enumValues)[number];
 type CaseStatus = (typeof cases.status.enumValues)[number];
+
+/** Ambil case (scoped company) atau lempar CaseError — dipakai fungsi child (1.7B). */
+async function assertCase(tx: typeof Db, companyId: string, caseId: string) {
+  const [c] = await tx
+    .select({ id: cases.id, organizationId: cases.organizationId })
+    .from(cases)
+    .where(and(eq(cases.id, caseId), eq(cases.companyId, companyId)));
+  if (!c) throw new CaseError("Case tidak ditemukan.");
+  return c;
+}
 
 export type CreateCaseParams = {
   companyId: string;
@@ -278,4 +301,254 @@ export async function linkServiceAssignmentToCase(tx: typeof Db, params: { compa
   }
 
   await advanceCaseStage(tx, params.caseId, "penugasan", "assignment_linked");
+}
+
+// ============================================================================
+// Langkah 1.7B — CRUD tabel pendukung (milestones / deliverables / external
+// submissions). Pola 2 lapis sama seperti 1.7A. Delete = HARD delete (konvensi
+// project: semua child record pakai tx.delete, tidak ada soft-delete di codebase).
+// ============================================================================
+
+// ---------- case_milestones ----------
+
+export async function createMilestone(
+  tx: typeof Db,
+  params: { companyId: string; caseId: string; milestoneKey: string; title: string; stage?: CaseStage | null; dueDate?: string | null; sortOrder?: number | null }
+) {
+  const title = params.title.trim();
+  if (!title) throw new CaseError("Judul milestone wajib diisi.");
+  const milestoneKey = params.milestoneKey.trim();
+  if (!milestoneKey) throw new CaseError("milestone_key wajib diisi.");
+  await assertCase(tx, params.companyId, params.caseId);
+
+  const [row] = await tx
+    .insert(caseMilestones)
+    .values({
+      companyId: params.companyId,
+      caseId: params.caseId,
+      milestoneKey,
+      title,
+      stage: params.stage ?? null,
+      dueDate: params.dueDate ?? null,
+      sortOrder: params.sortOrder ?? null,
+    })
+    .returning();
+  return row;
+}
+
+/**
+ * Update generik milestone (full-field, TERMASUK status). completed_at/completed_by
+ * dikelola completeMilestone; DI SINI hanya dibersihkan kalau status pindah keluar
+ * dari 'done' (cegah kontradiksi: status bukan done tapi completed_at masih terisi).
+ */
+export async function updateMilestone(
+  tx: typeof Db,
+  params: { companyId: string; milestoneId: string; milestoneKey: string; title: string; stage?: CaseStage | null; status: string; dueDate?: string | null; sortOrder?: number | null; notes?: string | null }
+) {
+  const title = params.title.trim();
+  if (!title) throw new CaseError("Judul milestone wajib diisi.");
+  const milestoneKey = params.milestoneKey.trim();
+  if (!milestoneKey) throw new CaseError("milestone_key wajib diisi.");
+  const status = params.status.trim();
+  if (!status) throw new CaseError("Status milestone wajib diisi.");
+
+  const [existing] = await tx.select().from(caseMilestones).where(and(eq(caseMilestones.id, params.milestoneId), eq(caseMilestones.companyId, params.companyId)));
+  if (!existing) throw new CaseError("Milestone tidak ditemukan.");
+
+  const clearCompletion = status !== "done" ? { completedAt: null, completedBy: null } : {};
+
+  const [row] = await tx
+    .update(caseMilestones)
+    .set({
+      milestoneKey,
+      title,
+      stage: params.stage ?? null,
+      status,
+      dueDate: params.dueDate ?? null,
+      sortOrder: params.sortOrder ?? null,
+      notes: params.notes ?? null,
+      ...clearCompletion,
+    })
+    .where(eq(caseMilestones.id, params.milestoneId))
+    .returning();
+  return row;
+}
+
+/** Shortcut centang checklist: set done + completed_at/by (aksi paling sering dipakai). */
+export async function completeMilestone(tx: typeof Db, params: { companyId: string; milestoneId: string; completedBy: string }) {
+  const [existing] = await tx.select().from(caseMilestones).where(and(eq(caseMilestones.id, params.milestoneId), eq(caseMilestones.companyId, params.companyId)));
+  if (!existing) throw new CaseError("Milestone tidak ditemukan.");
+
+  const [row] = await tx
+    .update(caseMilestones)
+    .set({ status: "done", completedAt: new Date(), completedBy: params.completedBy })
+    .where(eq(caseMilestones.id, params.milestoneId))
+    .returning();
+  return row;
+}
+
+/** Daftar milestone sebuah case, urut sort_order (nulls last) lalu created_at. */
+export async function listMilestonesByCase(tx: typeof Db, params: { companyId: string; caseId: string }) {
+  return tx
+    .select()
+    .from(caseMilestones)
+    .where(and(eq(caseMilestones.caseId, params.caseId), eq(caseMilestones.companyId, params.companyId)))
+    .orderBy(asc(caseMilestones.sortOrder), asc(caseMilestones.createdAt));
+}
+
+/** HARD delete (konvensi project). */
+export async function deleteMilestone(tx: typeof Db, params: { companyId: string; milestoneId: string }) {
+  const [existing] = await tx.select({ id: caseMilestones.id }).from(caseMilestones).where(and(eq(caseMilestones.id, params.milestoneId), eq(caseMilestones.companyId, params.companyId)));
+  if (!existing) throw new CaseError("Milestone tidak ditemukan.");
+  await tx.delete(caseMilestones).where(and(eq(caseMilestones.id, params.milestoneId), eq(caseMilestones.companyId, params.companyId)));
+}
+
+// ---------- case_deliverables ----------
+
+/** organization_id SELALU diambil dari case (bukan dari input caller). */
+export async function createDeliverable(
+  tx: typeof Db,
+  params: { companyId: string; caseId: string; deliverableType: string; deliverableNumber?: string | null; barcodeValue?: string | null; issuedDate?: string | null; validUntil?: string | null; fileAttachmentId?: string | null }
+) {
+  const deliverableType = params.deliverableType.trim();
+  if (!deliverableType) throw new CaseError("Jenis deliverable wajib diisi.");
+  const c = await assertCase(tx, params.companyId, params.caseId);
+
+  const [row] = await tx
+    .insert(caseDeliverables)
+    .values({
+      companyId: params.companyId,
+      caseId: params.caseId,
+      organizationId: c.organizationId, // dari case, bukan input
+      deliverableType,
+      deliverableNumber: params.deliverableNumber?.trim() || null,
+      barcodeValue: params.barcodeValue ?? null,
+      issuedDate: params.issuedDate ?? null,
+      validUntil: params.validUntil ?? null,
+      fileAttachmentId: params.fileAttachmentId ?? null,
+    })
+    .returning();
+  return row;
+}
+
+export async function updateDeliverable(
+  tx: typeof Db,
+  params: { companyId: string; deliverableId: string; deliverableType: string; deliverableNumber?: string | null; barcodeValue?: string | null; issuedDate?: string | null; validUntil?: string | null; status: string; fileAttachmentId?: string | null }
+) {
+  const deliverableType = params.deliverableType.trim();
+  if (!deliverableType) throw new CaseError("Jenis deliverable wajib diisi.");
+  const status = params.status.trim();
+  if (!status) throw new CaseError("Status deliverable wajib diisi.");
+
+  const [existing] = await tx.select().from(caseDeliverables).where(and(eq(caseDeliverables.id, params.deliverableId), eq(caseDeliverables.companyId, params.companyId)));
+  if (!existing) throw new CaseError("Deliverable tidak ditemukan.");
+
+  // organization_id sengaja TIDAK diubah — tetap terikat organisasi case.
+  const [row] = await tx
+    .update(caseDeliverables)
+    .set({
+      deliverableType,
+      deliverableNumber: params.deliverableNumber?.trim() || null,
+      barcodeValue: params.barcodeValue ?? null,
+      issuedDate: params.issuedDate ?? null,
+      validUntil: params.validUntil ?? null,
+      status,
+      fileAttachmentId: params.fileAttachmentId ?? null,
+    })
+    .where(eq(caseDeliverables.id, params.deliverableId))
+    .returning();
+  return row;
+}
+
+export async function listDeliverablesByCase(tx: typeof Db, params: { companyId: string; caseId: string }) {
+  return tx
+    .select()
+    .from(caseDeliverables)
+    .where(and(eq(caseDeliverables.caseId, params.caseId), eq(caseDeliverables.companyId, params.companyId)))
+    .orderBy(desc(caseDeliverables.createdAt));
+}
+
+// ---------- case_external_submissions + history ----------
+
+/** Buat pengajuan + seed 1 baris history awal (status draft) supaya timeline lengkap sejak dibuat. */
+export async function createExternalSubmission(
+  tx: typeof Db,
+  params: { companyId: string; caseId: string; externalPartyName: string; submissionType?: string | null; trackingNumber?: string | null; createdBy?: string | null }
+) {
+  const externalPartyName = params.externalPartyName.trim();
+  if (!externalPartyName) throw new CaseError("Nama pihak luar wajib diisi.");
+  await assertCase(tx, params.companyId, params.caseId);
+
+  const [sub] = await tx
+    .insert(caseExternalSubmissions)
+    .values({
+      companyId: params.companyId,
+      caseId: params.caseId,
+      externalPartyName,
+      submissionType: params.submissionType?.trim() || null,
+      trackingNumber: params.trackingNumber?.trim() || null,
+      createdBy: params.createdBy ?? null,
+    })
+    .returning();
+
+  await tx.insert(caseExternalSubmissionHistory).values({
+    companyId: params.companyId,
+    submissionId: sub.id,
+    status: sub.status,
+    notes: null,
+    reportedBy: params.createdBy ?? null,
+  });
+
+  return sub;
+}
+
+/**
+ * FUNGSI UTAMA "laporan staf sampai mana prosesnya": update status pengajuan DAN
+ * insert baris history — SELALU dua-duanya dalam satu transaksi, setiap dipanggil
+ * (tidak ada jalur update status tanpa history). Dipanggil juga saat status sama
+ * (staf melaporkan progres/keterangan pada status yang sama), supaya timeline lengkap.
+ */
+export async function updateSubmissionStatus(
+  tx: typeof Db,
+  params: { companyId: string; submissionId: string; newStatus: string; notes?: string | null; reportedBy: string }
+) {
+  const newStatus = params.newStatus.trim();
+  if (!newStatus) throw new CaseError("Status baru wajib diisi.");
+
+  const [existing] = await tx.select().from(caseExternalSubmissions).where(and(eq(caseExternalSubmissions.id, params.submissionId), eq(caseExternalSubmissions.companyId, params.companyId)));
+  if (!existing) throw new CaseError("Pengajuan tidak ditemukan.");
+
+  await tx.update(caseExternalSubmissions).set({ status: newStatus }).where(eq(caseExternalSubmissions.id, params.submissionId));
+
+  await tx.insert(caseExternalSubmissionHistory).values({
+    companyId: params.companyId,
+    submissionId: params.submissionId,
+    status: newStatus,
+    notes: params.notes?.trim() || null,
+    reportedBy: params.reportedBy,
+  });
+}
+
+/** Daftar pengajuan sebuah case + jumlah history & waktu laporan terakhir. */
+export async function listExternalSubmissionsByCase(tx: typeof Db, params: { companyId: string; caseId: string }) {
+  return tx
+    .select({
+      submission: caseExternalSubmissions,
+      historyCount: count(caseExternalSubmissionHistory.id),
+      lastReportedAt: max(caseExternalSubmissionHistory.reportedAt),
+    })
+    .from(caseExternalSubmissions)
+    .leftJoin(caseExternalSubmissionHistory, eq(caseExternalSubmissionHistory.submissionId, caseExternalSubmissions.id))
+    .where(and(eq(caseExternalSubmissions.caseId, params.caseId), eq(caseExternalSubmissions.companyId, params.companyId)))
+    .groupBy(caseExternalSubmissions.id)
+    .orderBy(desc(caseExternalSubmissions.createdAt));
+}
+
+/** Full history sebuah pengajuan, urut waktu naik — untuk timeline. */
+export async function getSubmissionHistory(tx: typeof Db, params: { companyId: string; submissionId: string }) {
+  return tx
+    .select()
+    .from(caseExternalSubmissionHistory)
+    .where(and(eq(caseExternalSubmissionHistory.submissionId, params.submissionId), eq(caseExternalSubmissionHistory.companyId, params.companyId)))
+    .orderBy(asc(caseExternalSubmissionHistory.reportedAt));
 }
