@@ -186,7 +186,7 @@ export async function linkOpportunityAction(formData: FormData): Promise<void> {
   await logAudit({ companyId, userId: session.user.id, action: "link_opportunity_to_case", entityType: "case", entityId: caseId, metadata: { opportunityId } });
 
   revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  redirect(`${redirectBase}?tab=overview&linked=opportunity`);
 }
 
 export async function linkContractAction(formData: FormData): Promise<void> {
@@ -219,7 +219,7 @@ export async function linkContractAction(formData: FormData): Promise<void> {
   await logAudit({ companyId, userId: session.user.id, action: "link_contract_to_case", entityType: "case", entityId: caseId, metadata: { contractId } });
 
   revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  redirect(`${redirectBase}?tab=overview&linked=contract`);
 }
 
 export async function linkServiceAssignmentAction(formData: FormData): Promise<void> {
@@ -252,7 +252,7 @@ export async function linkServiceAssignmentAction(formData: FormData): Promise<v
   await logAudit({ companyId, userId: session.user.id, action: "link_assignment_to_case", entityType: "case", entityId: caseId, metadata: { assignmentId } });
 
   revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  redirect(`${redirectBase}?tab=overview&linked=assignment`);
 }
 
 // ============================================================================
