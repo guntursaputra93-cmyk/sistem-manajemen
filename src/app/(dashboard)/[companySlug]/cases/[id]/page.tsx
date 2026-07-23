@@ -24,7 +24,19 @@ import {
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
 import { listMilestonesByCase, listDeliverablesByCase, listExternalSubmissionsByCase } from "@/lib/cases/cases";
-import { updateCaseStageAction, linkOpportunityAction, linkContractAction, linkServiceAssignmentAction } from "../actions";
+import {
+  updateCaseStageAction,
+  linkOpportunityAction,
+  linkContractAction,
+  linkServiceAssignmentAction,
+  createMilestoneAction,
+  completeMilestoneAction,
+  deleteMilestoneAction,
+  createDeliverableAction,
+  updateDeliverableAction,
+  createExternalSubmissionAction,
+  updateSubmissionStatusAction,
+} from "../actions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Badge, type BadgeVariant } from "@/components/ui/Badge";
@@ -32,7 +44,12 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Tabs } from "@/components/ui/Tabs";
 import { FormDrawer, DrawerFooter } from "@/components/ui/FormDrawer";
 import { FormField, inputClass } from "@/components/ui/FormField";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { ConfirmButton } from "@/components/ui/ConfirmButton";
 import { AttachmentUploader } from "@/components/attachments/AttachmentUploader";
+
+const DELIVERABLE_STATUS = ["draft", "aktif", "kadaluarsa", "dicabut"];
+const SUBMISSION_STATUS = ["draft", "diajukan", "diproses", "revisi", "disetujui", "terbit", "ditolak"];
 
 // 8 tahap utama (progress). closed/cancelled bukan bagian progress bar.
 const STAGE_MAIN: { key: string; label: string }[] = [
@@ -196,7 +213,7 @@ export default async function CaseDetailPage({
       {tab === "tim" && (await TimTab({ tenantContext, companyId: company.id, companySlug, caseId: kase.id }))}
       {tab === "dokumen" && (await DokumenTab({ tenantContext, companyId: company.id, caseId: kase.id }))}
       {tab === "keuangan" && canViewFinance && (await KeuanganTab({ tenantContext, companyId: company.id, companySlug, contractId: kase.contractId }))}
-      {tab === "eksternal" && (await EksternalTab({ tenantContext, companyId: company.id, caseId: kase.id }))}
+      {tab === "eksternal" && (await EksternalTab({ tenantContext, companyId: company.id, companySlug, caseId: kase.id, canManage }))}
     </div>
   );
 }
@@ -401,19 +418,61 @@ async function OverviewTab({ tenantContext, companyId, companySlug, kase, curren
         </Card>
       )}
 
-      <Card title={`Milestone (${milestones.length})`} description="Ringkasan checklist. Centang/kelola milestone dilakukan di langkah input terpisah.">
+      <Card
+        title={`Milestone (${milestones.length})`}
+        description="Checklist per case."
+        action={
+          canManage && (
+            <FormDrawer buttonLabel="Tambah Milestone" title="Tambah Milestone">
+              <form action={createMilestoneAction}>
+                {hiddenInputs}
+                <FormField label="Judul *" full>
+                  <input autoComplete="off" name="title" required className={inputClass} />
+                </FormField>
+                <FormField label="Key *" full>
+                  <input autoComplete="off" name="milestoneKey" required className={inputClass} placeholder="mis. dp_diterima" />
+                </FormField>
+                <FormField label="Jatuh Tempo">
+                  <DatePicker name="dueDate" />
+                </FormField>
+                <DrawerFooter submitLabel="Tambah Milestone" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      >
         {milestones.length === 0 ? (
           <p className="text-[13px] italic text-ink-muted">Belum ada milestone.</p>
         ) : (
           <ul className="space-y-1.5">
             {milestones.map((m) => (
               <li key={m.id} className="flex items-center justify-between gap-3 text-[13px]">
-                <span className="flex items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2">
                   <span className={m.status === "done" ? "text-sage-deep" : "text-ink-muted"}>{m.status === "done" ? "☑" : "☐"}</span>
                   <span className="text-ink">{m.title}</span>
                   {m.dueDate && <span className="text-[11px] text-ink-muted">jatuh tempo {m.dueDate}</span>}
                 </span>
-                <Badge variant={textStatusVariant(m.status)}>{m.status}</Badge>
+                <span className="flex shrink-0 items-center gap-2.5">
+                  <Badge variant={textStatusVariant(m.status)}>{m.status}</Badge>
+                  {canManage && m.status !== "done" && (
+                    <form action={completeMilestoneAction}>
+                      {hiddenInputs}
+                      <input type="hidden" name="milestoneId" value={m.id} />
+                      <button type="submit" className="text-[11px] font-semibold text-sage-deep hover:underline">
+                        Tandai selesai
+                      </button>
+                    </form>
+                  )}
+                  {canManage && (
+                    <form action={deleteMilestoneAction}>
+                      {hiddenInputs}
+                      <input type="hidden" name="milestoneId" value={m.id} />
+                      <ConfirmButton confirmText={`Hapus milestone "${m.title}"?`} className="text-[11px] font-semibold text-destructive hover:underline">
+                        Hapus
+                      </ConfirmButton>
+                    </form>
+                  )}
+                </span>
               </li>
             ))}
           </ul>
@@ -639,7 +698,7 @@ async function KeuanganTab({ tenantContext, companyId, companySlug, contractId }
   );
 }
 
-async function EksternalTab({ tenantContext, companyId, caseId }: Ctx & { caseId: string }) {
+async function EksternalTab({ tenantContext, companyId, companySlug, caseId, canManage }: Ctx & { companySlug: string; caseId: string; canManage: boolean }) {
   const [deliverables, submissions] = await Promise.all([
     withTenantContext(tenantContext, (tx) => listDeliverablesByCase(tx, { companyId, caseId })),
     withTenantContext(tenantContext, (tx) => listExternalSubmissionsByCase(tx, { companyId, caseId })),
@@ -656,9 +715,42 @@ async function EksternalTab({ tenantContext, companyId, caseId }: Ctx & { caseId
       )
     : [];
 
+  const hiddenInputs = (
+    <>
+      <input type="hidden" name="companySlug" value={companySlug} />
+      <input type="hidden" name="companyId" value={companyId} />
+      <input type="hidden" name="caseId" value={caseId} />
+    </>
+  );
+
   return (
     <div className="space-y-5">
-      <Card title={`Deliverable (${deliverables.length})`} description="Hasil akhir ke klien (sertifikat/laporan/dokumen). Read-only.">
+      <Card
+        title={`Deliverable (${deliverables.length})`}
+        description="Hasil akhir ke klien (sertifikat/laporan/dokumen)."
+        action={
+          canManage && (
+            <FormDrawer buttonLabel="Tambah Deliverable" title="Tambah Deliverable">
+              <form action={createDeliverableAction}>
+                {hiddenInputs}
+                <FormField label="Jenis Deliverable *" full>
+                  <input autoComplete="off" name="deliverableType" required className={inputClass} placeholder="mis. ISO 9001, SMK3, Sertifikat Kompetensi" />
+                </FormField>
+                <FormField label="Nomor (opsional)">
+                  <input autoComplete="off" name="deliverableNumber" className={inputClass} />
+                </FormField>
+                <FormField label="Tanggal Terbit">
+                  <DatePicker name="issuedDate" />
+                </FormField>
+                <FormField label="Berlaku s/d">
+                  <DatePicker name="validUntil" />
+                </FormField>
+                <DrawerFooter submitLabel="Tambah Deliverable" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      >
         {deliverables.length === 0 ? (
           <p className="text-[13px] italic text-ink-muted">Belum ada deliverable.</p>
         ) : (
@@ -673,14 +765,71 @@ async function EksternalTab({ tenantContext, companyId, caseId }: Ctx & { caseId
                     {d.validUntil ? ` · Berlaku s/d ${d.validUntil}` : ""}
                   </p>
                 </div>
-                <Badge variant={textStatusVariant(d.status)}>{d.status}</Badge>
+                <span className="flex shrink-0 items-center gap-2.5">
+                  <Badge variant={textStatusVariant(d.status)}>{d.status}</Badge>
+                  {canManage && (
+                    <FormDrawer buttonLabel="Edit" title={`Edit Deliverable`}>
+                      <form action={updateDeliverableAction}>
+                        {hiddenInputs}
+                        <input type="hidden" name="deliverableId" value={d.id} />
+                        <FormField label="Jenis Deliverable *" full>
+                          <input autoComplete="off" name="deliverableType" required defaultValue={d.deliverableType} className={inputClass} />
+                        </FormField>
+                        <FormField label="Nomor">
+                          <input autoComplete="off" name="deliverableNumber" defaultValue={d.deliverableNumber ?? ""} className={inputClass} />
+                        </FormField>
+                        <FormField label="Barcode">
+                          <input autoComplete="off" name="barcodeValue" defaultValue={d.barcodeValue ?? ""} className={inputClass} />
+                        </FormField>
+                        <FormField label="Status *">
+                          <select name="status" required defaultValue={d.status} className={inputClass}>
+                            {DELIVERABLE_STATUS.map((st) => (
+                              <option key={st} value={st}>
+                                {st}
+                              </option>
+                            ))}
+                          </select>
+                        </FormField>
+                        <FormField label="Tanggal Terbit">
+                          <DatePicker name="issuedDate" defaultValue={d.issuedDate} />
+                        </FormField>
+                        <FormField label="Berlaku s/d">
+                          <DatePicker name="validUntil" defaultValue={d.validUntil} />
+                        </FormField>
+                        <DrawerFooter submitLabel="Simpan Deliverable" />
+                      </form>
+                    </FormDrawer>
+                  )}
+                </span>
               </li>
             ))}
           </ul>
         )}
       </Card>
 
-      <Card title={`Pengajuan Eksternal (${submissions.length})`} description="Riwayat proses ke pihak luar. Klik untuk lihat timeline status. Read-only.">
+      <Card
+        title={`Pengajuan Eksternal (${submissions.length})`}
+        description="Riwayat proses ke pihak luar. Klik tiap pengajuan untuk lihat timeline status."
+        action={
+          canManage && (
+            <FormDrawer buttonLabel="Buat Pengajuan Baru" title="Buat Pengajuan Eksternal">
+              <form action={createExternalSubmissionAction}>
+                {hiddenInputs}
+                <FormField label="Nama Pihak Luar *" full>
+                  <input autoComplete="off" name="externalPartyName" required className={inputClass} placeholder="mis. Kemenaker, BNSP" />
+                </FormField>
+                <FormField label="Jenis Pengajuan">
+                  <input autoComplete="off" name="submissionType" className={inputClass} />
+                </FormField>
+                <FormField label="Nomor Tracking">
+                  <input autoComplete="off" name="trackingNumber" className={inputClass} />
+                </FormField>
+                <DrawerFooter submitLabel="Buat Pengajuan" />
+              </form>
+            </FormDrawer>
+          )
+        }
+      >
         {submissions.length === 0 ? (
           <p className="text-[13px] italic text-ink-muted">Belum ada pengajuan eksternal.</p>
         ) : (
@@ -706,6 +855,29 @@ async function EksternalTab({ tenantContext, companyId, caseId }: Ctx & { caseId
                       </li>
                     ))}
                   </ol>
+                  {canManage && (
+                    <div className="mt-3">
+                      <FormDrawer buttonLabel="Update Status" title={`Update Status — ${s.externalPartyName}`} description="Catat status terbaru pengajuan. Keterangan WAJIB diisi (jadi entry laporan di timeline).">
+                        <form action={updateSubmissionStatusAction}>
+                          {hiddenInputs}
+                          <input type="hidden" name="submissionId" value={s.id} />
+                          <FormField label="Status Baru *" full>
+                            <select name="newStatus" required defaultValue={s.status} className={inputClass}>
+                              {SUBMISSION_STATUS.map((st) => (
+                                <option key={st} value={st}>
+                                  {st}
+                                </option>
+                              ))}
+                            </select>
+                          </FormField>
+                          <FormField label="Keterangan / Laporan *" full>
+                            <textarea name="notes" required rows={3} className={inputClass} placeholder="mis. berkas sudah dikirim, menunggu verifikasi pihak luar" />
+                          </FormField>
+                          <DrawerFooter submitLabel="Simpan Status" />
+                        </form>
+                      </FormDrawer>
+                    </div>
+                  )}
                 </details>
               );
             })}

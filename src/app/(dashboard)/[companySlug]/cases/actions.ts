@@ -428,7 +428,7 @@ export async function createDeliverableAction(formData: FormData): Promise<void>
 
   await logAudit({ companyId, userId: session.user.id, action: "create_case_deliverable", entityType: "case_deliverable", entityId: deliverableId, metadata: { caseId, deliverableType } });
   revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  redirect(`${redirectBase}?tab=eksternal&success=1`);
 }
 
 export async function updateDeliverableAction(formData: FormData): Promise<void> {
@@ -467,7 +467,7 @@ export async function updateDeliverableAction(formData: FormData): Promise<void>
 
   await logAudit({ companyId, userId: session.user.id, action: "update_case_deliverable", entityType: "case_deliverable", entityId: deliverableId, metadata: { caseId, status } });
   revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  redirect(`${redirectBase}?tab=eksternal&success=1`);
 }
 
 export async function createExternalSubmissionAction(formData: FormData): Promise<void> {
@@ -503,7 +503,7 @@ export async function createExternalSubmissionAction(formData: FormData): Promis
 
   await logAudit({ companyId, userId: session.user.id, action: "create_case_external_submission", entityType: "case_external_submission", entityId: submissionId, metadata: { caseId, externalPartyName } });
   revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  redirect(`${redirectBase}?tab=eksternal&success=1`);
 }
 
 export async function updateSubmissionStatusAction(formData: FormData): Promise<void> {
@@ -523,7 +523,12 @@ export async function updateSubmissionStatusAction(formData: FormData): Promise<
   const notes = formData.get("notes")?.toString().trim() || null;
 
   if (!newStatus) {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Status baru wajib diisi.")}`);
+    redirect(`${redirectBase}?tab=eksternal&error=${encodeURIComponent("Status baru wajib diisi.")}`);
+  }
+  // Notes WAJIB di UI update status (fitur "laporan staf") — service 1.7B sendiri
+  // membolehkan notes kosong, jadi kewajiban ini ditegakkan di sini + atribut required di form.
+  if (!notes) {
+    redirect(`${redirectBase}?tab=eksternal&error=${encodeURIComponent("Keterangan/laporan wajib diisi saat update status pengajuan.")}`);
   }
 
   try {
@@ -537,5 +542,5 @@ export async function updateSubmissionStatusAction(formData: FormData): Promise<
 
   await logAudit({ companyId, userId: session.user.id, action: "update_case_submission_status", entityType: "case_external_submission", entityId: submissionId, metadata: { caseId, newStatus } });
   revalidatePath(redirectBase);
-  redirect(`${redirectBase}?success=1`);
+  redirect(`${redirectBase}?tab=eksternal&success=1`);
 }
