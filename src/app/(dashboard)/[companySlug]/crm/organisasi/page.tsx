@@ -115,7 +115,13 @@ export default async function OrganisasiPage({
 
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <DataTable columns={columns} rows={orgList} rowKey={(org) => org.id} emptyMessage="Belum ada organisasi. Organisasi/klien yang ditambahkan akan muncul di sini." />
+      <DataTable
+        columns={columns}
+        rows={orgList}
+        rowKey={(org) => org.id}
+        rowHref={(org) => `/${companySlug}/crm/organisasi/${org.id}`}
+        emptyMessage="Belum ada organisasi. Organisasi/klien yang ditambahkan akan muncul di sini."
+      />
     </div>
   );
 }

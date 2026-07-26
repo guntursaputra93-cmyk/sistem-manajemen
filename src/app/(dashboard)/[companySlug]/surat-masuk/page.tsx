@@ -155,6 +155,7 @@ export default async function SuratMasukPage({
         columns={columns}
         rows={filtered}
         rowKey={(letter) => letter.id}
+        rowHref={(letter) => `/${companySlug}/surat-masuk/${letter.id}`}
         emptyMessage={needle || status ? "Tidak ada surat yang cocok dengan pencarian/filter." : "Belum ada surat masuk. Surat yang diregistrasi akan muncul di sini."}
       />
     </div>

@@ -165,7 +165,13 @@ export default async function KalibrasiPage({
         <span className="ml-auto text-xs text-ink-muted">{meetingRows.length} rapat</span>
       </div>
 
-      <DataTable columns={columns} rows={meetingRows} rowKey={(m) => m.id} emptyMessage="Belum ada rapat kalibrasi tercatat." />
+      <DataTable
+        columns={columns}
+        rows={meetingRows}
+        rowKey={(m) => m.id}
+        rowHref={(m) => `/${companySlug}/sdm/kalibrasi/${m.id}`}
+        emptyMessage="Belum ada rapat kalibrasi tercatat."
+      />
     </div>
   );
 }

@@ -198,6 +198,7 @@ export default async function DokumenPage({
         columns={columns}
         rows={rows}
         rowKey={(doc) => doc.id}
+        rowHref={(doc) => `/${companySlug}/dokumen/${doc.id}`}
         emptyMessage={needle || kategori || status ? "Tidak ada dokumen yang cocok dengan pencarian/filter." : "Belum ada dokumen. Dokumen yang dibuat akan muncul di sini."}
       />
     </div>

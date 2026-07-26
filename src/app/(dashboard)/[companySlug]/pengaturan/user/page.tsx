@@ -120,7 +120,13 @@ export default async function UserListPage({
 
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <DataTable columns={columns} rows={userList} rowKey={(u) => u.id} emptyMessage="Belum ada user. User yang ditambahkan akan muncul di sini." />
+      <DataTable
+        columns={columns}
+        rows={userList}
+        rowKey={(u) => u.id}
+        rowHref={(u) => `/${companySlug}/pengaturan/user/${u.id}`}
+        emptyMessage="Belum ada user. User yang ditambahkan akan muncul di sini."
+      />
     </div>
   );
 }

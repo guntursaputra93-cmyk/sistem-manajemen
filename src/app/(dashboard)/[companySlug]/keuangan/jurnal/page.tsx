@@ -187,7 +187,13 @@ export default async function JournalEntriesPage({
         </Card>
       )}
 
-      <DataTable columns={columns} rows={entryList} rowKey={(e) => e.id} emptyMessage="Belum ada jurnal." />
+      <DataTable
+        columns={columns}
+        rows={entryList}
+        rowKey={(e) => e.id}
+        rowHref={(e) => `/${companySlug}/keuangan/jurnal/${e.id}`}
+        emptyMessage="Belum ada jurnal."
+      />
     </div>
   );
 }

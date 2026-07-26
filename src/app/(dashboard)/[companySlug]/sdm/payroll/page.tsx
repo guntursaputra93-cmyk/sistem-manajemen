@@ -108,7 +108,13 @@ export default async function PayrollPage({
         </div>
       )}
 
-      <DataTable columns={columns} rows={runList} rowKey={(r) => r.id} emptyMessage="Belum ada payroll run." />
+      <DataTable
+        columns={columns}
+        rows={runList}
+        rowKey={(r) => r.id}
+        rowHref={(r) => `/${companySlug}/sdm/payroll/${r.id}`}
+        emptyMessage="Belum ada payroll run."
+      />
     </div>
   );
 }

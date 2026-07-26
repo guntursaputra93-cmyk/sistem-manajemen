@@ -238,6 +238,7 @@ export default async function KaryawanPage({
         columns={columns}
         rows={filtered}
         rowKey={(emp) => emp.id}
+        rowHref={(emp) => `/${companySlug}/sdm/karyawan/${emp.id}`}
         emptyMessage={
           needle || dept || status
             ? "Tidak ada karyawan yang cocok dengan pencarian/filter."

@@ -168,7 +168,13 @@ export default async function OpportunitiesPage({
 
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <DataTable columns={columns} rows={oppList} rowKey={(opp) => opp.id} emptyMessage="Belum ada opportunity. Opportunity baru akan muncul di sini." />
+      <DataTable
+        columns={columns}
+        rows={oppList}
+        rowKey={(opp) => opp.id}
+        rowHref={(opp) => `/${companySlug}/crm/opportunities/${opp.id}`}
+        emptyMessage="Belum ada opportunity. Opportunity baru akan muncul di sini."
+      />
     </div>
   );
 }

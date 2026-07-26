@@ -154,7 +154,13 @@ export default async function PenjadwalanPage({
         </Card>
       )}
 
-      <DataTable columns={columns} rows={assignmentRows} rowKey={(a) => a.id} emptyMessage={`Belum ada ${terminology.assignmentLabel.toLowerCase()} tercatat.`} />
+      <DataTable
+        columns={columns}
+        rows={assignmentRows}
+        rowKey={(a) => a.id}
+        rowHref={(a) => `/${companySlug}/penjadwalan/${a.id}`}
+        emptyMessage={`Belum ada ${terminology.assignmentLabel.toLowerCase()} tercatat.`}
+      />
     </div>
   );
 }

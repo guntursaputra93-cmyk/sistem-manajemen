@@ -55,7 +55,14 @@ export default async function StrukturGajiPage({
         description={`Pilih karyawan untuk atur komponen gaji — ${company.name}.`}
       />
 
-      <DataTable columns={columns} rows={empList} rowKey={(e) => e.id} emptyMessage="Belum ada data karyawan." />
+      <DataTable
+        columns={columns}
+        rows={empList}
+        rowKey={(e) => e.id}
+        rowHref={(e) => `/${companySlug}/sdm/struktur-gaji/${e.id}`}
+        rowActionLabel="Atur"
+        emptyMessage="Belum ada data karyawan."
+      />
     </div>
   );
 }

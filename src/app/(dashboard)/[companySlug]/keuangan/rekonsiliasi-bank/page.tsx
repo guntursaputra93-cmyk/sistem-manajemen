@@ -135,7 +135,13 @@ export default async function BankReconciliationsPage({
 
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <DataTable columns={columns} rows={reconciliationList} rowKey={(r) => r.reconciliation.id} emptyMessage="Belum ada rekonsiliasi." />
+      <DataTable
+        columns={columns}
+        rows={reconciliationList}
+        rowKey={(r) => r.reconciliation.id}
+        rowHref={(r) => `/${companySlug}/keuangan/rekonsiliasi-bank/${r.reconciliation.id}`}
+        emptyMessage="Belum ada rekonsiliasi."
+      />
     </div>
   );
 }

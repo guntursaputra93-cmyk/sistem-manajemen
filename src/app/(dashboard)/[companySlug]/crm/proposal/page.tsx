@@ -162,7 +162,13 @@ export default async function ProposalPage({
 
       {success && <div className="bg-sage/20 border border-sage-deep/20 text-ink text-[13px] rounded-lg px-4 py-3">Berhasil disimpan.</div>}
 
-      <DataTable columns={columns} rows={letters} rowKey={(letter) => letter.id} emptyMessage="Belum ada proposal. Proposal yang dibuat akan muncul di sini." />
+      <DataTable
+        columns={columns}
+        rows={letters}
+        rowKey={(letter) => letter.id}
+        rowHref={(letter) => `/${companySlug}/surat-keluar/${letter.id}`}
+        emptyMessage="Belum ada proposal. Proposal yang dibuat akan muncul di sini."
+      />
     </div>
   );
 }

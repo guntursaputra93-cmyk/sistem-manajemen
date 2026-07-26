@@ -210,6 +210,7 @@ export default async function SuratKeluarPage({
         columns={columns}
         rows={filtered}
         rowKey={(letter) => letter.id}
+        rowHref={(letter) => `/${companySlug}/surat-keluar/${letter.id}`}
         emptyMessage={needle || status || kategori ? "Tidak ada surat yang cocok dengan pencarian/filter." : "Belum ada surat keluar atau nota dinas. Draft yang dibuat akan muncul di sini."}
       />
     </div>

@@ -223,7 +223,13 @@ async function DocumentTab({
     <section className="space-y-4">
       <FilterForm sp={sp} tabKey={tabKey} showDepartment={false} statusOptions={DOC_STATUS_LABEL} />
 
-      <DataTable columns={columns} rows={pageRows} rowKey={(doc) => doc.id} emptyMessage={`Tidak ada dokumen ${label.toLowerCase()}.`} />
+      <DataTable
+        columns={columns}
+        rows={pageRows}
+        rowKey={(doc) => doc.id}
+        rowHref={(doc) => `/${companySlug}/dokumen/${doc.id}`}
+        emptyMessage={`Tidak ada dokumen ${label.toLowerCase()}.`}
+      />
 
       <Pagination basePath={basePath} searchParams={sp} pageParamName={pageParam} currentPage={page} totalPages={totalPages(total)} />
     </section>
@@ -282,7 +288,13 @@ async function NotaDinasTab({
     <section className="space-y-4">
       <FilterForm sp={sp} tabKey="nd" showDepartment departments={deptList} statusOptions={LETTER_STATUS_LABEL} />
 
-      <DataTable columns={columns} rows={rows} rowKey={(letter) => letter.id} emptyMessage="Tidak ada nota dinas." />
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(letter) => letter.id}
+        rowHref={(letter) => `/${companySlug}/surat-keluar/${letter.id}`}
+        emptyMessage="Tidak ada nota dinas."
+      />
 
       <Pagination basePath={basePath} searchParams={sp} pageParamName="nd_page" currentPage={page} totalPages={totalPages(totalRows.length)} />
     </section>
@@ -342,7 +354,13 @@ async function SuratMasukKeluarTab({
     <section className="space-y-4">
       <FilterForm sp={sp} tabKey="surat" showDepartment departments={deptList} showJenis />
 
-      <DataTable columns={columns} rows={rows} rowKey={(row) => `${row.jenis}-${row.id}`} emptyMessage="Tidak ada surat." />
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(row) => `${row.jenis}-${row.id}`}
+        rowHref={(row) => `/${companySlug}/${row.jenis === "masuk" ? "surat-masuk" : "surat-keluar"}/${row.id}`}
+        emptyMessage="Tidak ada surat."
+      />
 
       <Pagination basePath={basePath} searchParams={sp} pageParamName="surat_page" currentPage={page} totalPages={totalPages(totalCount)} />
     </section>

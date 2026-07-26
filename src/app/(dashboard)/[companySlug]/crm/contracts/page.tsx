@@ -88,7 +88,13 @@ export default async function ContractsPage({
         description={'Dibuat otomatis saat opportunity pindah ke tahap "menang".'}
       />
 
-      <DataTable columns={columns} rows={contractList} rowKey={(c) => c.id} emptyMessage="Belum ada contract. Contract akan dibuat otomatis saat opportunity menang." />
+      <DataTable
+        columns={columns}
+        rows={contractList}
+        rowKey={(c) => c.id}
+        rowHref={(c) => `/${companySlug}/crm/contracts/${c.id}`}
+        emptyMessage="Belum ada contract. Contract akan dibuat otomatis saat opportunity menang."
+      />
     </div>
   );
 }

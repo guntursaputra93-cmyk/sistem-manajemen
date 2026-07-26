@@ -232,6 +232,7 @@ export default async function CaseBoardPage({
                     columns={columns}
                     rows={pageRows}
                     rowKey={(c) => c.id}
+                    rowHref={(c) => `/${companySlug}/cases/${c.id}`}
                     emptyMessage={needle || sp.pic || sp.klien || sp.status ? "Tidak ada case yang cocok dengan pencarian/filter." : "Belum ada case."}
                   />
                   <Pagination basePath={`/${companySlug}/cases`} searchParams={sp} pageParamName="page" currentPage={page} totalPages={totalPages(filtered.length)} />
