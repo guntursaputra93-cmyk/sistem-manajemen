@@ -46,7 +46,10 @@ export function DataTable<T>({
               </th>
             ))}
             {rowHref && (
-              <th className="w-px whitespace-nowrap rounded-tr-[14px] border-b border-ink-muted/12 px-4 py-[11px] text-right font-bold">
+              // text-center (bukan text-right) supaya judul kolom sejajar dengan
+              // tombolnya — teks di dalam tombol ter-inset oleh border+padding,
+              // jadi rata-kanan bikin keduanya terlihat meleset.
+              <th className="w-px whitespace-nowrap rounded-tr-[14px] border-b border-ink-muted/12 px-4 py-[11px] text-center font-bold">
                 Aksi
               </th>
             )}
@@ -68,7 +71,7 @@ export function DataTable<T>({
                 </td>
               ))}
               {rowHref && (
-                <td className="w-px whitespace-nowrap px-4 py-3 text-right">
+                <td className="w-px whitespace-nowrap px-4 py-3 text-center">
                   <Link
                     href={rowHref(row)}
                     className="inline-flex items-center gap-1 rounded-[8px] border border-ink-muted/20 px-2.5 py-1 text-[12px] font-semibold text-ink transition-colors hover:border-sage-deep/40 hover:bg-sage/15 hover:text-sage-deep"
