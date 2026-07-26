@@ -680,6 +680,13 @@
       "when": 1784715634959,
       "tag": "0096_rls_case_support_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1785080863085,
+      "tag": "0097_fix_case_number_unique_scope_per_company",
+      "breakpoints": true
     }
   ]
 }

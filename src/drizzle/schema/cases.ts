@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, uuid, text, date, timestamp, index } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, text, date, timestamp, index, unique } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { companies } from "./companies";
 import { organizations } from "./organizations";
@@ -26,8 +26,11 @@ export const caseStatusEnum = pgEnum("case_status", ["aktif", "on_hold", "selesa
 export const cases = pgTable("cases", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyId: uuid("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
-  // Diisi manual dulu; generator otomatis dikerjakan di langkah 1.4 (bukan sekarang).
-  caseNumber: text("case_number").unique(),
+  // Unique PER COMPANY (bukan global) — generator (langkah 1.4) di-scope per
+  // company+tahun, jadi company berbeda BOLEH sama-sama punya "CASE/2026/0001".
+  // BUG FIX: sebelumnya .unique() polos (global) menyebabkan tabrakan unique
+  // constraint lintas company begitu >1 company aktif di tahun yang sama.
+  caseNumber: text("case_number"),
   organizationId: uuid("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   serviceType: text("service_type"),
@@ -46,6 +49,7 @@ export const cases = pgTable("cases", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
+  unique("cases_company_case_number_unique").on(table.companyId, table.caseNumber),
   index("cases_company_id_idx").on(table.companyId),
   index("cases_organization_id_idx").on(table.organizationId),
   index("cases_opportunity_id_idx").on(table.opportunityId),
