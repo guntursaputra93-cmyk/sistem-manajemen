@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { users, employees } from "@/drizzle/schema";
 import { hasPermission, type Role } from "@/lib/rbac/permissions";
+import { setSelfServiceFlag } from "@/lib/selfService";
 import { logAudit } from "@/lib/audit/log";
 import { hashPassword } from "@/lib/auth/password";
 
@@ -75,8 +76,9 @@ export async function createUser(formData: FormData): Promise<void> {
       }).returning()
     );
     newUserId = newUser.id;
-  } catch {
-    errorRedirect("Email ini sudah dipakai user lain.");
+  } catch (err) {
+    const isUniqueViolation = (err as { code?: string } | null)?.code === "23505";
+    errorRedirect(isUniqueViolation ? "Email ini sudah dipakai user lain." : "Gagal menyimpan user. Coba lagi.");
   }
 
   // Linking employees.user_id best-effort: kalau baris karyawan sudah keburu
@@ -143,9 +145,17 @@ export async function updateUser(formData: FormData): Promise<void> {
   const effectiveDepartmentId = departmentRequiredForRole(role as Role) ? departmentId : null;
   const passwordHash = newPassword ? await hashPassword(newPassword) : undefined;
 
+  // Checkbox self-service (Gaji Saya/Kasbon) cuma dirender di form utk target role
+  // staff/department_head (lihat [id]/page.tsx) — kalau role akhir yang disimpan
+  // JUSTRU admin-tier (mis. diubah di submit yang sama), paksa kedua flag balik ke
+  // true supaya tidak ada restriksi self-service nyangkut di akun admin.
+  const restrictableRole = role === "staff" || role === "department_head";
+  const gajiSayaEnabled = restrictableRole ? formData.get("selfServiceGajiSaya")?.toString() === "on" : true;
+  const kasbonEnabled = restrictableRole ? formData.get("selfServiceKasbon")?.toString() === "on" : true;
+
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      tx
+    await withTenantContext({ role: session.user.role, companyId: session.user.companyId, userId: session.user.id }, async (tx) => {
+      await tx
         .update(users)
         .set({
           fullName,
@@ -156,10 +166,14 @@ export async function updateUser(formData: FormData): Promise<void> {
           updatedAt: new Date(),
           ...(passwordHash ? { passwordHash } : {}),
         })
-        .where(and(eq(users.id, userId), eq(users.companyId, companyId)))
-    );
-  } catch {
-    redirect(`${redirectBase}?error=${encodeURIComponent("Email ini sudah dipakai user lain.")}`);
+        .where(and(eq(users.id, userId), eq(users.companyId, companyId)));
+      await setSelfServiceFlag(tx, { companyId, userId, featureKey: "gaji_saya", isEnabled: gajiSayaEnabled });
+      await setSelfServiceFlag(tx, { companyId, userId, featureKey: "kasbon", isEnabled: kasbonEnabled });
+    });
+  } catch (err) {
+    const isUniqueViolation = (err as { code?: string } | null)?.code === "23505";
+    const message = isUniqueViolation ? "Email ini sudah dipakai user lain." : "Gagal menyimpan perubahan. Coba lagi.";
+    redirect(`${redirectBase}?error=${encodeURIComponent(message)}`);
   }
 
   await logAudit({
@@ -168,7 +182,7 @@ export async function updateUser(formData: FormData): Promise<void> {
     action: "update_user",
     entityType: "user",
     entityId: userId,
-    metadata: { email, role, departmentId: effectiveDepartmentId, isActive, passwordChanged: Boolean(passwordHash) },
+    metadata: { email, role, departmentId: effectiveDepartmentId, isActive, passwordChanged: Boolean(passwordHash), gajiSayaEnabled, kasbonEnabled },
   });
 
   revalidatePath(`/${companySlug}/pengaturan/user`);

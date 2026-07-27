@@ -687,6 +687,20 @@
       "when": 1785080863085,
       "tag": "0097_fix_case_number_unique_scope_per_company",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1785116043317,
+      "tag": "0098_create_user_self_service_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1785116057660,
+      "tag": "0099_rls_user_self_service_access",
+      "breakpoints": true
     }
   ]
 }

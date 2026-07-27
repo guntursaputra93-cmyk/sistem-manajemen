@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { isSelfServiceFeatureEnabled } from "@/lib/selfService";
 import { logAudit } from "@/lib/audit/log";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 import { createKasbonRequest, approveAndDisburseKasbon, rejectKasbon, KasbonError } from "@/lib/hr/kasbon";
@@ -19,11 +20,17 @@ export async function createKasbonRequestAction(formData: FormData): Promise<voi
     redirect(`${redirectBase}?error=${encodeURIComponent("Tidak punya izin mengajukan kasbon.")}`);
   }
 
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId, userId: session.user.id };
+  const kasbonFeatureOn = await withTenantContext(tenantContext, (tx) =>
+    isSelfServiceFeatureEnabled(tx, { userId: session.user.id, featureKey: "kasbon" })
+  );
+  if (!kasbonFeatureOn) {
+    redirect(`${redirectBase}?error=${encodeURIComponent("Fitur Kasbon dinonaktifkan admin untuk akun Anda.")}`);
+  }
+
   const totalAmount = (formData.get("totalAmount")?.toString().trim() || "").replace(",", ".");
   const installmentAmount = (formData.get("installmentAmount")?.toString().trim() || "").replace(",", ".");
   const purpose = formData.get("purpose")?.toString().trim() ?? "";
-
-  const tenantContext = { role: session.user.role, companyId: session.user.companyId, userId: session.user.id };
 
   const employee = await withTenantContext(tenantContext, (tx) => getEmployeeByUserId(tx, { companyId, userId: session.user.id }));
   if (!employee) {

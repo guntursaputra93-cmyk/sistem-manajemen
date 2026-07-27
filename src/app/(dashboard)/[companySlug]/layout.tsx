@@ -9,6 +9,7 @@ import { Sidebar, type SidebarGroup } from "@/components/ui/Sidebar";
 import { TopBar } from "@/components/ui/TopBar";
 import { FlashToast } from "@/components/ui/FlashToast";
 import { getNotificationSummary } from "@/lib/notifications/getNotificationSummary";
+import { getSelfServiceFlags } from "@/lib/selfService";
 
 export default async function CompanyDashboardLayout({
   children,
@@ -21,7 +22,7 @@ export default async function CompanyDashboardLayout({
   const session = await auth();
   if (!session?.user) return null; // proxy.ts sudah menjamin ini tidak kejadian di praktiknya
 
-  const tenantContext = { role: session.user.role, companyId: session.user.companyId };
+  const tenantContext = { role: session.user.role, companyId: session.user.companyId, userId: session.user.id };
 
   // 1 query (LEFT JOIN companies + company_modules) di dalam 1 transaksi — dulu ini
   // 2 withTenantContext terpisah (lookup company, lalu 3x isModuleEnabled berurutan),
@@ -40,6 +41,8 @@ export default async function CompanyDashboardLayout({
 
   const company = rows[0]?.company;
   if (!company) notFound();
+
+  const selfServiceFlags = await withTenantContext(tenantContext, (tx) => getSelfServiceFlags(tx, { userId: session.user.id }));
 
   const enabledModules = new Set(rows.filter((r) => r.moduleEnabled).map((r) => r.moduleKey));
   const suratModuleOn = enabledModules.has("surat_masuk_keluar");
@@ -151,14 +154,14 @@ export default async function CompanyDashboardLayout({
   if (sdmKompetensiOn && hasPermission(session.user.role, "VIEW_CPD_ACTIVITIES")) {
     sdmItems.push({ href: `/${companySlug}/sdm/cpd-saya`, label: "CPD Saya", icon: "award" });
   }
-  if (sdmPayrollOn && hasPermission(session.user.role, "VIEW_PAYSLIPS")) {
+  if (sdmPayrollOn && hasPermission(session.user.role, "VIEW_PAYSLIPS") && selfServiceFlags.gaji_saya) {
     sdmItems.push({ href: `/${companySlug}/sdm/gaji-saya`, label: "Gaji Saya", icon: "wallet" });
   }
   // Kasbon (Fase 3 Langkah 8) SENGAJA TIDAK di-gate module_key apa pun (beda dari
   // seluruh halaman Keuangan lain di bawah) — ini fitur self-service karyawan, bukan
   // laporan keuangan, jadi harus tetap bisa diakses staff terlepas modul Keuangan
   // aktif atau tidak (lihat komentar requireModuleEnabled absen di keuangan/kasbon/page.tsx).
-  if (hasPermission(session.user.role, "VIEW_KASBON_REQUESTS")) {
+  if (hasPermission(session.user.role, "VIEW_KASBON_REQUESTS") && selfServiceFlags.kasbon) {
     sdmItems.push({ href: `/${companySlug}/keuangan/kasbon`, label: "Kasbon", icon: "wallet" });
   }
   if (sdmItems.length) groups.push({ label: "SDM", icon: "contact", items: sdmItems });

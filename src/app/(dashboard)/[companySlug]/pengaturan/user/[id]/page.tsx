@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, departments, users } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { getSelfServiceFlags, SELF_SERVICE_FEATURE_LABEL } from "@/lib/selfService";
 import { updateUser } from "../actions";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -39,6 +40,13 @@ export default async function UserEditPage({
   const deptList = await withTenantContext(tenantContext, (tx) =>
     tx.select().from(departments).where(eq(departments.companyId, company.id)).orderBy(asc(departments.name))
   );
+
+  // Checkbox self-service (Gaji Saya/Kasbon) cuma masuk akal utk staff/department_head
+  // — company_admin/super_admin sudah otomatis dianggap penuh (lihat updateUser action).
+  const showSelfServiceSection = targetUser.role === "staff" || targetUser.role === "department_head";
+  const selfServiceFlags = showSelfServiceSection
+    ? await withTenantContext(tenantContext, (tx) => getSelfServiceFlags(tx, { userId: targetUser.id }))
+    : null;
 
   return (
     <div className="space-y-6">
@@ -127,6 +135,21 @@ export default async function UserEditPage({
               className="w-full border border-ink-muted/12 rounded-lg px-2 py-[6px] text-[11px] text-ink bg-bg-base"
             />
           </div>
+          {selfServiceFlags && (
+            <div className="col-span-full">
+              <label className="block text-[10px] font-semibold text-ink-muted mb-1">Akses Self-Service</label>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-1.5 text-[11.5px] text-ink">
+                  <input type="checkbox" name="selfServiceGajiSaya" defaultChecked={selfServiceFlags.gaji_saya} />
+                  {SELF_SERVICE_FEATURE_LABEL.gaji_saya}
+                </label>
+                <label className="flex items-center gap-1.5 text-[11.5px] text-ink">
+                  <input type="checkbox" name="selfServiceKasbon" defaultChecked={selfServiceFlags.kasbon} />
+                  {SELF_SERVICE_FEATURE_LABEL.kasbon}
+                </label>
+              </div>
+            </div>
+          )}
           <div className="col-span-full">
             <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
               Edit

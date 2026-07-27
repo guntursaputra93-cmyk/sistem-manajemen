@@ -2,6 +2,7 @@ export * from "./companies";
 export * from "./departments";
 export * from "./users";
 export * from "./companyModules";
+export * from "./userSelfServiceAccess";
 export * from "./auditTrails";
 export * from "./rateLimits";
 export * from "./letterNumberSequences";

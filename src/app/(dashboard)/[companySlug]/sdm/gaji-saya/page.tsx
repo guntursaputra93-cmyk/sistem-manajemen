@@ -6,6 +6,7 @@ import { withTenantContext } from "@/lib/db";
 import { companies, payslips, payrollRuns } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
 import { requireModuleEnabled } from "@/lib/modules";
+import { requireSelfServiceFeatureEnabled } from "@/lib/selfService";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -35,6 +36,9 @@ export default async function GajiSayaPage({
   );
   if (!company) notFound();
   await withTenantContext(tenantContext, (tx) => requireModuleEnabled(tx, { companyId: company.id, moduleKey: "sdm_payroll", companySlug }));
+  await withTenantContext(tenantContext, (tx) =>
+    requireSelfServiceFeatureEnabled(tx, { userId: session.user.id, featureKey: "gaji_saya", companySlug })
+  );
 
   const employee = await withTenantContext(tenantContext, (tx) => getEmployeeByUserId(tx, { companyId: company.id, userId: session.user.id }));
 

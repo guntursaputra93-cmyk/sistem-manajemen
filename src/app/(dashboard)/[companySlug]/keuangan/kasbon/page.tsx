@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, kasbonRequests, employees, chartOfAccounts } from "@/drizzle/schema";
 import { hasPermission } from "@/lib/rbac/permissions";
+import { isSelfServiceFeatureEnabled } from "@/lib/selfService";
 import { getEmployeeByUserId } from "@/lib/hr/employees";
 import { createKasbonRequestAction, approveKasbonAction, rejectKasbonAction } from "./actions";
 import { formatRupiah } from "@/lib/finance/format";
@@ -52,7 +53,7 @@ export default async function KasbonPage({
   );
   if (!company) notFound();
 
-  const [kasbonList, employeeList, ownEmployee, disbursementAccounts] = await Promise.all([
+  const [kasbonList, employeeList, ownEmployee, disbursementAccounts, kasbonFeatureOn] = await Promise.all([
     withTenantContext(tenantContext, (tx) =>
       tx.select().from(kasbonRequests).where(eq(kasbonRequests.companyId, company.id)).orderBy(asc(kasbonRequests.status), asc(kasbonRequests.requestDate))
     ),
@@ -61,10 +62,14 @@ export default async function KasbonPage({
     withTenantContext(tenantContext, (tx) =>
       tx.select().from(chartOfAccounts).where(and(eq(chartOfAccounts.companyId, company.id), eq(chartOfAccounts.accountType, "aset"), eq(chartOfAccounts.isHeader, false)))
     ),
+    withTenantContext(tenantContext, (tx) => isSelfServiceFeatureEnabled(tx, { userId: session.user.id, featureKey: "kasbon" })),
   ]);
 
   const employeeNameById = new Map(employeeList.map((e) => [e.id, e.fullName]));
-  const canActuallyCreate = canCreate && !!ownEmployee;
+  // kasbonFeatureOn: flag milik VIEWER sendiri — admin yang mengelola pengajuan
+  // orang lain tetap lihat seluruh daftar (canManage), flag ini cuma menyembunyikan
+  // tombol "Ajukan Kasbon" MILIKNYA SENDIRI kalau admin mematikannya utk viewer ini.
+  const canActuallyCreate = canCreate && !!ownEmployee && kasbonFeatureOn;
 
   const columns: DataTableColumn<(typeof kasbonList)[number]>[] = [
     {
