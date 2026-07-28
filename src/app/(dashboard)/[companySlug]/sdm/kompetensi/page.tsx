@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq, inArray } from "drizzle-orm";
+import { ClipboardCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, employeeCompetencies, competencyTypes, employees, attachments } from "@/drizzle/schema";
@@ -167,6 +169,16 @@ export default async function KompetensiPage({
         }
         actions={
           canManage && (
+            <>
+              {/* Laporan kepatuhan witnessed audit (E3) — RBAC-nya sama persis
+                  dengan canManage di halaman ini, jadi cukup ikut kondisi yang sama. */}
+              <Link
+                href={`/${companySlug}/sdm/kompetensi/kepatuhan-witness`}
+                className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-muted/20 px-3 py-2 text-[13px] font-semibold text-ink transition-colors hover:bg-ink-muted/5"
+              >
+                <ClipboardCheck size={14} aria-hidden="true" />
+                Laporan Kepatuhan Witness
+              </Link>
             <FormDrawer buttonLabel="Assign Kompetensi" title="Assign Kompetensi ke Karyawan" defaultOpen={Boolean(error)}>
               {error && (
                 <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-[13px] text-ink">
@@ -211,6 +223,7 @@ export default async function KompetensiPage({
                 <DrawerFooter submitLabel="Assign Kompetensi" />
               </form>
             </FormDrawer>
+            </>
           )
         }
       />
