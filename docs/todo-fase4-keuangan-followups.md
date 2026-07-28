@@ -101,3 +101,33 @@ Tetap, Rekonsiliasi Bank, Piutang, Jurnal, CRM, SDM, Surat Masuk/Keluar,
 Dokumen, Pengaturan, dll.) memanggil kombinasi guard yang sesuai konteksnya,
 cari page/action yang lupa salah satu dari tiga guard, dan verifikasi urutan
 pemanggilan (hasPermission → requireModuleEnabled → withTenantContext) konsisten.
+
+## 5. Skema penamaan Item lintas-inisiatif (FINAL)
+
+**Konteks:** ada tiga penomoran "Item" yang artinya berbeda-beda dan hidup
+berdampingan di repo ini:
+
+- `docs/itemAC-verifikasi-brief-claude-code.md` → **Item A** = COA jadi 1 kartu,
+  **Item C** = Jurnal Cepat (template + entry cepat + panel draft)
+- `docs/fase3-backlog-brief-claude-code.md` → **Item 1/2/3** = backlog Fase 3
+  Keuangan (granularitas potongan payroll, rekonsiliasi manual, jatuh_tempo AR)
+- Inisiatif **Kesiapan Audit Kepatuhan Data** (commit 36c2933–40e16a9) →
+  **Item A** = audit_trails append-only, **Item B** = metadata event auth,
+  **Item C** = cakupan logAudit 100%, **Item D** = laporan & export audit trail,
+  **Item E1/E2/E3** = tiga item kompetensi K3
+
+**Dampak:** Penomoran Item tidak unik lintas dokumen; selalu sebutkan prefiks
+dokumennya (`AUDIT-`/`FASE3-`/`ITEMAC-`) untuk menghindari salah rujuk.
+
+**Skema penamaan final (disetujui Gtr) — pakai ini di semua rujukan berikutnya:**
+
+- **Inisiatif Kesiapan Audit Kepatuhan Data:** `AUDIT-A`, `AUDIT-B`, `AUDIT-C`,
+  `AUDIT-D`, `AUDIT-E1`, `AUDIT-E2`, `AUDIT-E3`
+- **Backlog Fase 3 Keuangan:** `FASE3-1`, `FASE3-2`, `FASE3-3`
+- **COA 1 kartu & Jurnal Cepat:** `ITEMAC-A`, `ITEMAC-C`
+
+**Catatan status saat dicatat:** `FASE3-1` & `FASE3-2` sudah selesai (migrasi
+0087 & 0088); `FASE3-3` endpoint cron sudah ada tapi **scheduler belum
+di-wire** — jadi brief Fase 3 masih menggambarkan pekerjaan yang belum tuntas
+dan belum boleh dianggap usang. Kedua file brief dipindahkan dari root ke
+`docs/` dan kini ter-track: keduanya dokumen kerja aktif, bukan arsip mati.
