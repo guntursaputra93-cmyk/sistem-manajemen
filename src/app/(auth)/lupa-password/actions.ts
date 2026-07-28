@@ -81,6 +81,8 @@ export async function requestPasswordReset(formData: FormData): Promise<void> {
     await logAudit({
       companyId: user.companyId,
       userId: user.id,
+      entityType: "user",
+      entityId: user.id,
       action: "password_reset_requested",
       metadata: { emailSent: emailResult.success },
     });

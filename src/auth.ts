@@ -33,6 +33,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const rateLimitStatus = await checkRateLimit(email, LOGIN_ACTION_TYPE);
         if (rateLimitStatus.locked) {
           await logAudit({
+            // entityId null: lockout dicek SEBELUM lookup user, jadi di titik ini
+            // belum diketahui email itu milik user mana (atau terdaftar sama sekali).
+            // entityType tetap 'user' supaya jenis subjek event ini konsisten terbaca.
+            entityType: "user",
+            entityId: null,
             action: "login_failed",
             metadata: { reason: "rate_limited", email },
             ipAddress,
@@ -60,6 +65,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           await logAudit({
             companyId: user?.companyId ?? null,
             userId: user?.id ?? null,
+            // entityId null saat user_not_found — emailnya memang tidak terdaftar.
+            entityType: "user",
+            entityId: user?.id ?? null,
             action: "login_failed",
             metadata: { reason: !user ? "user_not_found" : "inactive_user", email },
             ipAddress,
@@ -74,6 +82,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           await logAudit({
             companyId: user.companyId,
             userId: user.id,
+            entityType: "user",
+            entityId: user.id,
             action: "login_failed",
             metadata: { reason: "wrong_password", email },
             ipAddress,
@@ -86,6 +96,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         await logAudit({
           companyId: user.companyId,
           userId: user.id,
+          entityType: "user",
+          entityId: user.id,
           action: "login",
           metadata: { email },
           ipAddress,
