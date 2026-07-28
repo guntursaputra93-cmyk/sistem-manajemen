@@ -8,7 +8,7 @@ import { hasPermission } from "@/lib/rbac/permissions";
 import { isModuleEnabled } from "@/lib/modules";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { updateCompanyCode } from "./actions";
-import { Tag, Building2, Users, CheckSquare, FileText, Shield, LayoutGrid, Target, type LucideIcon } from "lucide-react";
+import { Tag, Building2, Users, CheckSquare, FileText, Shield, LayoutGrid, Target, ScrollText, type LucideIcon } from "lucide-react";
 
 const TILE_CLASS = "bg-surface rounded-xl border-t-4 border-sage-deep shadow-[0_2px_10px_rgba(0,0,0,0.05)] p-4 flex flex-col gap-2 min-h-[148px]";
 const LINK_TILE_CLASS = `${TILE_CLASS} transition-shadow hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]`;
@@ -137,6 +137,19 @@ export default async function PengaturanPage({
             </div>
             <p className="text-[11.5px] text-ink-muted leading-relaxed flex-1">Default semua staf bisa lihat — atur rule kalau mau membatasi.</p>
             <p className="text-[11.5px] font-bold text-sage-deep">Buka jenjang akses &rarr;</p>
+          </Link>
+        )}
+
+        {hasPermission(session.user.role, "VIEW_AUDIT_TRAIL") && (
+          <Link href={`/${companySlug}/pengaturan/audit-trail`} className={LINK_TILE_CLASS}>
+            <div className="flex items-center gap-2">
+              <TileIcon icon={ScrollText} />
+              <p className="text-[13px] font-bold text-ink leading-tight">Laporan Audit Trail</p>
+            </div>
+            <p className="text-[11.5px] text-ink-muted leading-relaxed flex-1">
+              Jejak seluruh aksi — filter per tanggal/entitas/pelaku, ekspor PDF &amp; Excel untuk auditor.
+            </p>
+            <p className="text-[11.5px] font-bold text-sage-deep">Buka laporan audit trail &rarr;</p>
           </Link>
         )}
 

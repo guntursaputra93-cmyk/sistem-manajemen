@@ -121,6 +121,7 @@ export default async function CaseDetailPage({
 
   const canManage = hasPermission(session.user.role, "MANAGE_CASES");
   const canViewFinance = hasPermission(session.user.role, "VIEW_AR_INVOICES");
+  const canViewAudit = hasPermission(session.user.role, "VIEW_AUDIT_TRAIL");
   const activeTab = sp.tab ?? "overview";
 
   const tabDefs = [
@@ -209,7 +210,7 @@ export default async function CaseDetailPage({
       <Tabs value={tab} tabs={tabDefs.map((t) => ({ value: t.value, label: t.label, href: `/${companySlug}/cases/${kase.id}?tab=${t.value}` }))} />
 
       {tab === "overview" && (await OverviewTab({ tenantContext, companyId: company.id, companySlug, kase, currentOrd, canManage }))}
-      {tab === "timeline" && (await TimelineTab({ tenantContext, companyId: company.id, caseId: kase.id }))}
+      {tab === "timeline" && (await TimelineTab({ tenantContext, companyId: company.id, companySlug, caseId: kase.id, caseCreatedAt: kase.createdAt, canViewAudit }))}
       {tab === "tim" && (await TimTab({ tenantContext, companyId: company.id, companySlug, caseId: kase.id }))}
       {tab === "dokumen" && (await DokumenTab({ tenantContext, companyId: company.id, caseId: kase.id }))}
       {tab === "keuangan" && canViewFinance && (await KeuanganTab({ tenantContext, companyId: company.id, companySlug, contractId: kase.contractId }))}
@@ -482,7 +483,14 @@ async function OverviewTab({ tenantContext, companyId, companySlug, kase, curren
   );
 }
 
-async function TimelineTab({ tenantContext, companyId, caseId }: Ctx & { caseId: string }) {
+async function TimelineTab({
+  tenantContext,
+  companyId,
+  companySlug,
+  caseId,
+  caseCreatedAt,
+  canViewAudit,
+}: Ctx & { caseId: string; companySlug: string; caseCreatedAt: Date; canViewAudit: boolean }) {
   const [stageRows, actRows] = await Promise.all([
     withTenantContext(tenantContext, (tx) =>
       tx
@@ -530,8 +538,26 @@ async function TimelineTab({ tenantContext, companyId, caseId }: Ctx & { caseId:
     })),
   ].sort((x, y) => y.at.getTime() - x.at.getTime()); // terbaru di atas
 
+  // Rentangnya sengaja dari tanggal case dibuat s/d hari ini — kalau memakai
+  // default 30 hari, case yang lebih tua akan tampil kosong dan terlihat seperti
+  // tidak punya jejak sama sekali.
+  const auditHref =
+    `/${companySlug}/pengaturan/audit-trail` +
+    `?entityId=${caseId}&from=${caseCreatedAt.toISOString().slice(0, 10)}&to=${new Date().toISOString().slice(0, 10)}`;
+
   return (
-    <Card title="Timeline">
+    <Card
+      title="Timeline"
+      action={
+        // Timeline ini ringkasan untuk layar; laporan audit trail adalah versi
+        // lengkap yang bisa diekspor PDF/Excel untuk pihak luar. Hanya admin.
+        canViewAudit ? (
+          <Link href={auditHref} className="text-[11.5px] font-bold text-sage-deep hover:underline">
+            Laporan audit lengkap &rarr;
+          </Link>
+        ) : undefined
+      }
+    >
       {events.length === 0 ? (
         <p className="text-[13px] italic text-ink-muted">Belum ada riwayat.</p>
       ) : (
