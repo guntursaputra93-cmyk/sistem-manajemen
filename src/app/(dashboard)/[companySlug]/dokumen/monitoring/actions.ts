@@ -32,7 +32,7 @@ export async function updateDashboardSettings(formData: FormData): Promise<void>
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
   if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
 
-  await withTenantContext(tenantContext, (tx) =>
+  const [settings] = await withTenantContext(tenantContext, (tx) =>
     tx
       .insert(dashboardSettings)
       .values({ companyId: company.id, stalledThresholdDays, expiryWarningDays })
@@ -40,6 +40,7 @@ export async function updateDashboardSettings(formData: FormData): Promise<void>
         target: dashboardSettings.companyId,
         set: { stalledThresholdDays, expiryWarningDays, updatedAt: new Date() },
       })
+      .returning()
   );
 
   await logAudit({
@@ -47,6 +48,7 @@ export async function updateDashboardSettings(formData: FormData): Promise<void>
     userId: session.user.id,
     action: "update_dashboard_settings",
     entityType: "dashboard_settings",
+    entityId: settings.id,
     metadata: { stalledThresholdDays, expiryWarningDays },
   });
 

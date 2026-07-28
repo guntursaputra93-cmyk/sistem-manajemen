@@ -356,6 +356,18 @@ export async function toggleEvaluationSigned(formData: FormData): Promise<void> 
       .where(and(eq(witnessedAuditEvaluations.id, evaluationId), eq(witnessedAuditEvaluations.companyId, companyId)))
   );
 
+  // Status tanda tangan adalah bukti utama untuk audit ISO/SMK3 — dan karena ini
+  // toggle (bisa nyala-mati berulang), tanpa jejak tiap perubahannya tidak
+  // terlacak sama sekali. field & nextSigned dicatat supaya urutannya terbaca.
+  await logAudit({
+    companyId,
+    userId: session.user.id,
+    action: "toggle_witnessed_audit_evaluation_signed",
+    entityType: "witnessed_audit_evaluation",
+    entityId: evaluationId,
+    metadata: { assignmentId, field, signed: nextSigned },
+  });
+
   revalidatePath(redirectBase);
   redirect(`${redirectBase}?success=1`);
 }
@@ -448,6 +460,17 @@ export async function togglePerformanceEvaluationSigned(formData: FormData): Pro
       .set(field === "evaluatorSigned" ? { evaluatorSigned: nextSigned } : { knownByTechnicalManagerSigned: nextSigned })
       .where(and(eq(performanceEvaluations.id, evaluationId), eq(performanceEvaluations.companyId, companyId)))
   );
+
+  // Sama seperti toggleEvaluationSigned — tanda tangan evaluasi kinerja adalah
+  // bukti pertanggungjawaban personil, wajib punya jejak per perubahan.
+  await logAudit({
+    companyId,
+    userId: session.user.id,
+    action: "toggle_performance_evaluation_signed",
+    entityType: "performance_evaluation",
+    entityId: evaluationId,
+    metadata: { assignmentId, field, signed: nextSigned },
+  });
 
   revalidatePath(redirectBase);
   redirect(`${redirectBase}?success=1`);

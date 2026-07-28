@@ -121,8 +121,8 @@ export async function createContact(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Nama kontak wajib diisi.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx.insert(organizationContacts).values({ companyId, organizationId, name, position, email, phone, isPrimary })
+  const [contact] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+    tx.insert(organizationContacts).values({ companyId, organizationId, name, position, email, phone, isPrimary }).returning()
   );
 
   await logAudit({
@@ -130,6 +130,7 @@ export async function createContact(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "create_organization_contact",
     entityType: "organization_contact",
+    entityId: contact.id,
     metadata: { organizationId, name },
   });
 

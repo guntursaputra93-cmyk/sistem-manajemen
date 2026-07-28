@@ -82,6 +82,17 @@ export async function setStatementEndingBalanceAction(formData: FormData): Promi
     throw err;
   }
 
+  // Saldo rekening koran adalah angka pembanding dasar seluruh rekonsiliasi —
+  // perubahannya harus terlacak (siapa, kapan, jadi berapa).
+  await logAudit({
+    companyId,
+    userId: session.user.id,
+    action: "set_statement_ending_balance",
+    entityType: "bank_reconciliation",
+    entityId: reconciliationId,
+    metadata: { statementEndingBalance: amountNum.toFixed(2) },
+  });
+
   revalidatePath(redirectBase);
   redirect(`${redirectBase}?success=1`);
 }
@@ -167,6 +178,17 @@ export async function setItemClearedAction(formData: FormData): Promise<void> {
     }
     throw err;
   }
+
+  // entityId menunjuk ITEM-nya (bukan header rekonsiliasi) supaya jejaknya
+  // presisi per baris; reconciliationId tetap dibawa lewat metadata.
+  await logAudit({
+    companyId,
+    userId: session.user.id,
+    action: "set_reconciliation_item_cleared",
+    entityType: "bank_reconciliation_item",
+    entityId: itemId,
+    metadata: { reconciliationId, isCleared, notes },
+  });
 
   revalidatePath(redirectBase);
   redirect(`${redirectBase}?success=1`);

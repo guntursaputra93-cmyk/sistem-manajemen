@@ -114,9 +114,20 @@ export async function addAttendee(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Pilih karyawan atau isi nama peserta manual.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-    tx.insert(calibrationAttendees).values({ companyId, meetingId, employeeId, attendeeName, attendeeRole })
+  // .returning() supaya entityId bisa menunjuk baris peserta yang baru dibuat,
+  // bukan cuma meeting-nya (pola sama dengan action create lain di repo ini).
+  const [attendee] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+    tx.insert(calibrationAttendees).values({ companyId, meetingId, employeeId, attendeeName, attendeeRole }).returning()
   );
+
+  await logAudit({
+    companyId,
+    userId: session.user.id,
+    action: "add_calibration_attendee",
+    entityType: "calibration_attendee",
+    entityId: attendee.id,
+    metadata: { meetingId, employeeId, attendeeName, attendeeRole },
+  });
 
   revalidatePath(redirectBase);
   redirect(`${redirectBase}?success=1`);
@@ -143,6 +154,17 @@ export async function toggleAttendeeSigned(formData: FormData): Promise<void> {
       .set({ signed: nextSigned })
       .where(and(eq(calibrationAttendees.id, attendeeId), eq(calibrationAttendees.companyId, companyId)))
   );
+
+  // Tanda tangan kehadiran rapat kalibrasi = bukti SOP Pemeliharaan Kompetensi
+  // Auditor. Toggle tanpa jejak berarti kehadiran bisa diubah tanpa terlacak.
+  await logAudit({
+    companyId,
+    userId: session.user.id,
+    action: "toggle_calibration_attendee_signed",
+    entityType: "calibration_attendee",
+    entityId: attendeeId,
+    metadata: { meetingId, signed: nextSigned },
+  });
 
   revalidatePath(redirectBase);
   redirect(`${redirectBase}?success=1`);

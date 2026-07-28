@@ -38,10 +38,12 @@ export async function addPipelineStage(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("1 tahap tidak bisa jadi 'menang' dan 'hilang' sekaligus.")}`);
   }
 
+  let createdId: string;
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      tx.insert(pipelineStages).values({ companyId, stageKey, stageOrder, isWonStage, isLostStage })
+    const [created] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+      tx.insert(pipelineStages).values({ companyId, stageKey, stageOrder, isWonStage, isLostStage }).returning()
     );
+    createdId = created.id;
   } catch {
     redirect(`${redirectBase}?error=${encodeURIComponent("Nama tahap ini sudah ada di perusahaan ini.")}`);
   }
@@ -51,6 +53,7 @@ export async function addPipelineStage(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "create_pipeline_stage",
     entityType: "pipeline_stage",
+    entityId: createdId,
     metadata: { stageKey, stageOrder, isWonStage, isLostStage },
   });
 

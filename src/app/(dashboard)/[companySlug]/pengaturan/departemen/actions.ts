@@ -37,10 +37,12 @@ export async function createDepartment(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kode harus 2-10 huruf/angka kapital.")}`);
   }
 
+  let createdId: string;
   try {
-    await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
-      tx.insert(departments).values({ companyId, name, code, parentDepartmentId })
+    const [created] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+      tx.insert(departments).values({ companyId, name, code, parentDepartmentId }).returning()
     );
+    createdId = created.id;
   } catch {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kode departemen ini sudah dipakai.")}`);
   }
@@ -50,6 +52,7 @@ export async function createDepartment(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "create_department",
     entityType: "department",
+    entityId: createdId,
     metadata: { name, code, parentDepartmentId },
   });
 

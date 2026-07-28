@@ -53,8 +53,9 @@ export async function addDocumentAccessRule(formData: FormData): Promise<void> {
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
   if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
 
+  let createdId: string;
   try {
-    await withTenantContext(tenantContext, (tx) =>
+    const [created] = await withTenantContext(tenantContext, (tx) =>
       tx.insert(documentAccessRules).values({
         companyId: company.id,
         documentCategoryId: targetMode === "category" ? documentCategoryId : null,
@@ -62,8 +63,9 @@ export async function addDocumentAccessRule(formData: FormData): Promise<void> {
         scope: scope as (typeof SCOPE_VALUES)[number],
         departmentId: scope === "departemen_tertentu" ? departmentId : null,
         role: scope === "role_tertentu" ? (role as (typeof ROLE_VALUES)[number]) : null,
-      })
+      }).returning()
     );
+    createdId = created.id;
   } catch {
     redirect(`${redirectBase}?error=${encodeURIComponent("Gagal menyimpan rule akses.")}`);
   }
@@ -73,6 +75,7 @@ export async function addDocumentAccessRule(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "create_document_access_rule",
     entityType: "document_access_rule",
+    entityId: createdId,
     metadata: { targetMode, documentCategoryId, documentId, scope, departmentId, role },
   });
 

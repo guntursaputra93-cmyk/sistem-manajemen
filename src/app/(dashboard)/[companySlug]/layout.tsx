@@ -10,6 +10,7 @@ import { TopBar } from "@/components/ui/TopBar";
 import { FlashToast } from "@/components/ui/FlashToast";
 import { getNotificationSummary } from "@/lib/notifications/getNotificationSummary";
 import { getSelfServiceFlags } from "@/lib/selfService";
+import { logAudit } from "@/lib/audit/log";
 
 export default async function CompanyDashboardLayout({
   children,
@@ -254,6 +255,17 @@ export default async function CompanyDashboardLayout({
         companyLogoUrl={company.logoUrl}
         onLogout={async () => {
           "use server";
+          // Melengkapi siklus sesi: 'login' sudah tercatat di auth.ts, tapi
+          // 'logout' sebelumnya tidak — sehingga durasi sesi tidak bisa
+          // direkonstruksi saat audit. Dicatat SEBELUM signOut karena setelahnya
+          // session sudah tidak tersedia.
+          await logAudit({
+            companyId: session.user.companyId,
+            userId: session.user.id,
+            action: "logout",
+            entityType: "user",
+            entityId: session.user.id,
+          });
           await signOut({ redirectTo: "/login" });
         }}
       />

@@ -101,11 +101,12 @@ export async function updateCpdSettings(formData: FormData): Promise<void> {
 
   const annualTargetHours = formData.get("annualTargetHours")?.toString().trim() || null;
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+  const [settings] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
     tx
       .insert(cpdSettings)
       .values({ companyId, annualTargetHours })
       .onConflictDoUpdate({ target: cpdSettings.companyId, set: { annualTargetHours, updatedAt: new Date() } })
+      .returning()
   );
 
   await logAudit({
@@ -113,6 +114,7 @@ export async function updateCpdSettings(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "update_cpd_settings",
     entityType: "cpd_settings",
+    entityId: settings.id,
     metadata: { annualTargetHours },
   });
 

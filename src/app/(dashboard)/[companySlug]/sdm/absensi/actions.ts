@@ -33,7 +33,9 @@ export async function recordAttendance(formData: FormData): Promise<void> {
   }
   const status = statusRaw as (typeof ATTENDANCE_STATUSES)[number];
 
-  await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
+  // .returning() ikut mengembalikan baris hasil upsert (baik yang baru di-insert
+  // maupun yang di-update), jadi entityId selalu terisi untuk kedua cabang.
+  const [record] = await withTenantContext({ role: session.user.role, companyId: session.user.companyId }, (tx) =>
     tx
       .insert(attendanceRecords)
       .values({ companyId, employeeId, attendanceDate, status, notes })
@@ -41,6 +43,7 @@ export async function recordAttendance(formData: FormData): Promise<void> {
         target: [attendanceRecords.employeeId, attendanceRecords.attendanceDate],
         set: { status, notes },
       })
+      .returning()
   );
 
   await logAudit({
@@ -48,6 +51,7 @@ export async function recordAttendance(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "record_attendance",
     entityType: "attendance_record",
+    entityId: record.id,
     metadata: { employeeId, attendanceDate, status },
   });
 

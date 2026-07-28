@@ -53,8 +53,9 @@ export async function addApprovalStep(formData: FormData): Promise<void> {
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
   if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
 
+  let createdId: string;
   try {
-    await withTenantContext(tenantContext, (tx) =>
+    const [created] = await withTenantContext(tenantContext, (tx) =>
       tx.insert(approvalFlows).values({
         companyId: company.id,
         appliesTo: appliesTo as (typeof APPLIES_TO_VALUES)[number],
@@ -62,8 +63,9 @@ export async function addApprovalStep(formData: FormData): Promise<void> {
         stepOrder,
         requiredRole: approverMode === "role" ? (requiredRole as (typeof ROLE_VALUES)[number]) : null,
         requiredApproverUserId: approverMode === "user" ? requiredApproverUserId : null,
-      })
+      }).returning()
     );
+    createdId = created.id;
   } catch {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kombinasi jenis + urutan jenjang ini sudah ada.")}`);
   }
@@ -73,6 +75,7 @@ export async function addApprovalStep(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "create_approval_flow_step",
     entityType: "approval_flow",
+    entityId: createdId,
     metadata: { appliesTo, jenisKey, stepOrder, approverMode, requiredRole, requiredApproverUserId },
   });
 

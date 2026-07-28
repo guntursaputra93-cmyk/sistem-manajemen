@@ -25,7 +25,7 @@ export async function toggleModule(formData: FormData): Promise<void> {
     redirect(`${redirectBase}?error=${encodeURIComponent("Modul tidak valid.")}`);
   }
 
-  await withTenantContext({ role: session.user.role, companyId }, (tx) =>
+  const [moduleRow] = await withTenantContext({ role: session.user.role, companyId }, (tx) =>
     tx
       .insert(companyModules)
       .values({ companyId, moduleKey, isEnabled: enable })
@@ -33,6 +33,7 @@ export async function toggleModule(formData: FormData): Promise<void> {
         target: [companyModules.companyId, companyModules.moduleKey],
         set: { isEnabled: enable, updatedAt: new Date() },
       })
+      .returning()
   );
 
   await logAudit({
@@ -40,6 +41,7 @@ export async function toggleModule(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: enable ? "enable_module" : "disable_module",
     entityType: "company_module",
+    entityId: moduleRow.id,
     metadata: { moduleKey },
   });
 

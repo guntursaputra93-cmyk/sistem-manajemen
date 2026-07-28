@@ -33,10 +33,12 @@ export async function addDocumentCategory(formData: FormData): Promise<void> {
   const [company] = await withTenantContext(tenantContext, (tx) => tx.select().from(companies).where(eq(companies.slug, companySlug)));
   if (!company) redirect(`${redirectBase}?error=${encodeURIComponent("Perusahaan tidak ditemukan.")}`);
 
+  let createdId: string;
   try {
-    await withTenantContext(tenantContext, (tx) =>
-      tx.insert(documentCategories).values({ companyId: company.id, code, name, hierarchyLevel })
+    const [created] = await withTenantContext(tenantContext, (tx) =>
+      tx.insert(documentCategories).values({ companyId: company.id, code, name, hierarchyLevel }).returning()
     );
+    createdId = created.id;
   } catch {
     redirect(`${redirectBase}?error=${encodeURIComponent("Kode kategori ini sudah ada.")}`);
   }
@@ -46,6 +48,7 @@ export async function addDocumentCategory(formData: FormData): Promise<void> {
     userId: session.user.id,
     action: "create_document_category",
     entityType: "document_category",
+    entityId: createdId,
     metadata: { code, name, hierarchyLevel },
   });
 
