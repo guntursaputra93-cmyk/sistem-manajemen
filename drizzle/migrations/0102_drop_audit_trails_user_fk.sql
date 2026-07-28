@@ -1,0 +1,16 @@
+-- Melepas FK audit_trails.user_id -> users.id (dulu ON DELETE SET NULL).
+--
+-- ALASAN: sejak audit_trails append-only (0100), menghapus user memicu Postgres
+-- menjalankan `UPDATE audit_trails SET user_id = NULL` yang langsung ditolak
+-- trigger — akibatnya user yang pernah login MUSTAHIL dihapus. Melepas FK
+-- memulihkan kemampuan hapus user, sekaligus MEMPERKUAT jejak audit: id aktor
+-- kini tetap terekam selamanya, tidak ikut dinolkan saat user dihapus.
+--
+-- Kolom, tipe, index (audit_trails_user_id_idx), dan seluruh data TIDAK berubah —
+-- hanya constraint-nya yang dilepas. user_id kini uuid biasa, pola sama persis
+-- dengan entity_id yang sejak awal memang tanpa FK.
+--
+-- CATATAN: FK company_id (audit_trails_company_id_companies_id_fk, juga
+-- ON DELETE SET NULL) SENGAJA dibiarkan utuh di migrasi ini — masih menunggu
+-- keputusan terpisah.
+ALTER TABLE "audit_trails" DROP CONSTRAINT "audit_trails_user_id_users_id_fk";

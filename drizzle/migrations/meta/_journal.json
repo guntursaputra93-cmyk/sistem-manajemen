@@ -701,6 +701,34 @@
       "when": 1785116057660,
       "tag": "0099_rls_user_self_service_access",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1785118391699,
+      "tag": "0100_audit_trails_append_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1785119981827,
+      "tag": "0101_harden_audit_trigger_search_path",
+      "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1785121126447,
+      "tag": "0102_drop_audit_trails_user_fk",
+      "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1785121529074,
+      "tag": "0103_audit_trails_company_fk_restrict",
+      "breakpoints": true
     }
   ]
 }
