@@ -434,7 +434,7 @@ async function OverviewTab({ tenantContext, companyId, companySlug, kase, curren
                   <input autoComplete="off" name="milestoneKey" required className={inputClass} placeholder="mis. dp_diterima" />
                 </FormField>
                 <FormField label="Jatuh Tempo">
-                  <DatePicker name="dueDate" />
+                  <DatePicker name="dueDate" yearRange="future" />
                 </FormField>
                 <DrawerFooter submitLabel="Tambah Milestone" />
               </form>
@@ -769,7 +769,7 @@ async function EksternalTab({ tenantContext, companyId, companySlug, caseId, can
                   <DatePicker name="issuedDate" />
                 </FormField>
                 <FormField label="Berlaku s/d">
-                  <DatePicker name="validUntil" />
+                  <DatePicker name="validUntil" yearRange="future" />
                 </FormField>
                 <DrawerFooter submitLabel="Tambah Deliverable" />
               </form>
@@ -820,7 +820,7 @@ async function EksternalTab({ tenantContext, companyId, companySlug, caseId, can
                           <DatePicker name="issuedDate" defaultValue={d.issuedDate} />
                         </FormField>
                         <FormField label="Berlaku s/d">
-                          <DatePicker name="validUntil" defaultValue={d.validUntil} />
+                          <DatePicker name="validUntil" defaultValue={d.validUntil} yearRange="future" />
                         </FormField>
                         <DrawerFooter submitLabel="Simpan Deliverable" />
                       </form>

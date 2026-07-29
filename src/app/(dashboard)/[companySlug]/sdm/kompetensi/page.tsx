@@ -133,7 +133,7 @@ export default async function KompetensiPage({
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-ink-muted mb-1">Berlaku Sampai</label>
-                  <DatePicker name="expiresAt" defaultValue={r.expiresAt} />
+                  <DatePicker name="expiresAt" defaultValue={r.expiresAt} yearRange="future" />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-ink-muted mb-1">Status</label>
@@ -225,7 +225,7 @@ export default async function KompetensiPage({
                     <DatePicker name="issuedDate" />
                   </FormField>
                   <FormField label="Berlaku Sampai">
-                    <DatePicker name="expiresAt" />
+                    <DatePicker name="expiresAt" yearRange="future" />
                   </FormField>
                 </FormSection>
                 <DrawerFooter submitLabel="Assign Kompetensi" />

@@ -85,7 +85,7 @@ export default async function EditCasePage({
             </select>
           </FormField>
           <FormField label="Target Tutup">
-            <DatePicker name="targetCloseDate" defaultValue={kase.targetCloseDate} />
+            <DatePicker name="targetCloseDate" defaultValue={kase.targetCloseDate} yearRange="future" />
           </FormField>
           <FormField label="Catatan" full>
             <textarea name="notes" rows={3} defaultValue={kase.notes ?? ""} className={inputClass} />

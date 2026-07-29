@@ -164,7 +164,7 @@ export default async function DokumenPage({
                       <DatePicker name="effectiveDate" />
                     </FormField>
                     <FormField label="Berlaku Sampai" optional>
-                      <DatePicker name="expiresAt" />
+                      <DatePicker name="expiresAt" yearRange="future" />
                     </FormField>
                   </FormSection>
                   <DrawerFooter submitLabel="Buat Dokumen (Draft Versi 1)" />

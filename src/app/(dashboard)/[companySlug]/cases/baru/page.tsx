@@ -88,7 +88,7 @@ export default async function CreateCasePage({
               </select>
             </FormField>
             <FormField label="Target Tutup">
-              <DatePicker name="targetCloseDate" />
+              <DatePicker name="targetCloseDate" yearRange="future" />
             </FormField>
             <FormField label="Catatan" full>
               <textarea name="notes" rows={3} className={inputClass} />

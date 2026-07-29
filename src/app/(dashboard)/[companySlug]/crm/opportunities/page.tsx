@@ -144,7 +144,7 @@ export default async function OpportunitiesPage({
                       <input autoComplete="off" name="estimatedValue" type="number" step="0.01" className={inputClass} />
                     </FormField>
                     <FormField label="Target Tutup">
-                      <DatePicker name="expectedCloseDate" />
+                      <DatePicker name="expectedCloseDate" yearRange="future" />
                     </FormField>
                     {!restrictAssignee && (
                       <FormField label="Ditugaskan ke" full>

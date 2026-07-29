@@ -126,7 +126,7 @@ export default async function DokumenDetailPage({
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-ink-muted mb-1">Berlaku Sampai (opsional)</label>
-              <DatePicker name="expiresAt" />
+              <DatePicker name="expiresAt" yearRange="future" />
             </div>
             <div className="col-span-full">
               <button type="submit" className="bg-sage-deep hover:bg-sage-deep/90 text-white text-[11.5px] font-bold px-[18px] py-[7px] rounded-[9px] transition-colors shadow-[0_3px_10px_rgba(74,103,65,0.3)]">
