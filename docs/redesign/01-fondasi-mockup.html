@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup Fondasi Redesign — Sistem Manajemen Sapta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-base:#FAF9F6; --surface:#FFF;
+    --sage:#A8C3A0; --sage-deep:#4A6741;
+    --powder:#A9C4D8; --powder-deep:#5B7A91;
+    --rose:#D9A99F; --rose-deep:#A85D50;
+    --ink:#33393B; --ink-muted:#6B7280;
+    --destructive:#B84A3E; --focus:#F2994A;
+    --accent:#3D7A6B;
+    --border:rgba(107,114,128,.16);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg-base);color:var(--ink);font-family:'Inter',sans-serif;font-size:13px}
+  h1,h2,h3,.display{font-family:'Plus Jakarta Sans',sans-serif}
+
+  .app{display:flex;height:100vh;overflow:hidden}
+
+  /* ===== SIDEBAR (tetap seperti sekarang, hanya font sedikit lebih besar) ===== */
+  .sidebar{width:230px;flex-shrink:0;background:linear-gradient(to bottom,#C3DBBB,#A8C3A0);padding:12px 10px;overflow-y:auto;color:#33422D}
+  .sb-head{display:flex;align-items:center;gap:8px;padding:8px 6px 10px;border-bottom:1px solid rgba(51,66,45,.12);margin-bottom:8px}
+  .sb-logo{width:28px;height:28px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;color:var(--sage-deep);font-family:'Plus Jakarta Sans'}
+  .sb-head b{font-size:12px;font-family:'Plus Jakarta Sans'}
+  .sb-head small{font-size:10px;opacity:.6;display:block}
+  .sb-group{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;padding:8px 8px 4px;display:flex;align-items:center;gap:6px}
+  .sb-item{display:flex;align-items:center;gap:8px;padding:6px 8px;margin:1px 0 1px 14px;border-left:2px solid rgba(51,66,45,.18);font-size:11.5px;font-weight:500;border-radius:8px;cursor:pointer}
+  .sb-item:hover{background:rgba(255,255,255,.3)}
+  .sb-item.active{background:#fff;font-weight:700;box-shadow:0 2px 8px rgba(51,57,59,.1);border-left:3px solid var(--accent)}
+
+  .main{flex:1;overflow-y:auto;padding:24px 28px}
+
+  /* ===== [BARU] PAGE HEADER STANDAR ===== */
+  .breadcrumb{font-size:12px;color:var(--ink-muted);margin-bottom:6px}
+  .breadcrumb a{color:var(--ink-muted);text-decoration:none}
+  .breadcrumb a:hover{color:var(--sage-deep);text-decoration:underline}
+  .breadcrumb .sep{margin:0 6px;opacity:.5}
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+  .page-header h1{font-size:20px;font-weight:800}
+  .page-header .sub{font-size:13px;color:var(--ink-muted);margin-top:3px}
+
+  /* ===== [BARU] TOMBOL STANDAR ===== */
+  .btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter';transition:.15s}
+  .btn-primary{background:var(--sage-deep);color:#fff;box-shadow:0 3px 10px rgba(74,103,65,.3)}
+  .btn-primary:hover{background:#3d5636}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--border)}
+  .btn-ghost:hover{background:rgba(107,114,128,.06)}
+  .btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+  /* ===== [BARU] TOOLBAR: CARI + FILTER ===== */
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .search{position:relative;flex:1;min-width:220px;max-width:340px}
+  .search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--surface);color:var(--ink)}
+  .search input:focus-visible{outline:2px solid var(--focus)}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-muted)}
+  .toolbar select{padding:9px 12px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--surface);color:var(--ink);cursor:pointer}
+  .count{font-size:12px;color:var(--ink-muted);margin-left:auto}
+
+  /* ===== [BARU] TABEL: font 13px, hover, sticky header ===== */
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(51,57,59,.04)}
+  table{width:100%;border-collapse:collapse}
+  thead th{position:sticky;top:0;background:#F4F6F1;text-align:left;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);padding:11px 16px;border-bottom:1px solid var(--border)}
+  tbody td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(107,114,128,.09)}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr{cursor:pointer;transition:background .1s}
+  tbody tr:hover{background:rgba(168,195,160,.09)}
+  td a{color:var(--sage-deep);font-weight:600;text-decoration:none}
+  td a:hover{text-decoration:underline}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600}
+  .badge.sage{background:rgba(168,195,160,.28);color:#3d5636}
+  .badge.powder{background:rgba(169,196,216,.32);color:#44647c}
+  .badge.rose{background:rgba(217,169,159,.3);color:#8f4a3e}
+
+  /* ===== [BARU] DRAWER (panel samping) ===== */
+  .overlay{position:fixed;inset:0;background:rgba(51,57,59,.32);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:-480px;width:480px;max-width:92vw;height:100vh;background:var(--surface);z-index:50;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(51,57,59,.15);transition:right .25s ease}
+  .drawer.show{right:0}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+  .drawer-head h2{font-size:16px;font-weight:800}
+  .drawer-head .sub{font-size:12px;color:var(--ink-muted);margin-top:2px}
+  .drawer-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-muted);padding:4px 8px;border-radius:8px}
+  .drawer-close:hover{background:rgba(107,114,128,.08)}
+  .drawer-body{flex:1;overflow-y:auto;padding:20px 22px}
+  .drawer-foot{display:flex;gap:10px;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--border);background:#FBFBF9}
+
+  /* [BARU] Form dikelompokkan per bagian */
+  .fsection{margin-bottom:22px}
+  .fsection>h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--sage-deep);padding-bottom:8px;border-bottom:1px solid rgba(168,195,160,.4);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field.full{grid-column:1/-1}
+  .field label{font-size:12px;font-weight:600;color:var(--ink)}
+  .field label .opt{font-weight:400;color:var(--ink-muted)}
+  .field input,.field select{padding:9px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;background:var(--bg-base);color:var(--ink);font-family:'Inter'}
+  .field input:focus-visible,.field select:focus-visible{outline:2px solid var(--focus)}
+  .field .hint{font-size:11px;color:var(--ink-muted)}
+
+  /* ===== [BARU] TOAST ===== */
+  .toast{position:fixed;bottom:24px;right:24px;background:#33422D;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(51,57,59,.3);transform:translateY(80px);opacity:0;transition:.25s;z-index:60}
+  .toast.show{transform:none;opacity:1}
+  .toast .dot{width:8px;height:8px;border-radius:50%;background:#A8E6A1}
+
+  /* ===== Panel penjelasan mockup ===== */
+  .note{position:fixed;left:246px;bottom:14px;background:#FFF8EC;border:1px solid #F2C94C;border-radius:12px;padding:10px 16px;font-size:12px;color:#7a5c12;max-width:560px;z-index:30;box-shadow:0 4px 14px rgba(51,57,59,.08)}
+  .tag{display:inline-block;background:var(--accent);color:#fff;font-size:9.5px;font-weight:800;border-radius:5px;padding:1px 6px;vertical-align:middle;margin-left:6px;letter-spacing:.03em}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR: tidak berubah dari desain sekarang -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-logo">SPT</div>
+      <div><b>PT Sapta</b><small>Sistem Manajemen</small></div>
+    </div>
+    <div class="sb-item" style="margin-left:0;border-left:none">▦ Dashboard</div>
+    <div class="sb-group">👥 SDM ▾</div>
+    <div class="sb-item active">Karyawan</div>
+    <div class="sb-item">Absensi</div>
+    <div class="sb-item">Cuti</div>
+    <div class="sb-item">Payroll</div>
+    <div class="sb-item">Kompetensi</div>
+    <div class="sb-group">💰 Keuangan ▸</div>
+    <div class="sb-group">🤝 CRM ▸</div>
+    <div class="sb-group">✉ Persuratan ▸</div>
+    <div class="sb-item" style="margin-left:0;border-left:none;margin-top:8px">⚙ Pengaturan</div>
+  </aside>
+
+  <main class="main">
+    <!-- [BARU 1] BREADCRUMB + PAGE HEADER STANDAR -->
+    <nav class="breadcrumb">
+      <a href="#">SDM</a><span class="sep">›</span><span>Data Karyawan</span>
+    </nav>
+    <div class="page-header">
+      <div>
+        <h1>Data Karyawan <span class="tag">BARU: judul 20px + breadcrumb</span></h1>
+        <p class="sub">Semua karyawan PT Sapta.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openDrawer()">＋ Tambah Karyawan <span class="tag" style="background:#fff;color:var(--accent)">BARU: form pindah ke drawer</span></button>
+    </div>
+
+    <!-- [BARU 2] TOOLBAR CARI + FILTER -->
+    <div class="toolbar">
+      <div class="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Cari nama, NIK, atau jabatan…" oninput="filterRows()">
+      </div>
+      <select id="fDept" onchange="filterRows()">
+        <option value="">Semua Departemen</option>
+        <option>Inspeksi</option><option>Sertifikasi</option><option>Keuangan</option><option>Umum & SDM</option>
+      </select>
+      <select id="fStatus" onchange="filterRows()">
+        <option value="">Semua Status</option>
+        <option>Aktif</option><option>Cuti Panjang</option><option>Resign</option>
+      </select>
+      <span class="count" id="count">8 karyawan <span class="tag">BARU: cari & filter</span></span>
+    </div>
+
+    <!-- [BARU 3] TABEL: font 13px, hover, header abu tegas -->
+    <div class="table-card">
+      <table id="tbl">
+        <thead><tr><th>Nama</th><th>Jabatan</th><th>Departemen</th><th>Bergabung</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><a href="#">Ahmad Fauzi</a></td><td>Inspektor Senior</td><td>Inspeksi</td><td>12 Mar 2019</td><td><span class="badge sage">Aktif</span></td></tr>
+          <tr><td><a href="#">Budi Santoso</a></td><td>Auditor SMK3</td><td>Sertifikasi</td><td>03 Jan 2020</td><td><span class="badge sage">Aktif</span></td></tr>
+          <tr><td><a href="#">Citra Lestari</a></td><td>Staf Keuangan</td><td>Keuangan</td><td>21 Agu 2021</td><td><span class="badge sage">Aktif</span></td></tr>
+          <tr><td><a href="#">Dewi Anggraini</a></td><td>HR Officer</td><td>Umum & SDM</td><td>15 Feb 2022</td><td><span class="badge powder">Cuti Panjang</span></td></tr>
+          <tr><td><a href="#">Eko Prasetyo</a></td><td>Inspektor</td><td>Inspeksi</td><td>08 Jul 2022</td><td><span class="badge sage">Aktif</span></td></tr>
+          <tr><td><a href="#">Fitri Handayani</a></td><td>Admin Sertifikasi</td><td>Sertifikasi</td><td>30 Okt 2023</td><td><span class="badge sage">Aktif</span></td></tr>
+          <tr><td><a href="#">Gilang Ramadhan</a></td><td>Inspektor Junior</td><td>Inspeksi</td><td>02 Mei 2024</td><td><span class="badge rose">Resign</span></td></tr>
+          <tr><td><a href="#">Hana Puspita</a></td><td>Kasir</td><td>Keuangan</td><td>19 Jan 2025</td><td><span class="badge sage">Aktif</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- [BARU 4] DRAWER: form tambah pindah ke panel samping, dikelompokkan -->
+<div class="overlay" id="ov" onclick="closeDrawer()"></div>
+<aside class="drawer" id="dr" aria-label="Tambah karyawan">
+  <div class="drawer-head">
+    <div>
+      <h2>Tambah Karyawan</h2>
+      <p class="sub">Field bertanda * wajib diisi.</p>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()" aria-label="Tutup">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="fsection">
+      <h3>① Identitas</h3>
+      <div class="fgrid">
+        <div class="field"><label>NIK *</label><input placeholder="mis. 2024-001"></div>
+        <div class="field"><label>Nama Lengkap *</label><input></div>
+        <div class="field"><label>Email <span class="opt">(opsional)</span></label><input type="email"></div>
+        <div class="field"><label>NPWP <span class="opt">(opsional)</span></label><input></div>
+        <div class="field"><label>Tanggal Lahir <span class="opt">(opsional)</span></label><input type="date"></div>
+      </div>
+    </div>
+    <div class="fsection">
+      <h3>② Pekerjaan</h3>
+      <div class="fgrid">
+        <div class="field"><label>Tanggal Bergabung *</label><input type="date"></div>
+        <div class="field"><label>Jabatan Awal *</label><input></div>
+        <div class="field"><label>Departemen</label><select><option>— tidak ada —</option><option>Inspeksi</option><option>Sertifikasi</option><option>Keuangan</option></select></div>
+        <div class="field"><label>Jenjang <span class="opt">(opsional)</span></label><input></div>
+      </div>
+    </div>
+    <div class="fsection">
+      <h3>③ Kontak</h3>
+      <div class="fgrid">
+        <div class="field"><label>Telepon</label><input></div>
+        <div class="field full"><label>Alamat</label><input></div>
+        <div class="field"><label>Kontak Darurat — Nama</label><input></div>
+        <div class="field"><label>Kontak Darurat — Telepon</label><input></div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-ghost" onclick="closeDrawer()">Batal</button>
+    <button class="btn btn-primary" onclick="save()">Simpan Karyawan</button>
+  </div>
+</aside>
+
+<!-- [BARU 5] TOAST pengganti kotak pesan statis -->
+<div class="toast" id="toast"><span class="dot"></span> Karyawan berhasil ditambahkan.</div>
+
+<div class="note">
+  <b>Mockup fondasi</b> — 6 hal baru: ① breadcrumb + judul besar, ② tombol aksi di kanan header, ③ bar cari &amp; filter (coba ketik "budi"),
+  ④ tabel lebih terbaca (13px, hover), ⑤ klik <b>＋ Tambah Karyawan</b> → form muncul sebagai panel samping bertahap ①②③,
+  ⑥ notifikasi toast saat simpan. Sidebar &amp; warna tetap seperti sekarang.
+</div>
+
+<script>
+function openDrawer(){document.getElementById('dr').classList.add('show');document.getElementById('ov').classList.add('show')}
+function closeDrawer(){document.getElementById('dr').classList.remove('show');document.getElementById('ov').classList.remove('show')}
+function save(){closeDrawer();const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+function filterRows(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const d=document.getElementById('fDept').value;
+  const s=document.getElementById('fStatus').value;
+  let n=0;
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+    const cells=[...tr.cells].map(c=>c.innerText);
+    const ok=(!q||cells.join(' ').toLowerCase().includes(q))&&(!d||cells[2]===d)&&(!s||cells[4]===s);
+    tr.style.display=ok?'':'none'; if(ok)n++;
+  });
+  document.getElementById('count').textContent=n+' karyawan';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
+</script>
+</body>
+</html>

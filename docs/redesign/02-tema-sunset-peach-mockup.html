@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup Tema Sunset Peach — Sistem Manajemen Sapta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ===== PALET SUNSET PEACH ===== */
+    --bg-base:#FDF6EE;        /* krem hangat */
+    --surface:#FFFFFF;
+    --peach:#F4B183;          /* apricot utama */
+    --peach-soft:#FBE3CD;     /* peach pucat (sidebar atas) */
+    --peach-deep:#B95C2E;     /* terracotta — tombol/aksen utama */
+    --coral:#E8918A;          /* coral lembut — sekunder */
+    --coral-deep:#A94A42;
+    --butter:#F6D8A8;         /* kuning butter — tersier */
+    --butter-deep:#8F6420;
+    --ink:#3B332C;            /* cokelat tua hangat, pengganti hitam */
+    --ink-muted:#8A7C6F;
+    --success:#6E9152;        /* hijau zaitun redup utk status ok */
+    --success-bg:#E9F0DF;
+    --danger:#C0453A;
+    --danger-bg:#F9E3E0;
+    --info-bg:#FBEED8;
+    --focus:#D97742;
+    --border:rgba(138,124,111,.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg-base);color:var(--ink);font-family:'Inter',sans-serif;font-size:13px}
+  h1,h2,h3{font-family:'Plus Jakarta Sans',sans-serif}
+
+  /* Toggle tampilan */
+  .switcher{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:100;display:flex;gap:4px;background:#fff;border:1px solid var(--border);border-radius:999px;padding:4px;box-shadow:0 4px 16px rgba(59,51,44,.12)}
+  .switcher button{border:none;background:transparent;padding:6px 18px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink-muted);font-family:'Inter';transition:.2s}
+  .switcher button.on{background:var(--peach-deep);color:#fff}
+  .view{display:none}
+  .view.show{display:block}
+
+  /* ================= LOGIN ================= */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#FDF6EE 0%,#FBE3CD 55%,#F8D3B0 100%)}
+  .blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
+  .b1{width:420px;height:420px;background:#F4B183;top:-120px;right:-80px}
+  .b2{width:340px;height:340px;background:#E8918A;bottom:-100px;left:-60px;opacity:.35}
+  .b3{width:260px;height:260px;background:#F6D8A8;top:40%;left:12%}
+  .login-card{position:relative;width:400px;max-width:92vw;background:rgba(255,255,255,.9);backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:36px 34px;
+    box-shadow:0 20px 50px rgba(185,92,46,.16);animation:rise .5s ease-out}
+  @keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+  .login-logo{width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,var(--peach),var(--peach-deep));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-family:'Plus Jakarta Sans';font-size:15px;
+    box-shadow:0 8px 20px rgba(185,92,46,.35);margin-bottom:18px}
+  .login-card h1{font-size:22px;font-weight:800;letter-spacing:-.01em}
+  .login-card .sub{color:var(--ink-muted);font-size:13px;margin:6px 0 24px}
+  .lfield{margin-bottom:16px}
+  .lfield label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
+  .linput{position:relative}
+  .linput input{width:100%;padding:11px 40px 11px 13px;border:1.5px solid var(--border);border-radius:12px;font-size:13.5px;
+    background:#fff;color:var(--ink);transition:border-color .2s, box-shadow .2s}
+  .linput input:focus{outline:none;border-color:var(--peach-deep);box-shadow:0 0 0 4px rgba(244,177,131,.25)}
+  .linput .eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:none;cursor:pointer;font-size:14px;color:var(--ink-muted);padding:4px}
+  .login-btn{width:100%;margin-top:6px;padding:12px;border:none;border-radius:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Inter';
+    background:linear-gradient(135deg,#D97742,var(--peach-deep));box-shadow:0 8px 20px rgba(185,92,46,.35);
+    transition:transform .15s, box-shadow .15s}
+  .login-btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(185,92,46,.42)}
+  .login-btn:active{transform:translateY(0)}
+  .login-links{display:flex;justify-content:space-between;margin-top:16px;font-size:12px}
+  .login-links a{color:var(--peach-deep);text-decoration:none;font-weight:600}
+  .login-links a:hover{text-decoration:underline}
+
+  /* ================= APLIKASI ================= */
+  .app{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:230px;flex-shrink:0;background:linear-gradient(to bottom,var(--peach-soft) 0%,#F6C89B 100%);
+    padding:12px 10px;overflow-y:auto;color:#5C3A20}
+  .sb-head{display:flex;align-items:center;gap:8px;padding:8px 6px 10px;border-bottom:1px solid rgba(92,58,32,.14);margin-bottom:8px}
+  .sb-logo{width:28px;height:28px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:10px;color:var(--peach-deep);font-family:'Plus Jakarta Sans'}
+  .sb-head b{font-size:12px;font-family:'Plus Jakarta Sans'}
+  .sb-head small{font-size:10px;opacity:.65;display:block}
+  .sb-group{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;padding:8px 8px 4px;display:flex;gap:6px}
+  .sb-item{display:flex;align-items:center;gap:8px;padding:6px 8px;margin:1px 0 1px 14px;border-left:2px solid rgba(92,58,32,.16);
+    font-size:11.5px;font-weight:500;border-radius:8px;cursor:pointer;transition:background .15s, transform .15s}
+  .sb-item:hover{background:rgba(255,255,255,.45);transform:translateX(2px)}
+  .sb-item.active{background:#fff;font-weight:700;box-shadow:0 2px 8px rgba(92,58,32,.12);border-left:3px solid var(--peach-deep)}
+
+  .main{flex:1;overflow-y:auto;padding:24px 28px}
+  .breadcrumb{font-size:12px;color:var(--ink-muted);margin-bottom:6px}
+  .breadcrumb .sep{margin:0 6px;opacity:.5}
+  .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+  .page-header h1{font-size:20px;font-weight:800}
+  .page-header .sub{font-size:13px;color:var(--ink-muted);margin-top:3px}
+  .btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;
+    cursor:pointer;font-family:'Inter';transition:transform .15s, box-shadow .15s, background .15s}
+  .btn-primary{background:var(--peach-deep);color:#fff;box-shadow:0 3px 12px rgba(185,92,46,.32)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(185,92,46,.4)}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--border)}
+
+  /* Kartu statistik dengan angka berhitung naik */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;
+    transition:transform .2s, box-shadow .2s;cursor:default}
+  .stat:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(59,51,44,.1)}
+  .stat .ic{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:8px}
+  .stat .num{font-size:22px;font-weight:800;font-family:'Plus Jakarta Sans'}
+  .stat .lbl{font-size:11.5px;color:var(--ink-muted);margin-top:2px}
+
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .search{position:relative;flex:1;min-width:220px;max-width:340px}
+  .search input{width:100%;padding:9px 12px 9px 34px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;
+    background:var(--surface);color:var(--ink);transition:border-color .2s, box-shadow .2s}
+  .search input:focus{outline:none;border-color:var(--peach-deep);box-shadow:0 0 0 4px rgba(244,177,131,.22)}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-muted)}
+  .toolbar select{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:var(--surface);color:var(--ink);cursor:pointer}
+  .count{font-size:12px;color:var(--ink-muted);margin-left:auto}
+
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(59,51,44,.05)}
+  table{width:100%;border-collapse:collapse}
+  thead th{background:#FAF1E5;text-align:left;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+    color:var(--ink-muted);padding:11px 16px;border-bottom:1px solid var(--border)}
+  tbody td{padding:12px 16px;font-size:13px;border-bottom:1px solid rgba(138,124,111,.1)}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr{cursor:pointer;transition:background .12s}
+  tbody tr:hover{background:rgba(244,177,131,.12)}
+  td a{color:var(--peach-deep);font-weight:600;text-decoration:none}
+  td a:hover{text-decoration:underline}
+  .badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600}
+  .badge.ok{background:var(--success-bg);color:var(--success)}
+  .badge.info{background:var(--info-bg);color:var(--butter-deep)}
+  .badge.warn{background:var(--danger-bg);color:var(--danger)}
+
+  /* Drawer */
+  .overlay{position:fixed;inset:0;background:rgba(59,51,44,.35);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+  .overlay.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:-480px;width:480px;max-width:92vw;height:100vh;background:var(--surface);z-index:50;
+    display:flex;flex-direction:column;box-shadow:-10px 0 34px rgba(59,51,44,.18);transition:right .28s cubic-bezier(.2,.8,.3,1)}
+  .drawer.show{right:0}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);
+    background:linear-gradient(to right,#FDF6EE,#fff)}
+  .drawer-head h2{font-size:16px;font-weight:800}
+  .drawer-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-muted);padding:4px 8px;border-radius:8px;transition:.15s}
+  .drawer-close:hover{background:rgba(138,124,111,.1);transform:rotate(90deg)}
+  .drawer-body{flex:1;overflow-y:auto;padding:20px 22px}
+  .fsection{margin-bottom:22px}
+  .fsection>h3{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--peach-deep);
+    padding-bottom:8px;border-bottom:1px solid rgba(244,177,131,.5);margin-bottom:12px}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:12px;font-weight:600}
+  .field input,.field select{padding:9px 11px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;
+    background:var(--bg-base);color:var(--ink);font-family:'Inter';transition:border-color .2s, box-shadow .2s}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--peach-deep);box-shadow:0 0 0 4px rgba(244,177,131,.22)}
+  .drawer-foot{display:flex;gap:10px;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--border);background:#FDF6EE}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:#5C3A20;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;
+    font-weight:600;display:flex;gap:10px;align-items:center;box-shadow:0 10px 28px rgba(92,58,32,.35);
+    transform:translateY(80px);opacity:0;transition:.28s cubic-bezier(.2,.8,.3,1);z-index:60}
+  .toast.show{transform:none;opacity:1}
+  .toast .dot{width:8px;height:8px;border-radius:50%;background:#F6D8A8}
+
+  .note{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;background:#FFF6E3;border:1px solid #E9C46A;border-radius:12px;
+    padding:10px 16px;font-size:12px;color:#7a5c12;max-width:640px;z-index:90;box-shadow:0 4px 14px rgba(59,51,44,.1)}
+</style>
+</head>
+<body>
+
+<div class="switcher">
+  <button id="btnLogin" class="on" onclick="showView('login')">1 · Halaman Login</button>
+  <button id="btnApp" onclick="showView('app')">2 · Contoh Modul</button>
+</div>
+
+<!-- ================= VIEW: LOGIN ================= -->
+<div class="view show" id="viewLogin">
+  <div class="login-wrap">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+    <div class="login-card">
+      <div class="login-logo">SPT</div>
+      <h1>Selamat datang kembali</h1>
+      <p class="sub">Masuk ke Sistem Manajemen Sapta</p>
+      <div class="lfield">
+        <label>Email</label>
+        <div class="linput"><input type="email" placeholder="nama@perusahaan.co.id"></div>
+      </div>
+      <div class="lfield">
+        <label>Password</label>
+        <div class="linput">
+          <input id="pw" type="password" placeholder="••••••••">
+          <button class="eye" onclick="togglePw()" title="Tampilkan password">👁</button>
+        </div>
+      </div>
+      <button class="login-btn" onclick="fakeLogin(this)">Masuk</button>
+      <div class="login-links">
+        <a href="#">Lupa password?</a>
+        <a href="#" onclick="showView('app');return false">Lihat contoh modul →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= VIEW: APLIKASI ================= -->
+<div class="view" id="viewApp">
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sb-head">
+        <div class="sb-logo">SPT</div>
+        <div><b>PT Sapta</b><small>Sistem Manajemen</small></div>
+      </div>
+      <div class="sb-item" style="margin-left:0;border-left:none">▦ Dashboard</div>
+      <div class="sb-group">👥 SDM ▾</div>
+      <div class="sb-item active">Karyawan</div>
+      <div class="sb-item">Absensi</div>
+      <div class="sb-item">Cuti</div>
+      <div class="sb-item">Payroll</div>
+      <div class="sb-group">💰 Keuangan ▸</div>
+      <div class="sb-group">🤝 CRM ▸</div>
+      <div class="sb-group">✉ Persuratan ▸</div>
+      <div class="sb-item" style="margin-left:0;border-left:none;margin-top:8px">⚙ Pengaturan</div>
+    </aside>
+
+    <main class="main">
+      <nav class="breadcrumb">SDM<span class="sep">›</span>Data Karyawan</nav>
+      <div class="page-header">
+        <div>
+          <h1>Data Karyawan</h1>
+          <p class="sub">Semua karyawan PT Sapta.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openDrawer()">＋ Tambah Karyawan</button>
+      </div>
+
+      <!-- Kartu statistik: angka berhitung naik saat tampil -->
+      <div class="stats">
+        <div class="stat"><div class="ic" style="background:var(--info-bg)">👥</div><div class="num" data-n="24">0</div><div class="lbl">Total Karyawan</div></div>
+        <div class="stat"><div class="ic" style="background:var(--success-bg)">✅</div><div class="num" data-n="21">0</div><div class="lbl">Aktif</div></div>
+        <div class="stat"><div class="ic" style="background:#FBE3CD">🏖</div><div class="num" data-n="2">0</div><div class="lbl">Cuti Panjang</div></div>
+        <div class="stat"><div class="ic" style="background:var(--danger-bg)">📤</div><div class="num" data-n="1">0</div><div class="lbl">Resign Tahun Ini</div></div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="q" type="search" placeholder="Cari nama, NIK, atau jabatan…" oninput="filterRows()">
+        </div>
+        <select id="fDept" onchange="filterRows()">
+          <option value="">Semua Departemen</option>
+          <option>Inspeksi</option><option>Sertifikasi</option><option>Keuangan</option>
+        </select>
+        <select id="fStatus" onchange="filterRows()">
+          <option value="">Semua Status</option>
+          <option>Aktif</option><option>Cuti Panjang</option><option>Resign</option>
+        </select>
+        <span class="count" id="count">6 karyawan</span>
+      </div>
+
+      <div class="table-card">
+        <table id="tbl">
+          <thead><tr><th>Nama</th><th>Jabatan</th><th>Departemen</th><th>Bergabung</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><a href="#">Ahmad Fauzi</a></td><td>Inspektor Senior</td><td>Inspeksi</td><td>12 Mar 2019</td><td><span class="badge ok">Aktif</span></td></tr>
+            <tr><td><a href="#">Budi Santoso</a></td><td>Auditor SMK3</td><td>Sertifikasi</td><td>03 Jan 2020</td><td><span class="badge ok">Aktif</span></td></tr>
+            <tr><td><a href="#">Citra Lestari</a></td><td>Staf Keuangan</td><td>Keuangan</td><td>21 Agu 2021</td><td><span class="badge ok">Aktif</span></td></tr>
+            <tr><td><a href="#">Dewi Anggraini</a></td><td>HR Officer</td><td>Inspeksi</td><td>15 Feb 2022</td><td><span class="badge info">Cuti Panjang</span></td></tr>
+            <tr><td><a href="#">Eko Prasetyo</a></td><td>Inspektor</td><td>Inspeksi</td><td>08 Jul 2022</td><td><span class="badge ok">Aktif</span></td></tr>
+            <tr><td><a href="#">Gilang Ramadhan</a></td><td>Inspektor Junior</td><td>Sertifikasi</td><td>02 Mei 2024</td><td><span class="badge warn">Resign</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Drawer + toast (dipakai view aplikasi) -->
+<div class="overlay" id="ov" onclick="closeDrawer()"></div>
+<aside class="drawer" id="dr">
+  <div class="drawer-head">
+    <div><h2>Tambah Karyawan</h2></div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="fsection">
+      <h3>① Identitas</h3>
+      <div class="fgrid">
+        <div class="field"><label>NIK *</label><input placeholder="mis. 2026-001"></div>
+        <div class="field"><label>Nama Lengkap *</label><input></div>
+      </div>
+    </div>
+    <div class="fsection">
+      <h3>② Pekerjaan</h3>
+      <div class="fgrid">
+        <div class="field"><label>Jabatan *</label><input></div>
+        <div class="field"><label>Departemen</label><select><option>Inspeksi</option><option>Sertifikasi</option></select></div>
+      </div>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button class="btn btn-ghost" onclick="closeDrawer()">Batal</button>
+    <button class="btn btn-primary" onclick="save()">Simpan</button>
+  </div>
+</aside>
+<div class="toast" id="toast"><span class="dot"></span> Karyawan berhasil ditambahkan.</div>
+
+<div class="note">
+  <b>Mockup tema Sunset Peach</b> — cek: ① login dengan latar gradien + blob lembut, fokus input menyala peach, tombol terangkat saat hover;
+  ② di contoh modul: kartu statistik <i>berhitung naik</i> &amp; terangkat saat hover, baris tabel menyala peach, drawer meluncur halus, ikon ✕ berputar saat hover, toast muncul saat Simpan.
+</div>
+
+<script>
+function showView(v){
+  document.getElementById('viewLogin').classList.toggle('show', v==='login');
+  document.getElementById('viewApp').classList.toggle('show', v==='app');
+  document.getElementById('btnLogin').classList.toggle('on', v==='login');
+  document.getElementById('btnApp').classList.toggle('on', v==='app');
+  if(v==='app') countUp();
+}
+function togglePw(){const i=document.getElementById('pw');i.type=i.type==='password'?'text':'password'}
+function fakeLogin(btn){btn.textContent='Memeriksa…';setTimeout(()=>{btn.textContent='Masuk';showView('app')},700)}
+let counted=false;
+function countUp(){
+  if(counted)return;counted=true;
+  document.querySelectorAll('.num').forEach(el=>{
+    const target=+el.dataset.n;const t0=performance.now();
+    function tick(t){const p=Math.min(1,(t-t0)/800);el.textContent=Math.round(target*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(tick)}
+    requestAnimationFrame(tick);
+  });
+}
+function openDrawer(){document.getElementById('dr').classList.add('show');document.getElementById('ov').classList.add('show')}
+function closeDrawer(){document.getElementById('dr').classList.remove('show');document.getElementById('ov').classList.remove('show')}
+function save(){closeDrawer();const t=document.getElementById('toast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600)}
+function filterRows(){
+  const q=document.getElementById('q').value.toLowerCase();
+  const d=document.getElementById('fDept').value;
+  const s=document.getElementById('fStatus').value;
+  let n=0;
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+    const c=[...tr.cells].map(x=>x.innerText);
+    const ok=(!q||c.join(' ').toLowerCase().includes(q))&&(!d||c[2]===d)&&(!s||c[4]===s);
+    tr.style.display=ok?'':'none';if(ok)n++;
+  });
+  document.getElementById('count').textContent=n+' karyawan';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer()});
+</script>
+</body>
+</html>
