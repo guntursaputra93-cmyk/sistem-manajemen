@@ -75,3 +75,4 @@ export * from "./caseMilestones";
 export * from "./caseDeliverables";
 export * from "./caseExternalSubmissions";
 export * from "./caseExternalSubmissionHistory";
+export * from "./practitionerEligibility";

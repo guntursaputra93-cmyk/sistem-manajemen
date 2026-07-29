@@ -3,7 +3,15 @@ import type { db as Db } from "@/lib/db";
 import { approvalFlows, approvalSteps } from "@/drizzle/schema";
 import type { Role } from "@/lib/rbac/permissions";
 
-export type ApprovalEntityType = "surat_keluar" | "nota_dinas" | "dokumen";
+// 'evaluasi_kelayakan_personil' ditambahkan untuk AUDIT-E1 (migrasi 0106).
+//
+// PERHATIAN untuk pemakai baru: default modul ini PERMISIF — kalau company belum
+// mengonfigurasi approval_flows, initializeApprovalSteps() membuat 0 step dan
+// getApprovalStatus() mengembalikan allApproved=true (karena [].every() === true).
+// Itu sengaja untuk surat/dokumen. Entity type yang butuh perilaku FAIL-CLOSED
+// wajib memeriksa `totalSteps === 0` sendiri dan TIDAK boleh mengandalkan
+// allApproved — lihat resolveFinalStatus() di lib/hr/practitionerEligibility.ts.
+export type ApprovalEntityType = "surat_keluar" | "nota_dinas" | "dokumen" | "evaluasi_kelayakan_personil";
 
 export type ActingUser = {
   id: string;

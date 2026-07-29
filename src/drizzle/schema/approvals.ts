@@ -4,7 +4,15 @@ import { companies } from "./companies";
 import { departments } from "./departments";
 import { users, userRoleEnum } from "./users";
 
-export const approvalEntityTypeEnum = pgEnum("approval_entity_type", ["surat_keluar", "nota_dinas", "dokumen"]);
+// 'evaluasi_kelayakan_personil' ditambahkan untuk AUDIT-E1 — aditif, nilai lama
+// tidak tersentuh. Entity ini memakai mesin approval yang sama, tapi dengan
+// perlakuan FAIL-CLOSED di sisi pemakainya (lib/hr/practitionerEligibility.ts).
+export const approvalEntityTypeEnum = pgEnum("approval_entity_type", [
+  "surat_keluar",
+  "nota_dinas",
+  "dokumen",
+  "evaluasi_kelayakan_personil",
+]);
 export const approvalStepStatusEnum = pgEnum("approval_step_status", ["pending", "approved", "rejected"]);
 
 // Konfigurasi jenjang approval, fleksibel per jenis (jenis_key bebas diisi admin,

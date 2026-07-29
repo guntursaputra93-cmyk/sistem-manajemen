@@ -1,0 +1,1 @@
+ALTER TYPE "public"."approval_entity_type" ADD VALUE 'evaluasi_kelayakan_personil';

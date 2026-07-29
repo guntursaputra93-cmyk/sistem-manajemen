@@ -729,6 +729,27 @@
       "when": 1785121529074,
       "tag": "0103_audit_trails_company_fk_restrict",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1785258954292,
+      "tag": "0104_create_practitioner_eligibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 105,
+      "version": "7",
+      "when": 1785258970510,
+      "tag": "0105_rls_practitioner_eligibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1785259227659,
+      "tag": "0106_add_practitioner_eligibility_approval_entity_type",
+      "breakpoints": true
     }
   ]
 }

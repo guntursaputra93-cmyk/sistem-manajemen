@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { and, asc, eq, inArray } from "drizzle-orm";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { withTenantContext } from "@/lib/db";
 import { companies, employeeCompetencies, competencyTypes, employees, attachments } from "@/drizzle/schema";
@@ -178,6 +178,14 @@ export default async function KompetensiPage({
               >
                 <ClipboardCheck size={14} aria-hidden="true" />
                 Laporan Kepatuhan Witness
+              </Link>
+              {/* Evaluasi kelayakan tahunan (AUDIT-E1) — RBAC sama dengan canManage. */}
+              <Link
+                href={`/${companySlug}/sdm/kompetensi/kelayakan`}
+                className="inline-flex items-center gap-1.5 rounded-[10px] border border-ink-muted/20 px-3 py-2 text-[13px] font-semibold text-ink transition-colors hover:bg-ink-muted/5"
+              >
+                <ShieldCheck size={14} aria-hidden="true" />
+                Evaluasi Kelayakan
               </Link>
             <FormDrawer buttonLabel="Assign Kompetensi" title="Assign Kompetensi ke Karyawan" defaultOpen={Boolean(error)}>
               {error && (
